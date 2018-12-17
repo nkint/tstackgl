@@ -6,8 +6,8 @@ import {
   createXYZ,
   createDrawMeshUnicolor,
   createDrawMeshWireframe,
+  createDrawMeshNormalLines,
 } from '@tstackgl/regl-draw'
-import { createDrawMeshNormalLines } from './dd'
 import { extrude, circleShape } from '@tstackgl/geometry'
 
 console.log('dudee', createFrameCatch)
