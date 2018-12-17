@@ -3,7 +3,7 @@ import { Mesh, Vec3 } from '@tstackgl/types'
 import { faceNormals } from 'normals'
 import { getCentroidFromCells } from '@tstackgl/geometry'
 import vec3 from 'gl-vec3'
-import { tuples, mapcat, partition, range } from '@thi.ng/transducers'
+import { tuples, mapcat, partition, range, map } from '@thi.ng/transducers'
 
 const vert = `
 precision mediump float;
@@ -23,21 +23,25 @@ void main () {
   gl_FragColor = vec4(vColor, 1.0);
 }`
 
-interface Uniforms {
-  // color: Array<Vec3>
-}
+interface Uniforms {}
+interface Props {}
 
 interface Attributes {
   position: Array<Vec3>
   color: Array<Vec3>
 }
 
-interface Props {}
-
 export function createDrawMeshNormalLines(regl: createRegl.Regl, mesh: Mesh, len: number = 1) {
   const faceNormalsArray = faceNormals(mesh.cells, mesh.positions)
 
-  const colors = [...mapcat(x => [x, x], faceNormalsArray)]
+  const colors = [
+    ...map(
+      (x: Vec3) => [x[0] / 2 + 0.5, x[1] / 2 + 0.5, x[2] / 2 + 0.5] as Vec3,
+      mapcat(x => [x, x], faceNormalsArray),
+    ),
+  ]
+
+  console.log({ colors })
 
   const centersArray = getCentroidFromCells(mesh.cells, mesh.positions)
   const p1Array = centersArray.map((p0, i) => {
