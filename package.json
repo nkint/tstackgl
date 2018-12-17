@@ -1,0 +1,25 @@
+{
+  "name": "tstackgl",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "yarn install && lerna -v && lerna bootstrap && lerna run build --sort",
+    "clean": "rm -rf node_modules; rm -rf packages/*/node_modules; rm yarn.lock; yarn cache clean",
+    "publish": "is-git-status-clean && lerna publish --npm-client yarn"
+  },
+  "engines": {
+    "node": ">=8.6",
+    "yarn": ">=1.2.1"
+  },
+  "devDependencies": {
+    "is-git-status-clean": "1.0.0",
+    "lerna": "3.5.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.2.2",
+    "parcel-bundler": "^1.10.3"
+  }
+}
