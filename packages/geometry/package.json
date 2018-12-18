@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@thi.ng/transducers": "^2.2.6",
+    "@thi.ng/transducers": "^2.2.7",
     "@tstackgl/types": "^0.0.0",
     "@tstackgl/stackgl-types": "^0.0.0",
     "angle-normals": "^1.0.0",
