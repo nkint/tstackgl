@@ -104,11 +104,11 @@ export function extrude(
     sideCells = getSideCells(segmentsTopCells, segmentsBottomCells)
   } else {
     const polygonsIdx = [
-      range(0, inputPolygons[0].length) as IterableIterator<number>, //top
+      range(0, inputPolygons[0].length), //top
       range(
         positions.length / 2,
         positions.length / 2 + inputPolygons[0].length,
-      ) as IterableIterator<number>, // bottom
+      ), // bottom
     ]
 
     const segmentsTopCells = polygonToSegments(polygonsIdx[0])
@@ -119,11 +119,11 @@ export function extrude(
     let cursor = inputPolygons[0].length
     const holesIdx = inputPolygons.slice(1).map(hole => {
       const ret = [
-        range(cursor, cursor + hole.length) as IterableIterator<number>, //top
+        range(cursor, cursor + hole.length), //top
         range(
           positions.length / 2 + cursor,
           positions.length / 2 + cursor + hole.length,
-        ) as IterableIterator<number>, // bottom
+        ), // bottom
       ]
       cursor += hole.length
       return ret

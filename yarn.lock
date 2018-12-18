@@ -1130,10 +1130,10 @@
     "@thi.ng/errors" "^0.1.12"
     "@thi.ng/memoize" "^0.2.6"
 
-"@thi.ng/transducers@^2.2.6":
-  version "2.2.6"
-  resolved "https://registry.yarnpkg.com/@thi.ng/transducers/-/transducers-2.2.6.tgz#f6b8c62720cdd5b0c028f062273b4059a965ed51"
-  integrity sha512-NHhCtppod7Cv55zY8mmMD6Ah8JKGHpcIGmrgGA4yMqdHuUdFi7keiPF+lxvlIWZoD9GZtsWTvsO5nR7eVLsFDg==
+"@thi.ng/transducers@^2.2.7":
+  version "2.2.7"
+  resolved "https://registry.yarnpkg.com/@thi.ng/transducers/-/transducers-2.2.7.tgz#a646f5d2be2e6b524bb827a9769eb3641473398b"
+  integrity sha512-ca2btl/cU01ZgzijzVpV/+j6GHUP0ns4ghfUXz94gf5AzE6iPYKlKveg2xMD8V8WqCJF5oUBiCqdz+uUM0xgkQ==
   dependencies:
     "@thi.ng/api" "^4.2.4"
     "@thi.ng/checks" "^1.5.14"
