@@ -1105,6 +1105,26 @@
     "@thi.ng/api" "^4.2.4"
     "@thi.ng/errors" "^0.1.12"
 
+"@thi.ng/dcons@^1.1.19":
+  version "1.1.19"
+  resolved "https://registry.yarnpkg.com/@thi.ng/dcons/-/dcons-1.1.19.tgz#63bdc3cefc224ae75dce190de2cdcd6bd0aab2b7"
+  integrity sha512-fZI33nJuHMB+lmceaJ0VFJPpBE77U3doiYE3sUHI53iWcBZVOlutt3Ffg5XaAin96f5BFcR019UYIElN2w9auw==
+  dependencies:
+    "@thi.ng/api" "^4.2.4"
+    "@thi.ng/checks" "^1.5.14"
+    "@thi.ng/compare" "^0.1.12"
+    "@thi.ng/equiv" "^0.1.15"
+    "@thi.ng/errors" "^0.1.12"
+    "@thi.ng/transducers" "^2.2.7"
+
+"@thi.ng/diff@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@thi.ng/diff/-/diff-2.0.2.tgz#218386e0c8409c86b4a151902c6979f54b11f2ee"
+  integrity sha512-Oy9WUgirkkECBmTJSPPyAmW6zPVWYHTTMMGeNLhE0nWCEBdzPvdRSVB6N91LTyPv+Z1O4tw4vCMFZqJ3GRVsDg==
+  dependencies:
+    "@thi.ng/api" "^4.2.4"
+    "@thi.ng/equiv" "^0.1.15"
+
 "@thi.ng/equiv@^0.1.15":
   version "0.1.15"
   resolved "https://registry.yarnpkg.com/@thi.ng/equiv/-/equiv-0.1.15.tgz#f9ca1ff449c195f2d32a911ec37ebcd10ccaf5f4"
@@ -1114,6 +1134,42 @@
   version "0.1.12"
   resolved "https://registry.yarnpkg.com/@thi.ng/errors/-/errors-0.1.12.tgz#7789637d5e6fc8a892c97b39013eaa846e783450"
   integrity sha512-iWuco0HdWXBJYayALO+qwLRVBNOcYrejB176DusDOMYq+od5iESIjDHlrv+WGUaFhnuCuJFCOnZJLlJv67zNfw==
+
+"@thi.ng/hdom-components@latest":
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/@thi.ng/hdom-components/-/hdom-components-2.4.2.tgz#7a11bdc5d9dc9a17d3f59ca516a90b5f6ba24acf"
+  integrity sha512-hRzOaqqba9iSaz48m+81dkoOdc1eGHUkJQUmSYmeZR13GjLHT4O+FXSwF2G1Dsbu8UwEGcTwu6R++kHX25CJIg==
+  dependencies:
+    "@thi.ng/api" "^4.2.4"
+    "@thi.ng/checks" "^1.5.14"
+    "@thi.ng/math" "^0.2.2"
+    "@thi.ng/transducers" "^2.2.7"
+    "@thi.ng/transducers-stats" "^0.4.19"
+    "@types/webgl2" "^0.0.4"
+
+"@thi.ng/hdom@latest":
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/@thi.ng/hdom/-/hdom-6.0.3.tgz#e13e24c405e709e7fdacab0f93baf9fb43acda51"
+  integrity sha512-f1F7I3ZlDSzJHp9g4ycj6SgpUZSg0KlytLyF6YEpSJMHpx91xwjFMKd2GkxF+4opkluq3y2xCL9UcXmzJtFnUQ==
+  dependencies:
+    "@thi.ng/api" "^4.2.4"
+    "@thi.ng/checks" "^1.5.14"
+    "@thi.ng/diff" "^2.0.2"
+    "@thi.ng/equiv" "^0.1.15"
+    "@thi.ng/hiccup" "^2.7.2"
+
+"@thi.ng/hiccup@^2.7.2":
+  version "2.7.2"
+  resolved "https://registry.yarnpkg.com/@thi.ng/hiccup/-/hiccup-2.7.2.tgz#ced36e993ee3615fb545cf41a36cd6e669f36795"
+  integrity sha512-danLzTdg+Jl63C4C7JiAzCNvVWQG2ihmz8ctm6lZaUQF252DmoZwwITexh+OOgft9tARROVAT+2NF7k5NeABbg==
+  dependencies:
+    "@thi.ng/checks" "^1.5.14"
+    "@thi.ng/errors" "^0.1.12"
+
+"@thi.ng/math@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@thi.ng/math/-/math-0.2.2.tgz#0cdacf020f4d1914e0a6987c34ed72b09f0669c5"
+  integrity sha512-I2zrogCDfLHKQkz/xHRDKvzufWFMWmzi//15nFIlwinbFyog1AYCtUrxXAd0ev0fzxVzEXUycsOLm1KqtNw6iA==
 
 "@thi.ng/memoize@^0.2.6":
   version "0.2.6"
@@ -1130,7 +1186,16 @@
     "@thi.ng/errors" "^0.1.12"
     "@thi.ng/memoize" "^0.2.6"
 
-"@thi.ng/transducers@^2.2.7":
+"@thi.ng/transducers-stats@^0.4.19":
+  version "0.4.19"
+  resolved "https://registry.yarnpkg.com/@thi.ng/transducers-stats/-/transducers-stats-0.4.19.tgz#e13185e1322a8c20e28e547fbde5f85f32b50b1e"
+  integrity sha512-151oEIxsvFn1vPOywv0YTfBCMvUeaz6RCvzZBMllQ0JT6/xREO/cjLGQQC9uKbPCt4BdCYIZmcEEFRBKTesnQw==
+  dependencies:
+    "@thi.ng/dcons" "^1.1.19"
+    "@thi.ng/errors" "^0.1.12"
+    "@thi.ng/transducers" "^2.2.7"
+
+"@thi.ng/transducers@^2.2.7", "@thi.ng/transducers@latest":
   version "2.2.7"
   resolved "https://registry.yarnpkg.com/@thi.ng/transducers/-/transducers-2.2.7.tgz#a646f5d2be2e6b524bb827a9769eb3641473398b"
   integrity sha512-ca2btl/cU01ZgzijzVpV/+j6GHUP0ns4ghfUXz94gf5AzE6iPYKlKveg2xMD8V8WqCJF5oUBiCqdz+uUM0xgkQ==
@@ -1159,6 +1224,11 @@
 "@types/semver@^5.5.0":
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/@types/semver/-/semver-5.5.0.tgz#146c2a29ee7d3bae4bf2fcb274636e264c813c45"
+
+"@types/webgl2@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.4.tgz#c3b0f9d6b465c66138e84e64cb3bdf8373c2c279"
+  integrity sha512-PACt1xdErJbMUOUweSrbVM7gSIYm1vTncW2hF6Os/EeWi6TXYAYMPp+8v6rzHmypE5gHrxaxZNXgMkJVIdZpHw==
 
 JSONStream@^1.0.4, JSONStream@^1.3.4:
   version "1.3.5"
