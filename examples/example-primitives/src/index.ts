@@ -31,7 +31,7 @@ function createReglScene() {
 
     adaptDPI(canvas, width, height)
 
-    const regl = createRegl({ canvas })
+    const regl = createRegl({ canvas, extensions: ['OES_standard_derivatives'] })
     const frameCatch = createFrameCatch(regl)
     const camera = createCamera(regl, { distance: 65, phi: 0.4, theta: 1.2 })
 
@@ -41,7 +41,7 @@ function createReglScene() {
       createSphere(2, { segments: 5 }),
       createIcosphere(2, { subdivisions: 1 }),
       createCapsule(2, 2, 8),
-      createTorus({ majorRadius: 2 }),
+      createTorus({ majorRadius: 2, minorSegments: 8, majorSegments: 16 }),
       bunny,
       teapot,
     ]
