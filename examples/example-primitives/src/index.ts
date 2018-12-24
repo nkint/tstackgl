@@ -3,8 +3,8 @@ import { start } from '@thi.ng/hdom'
 import { canvasWebGL, adaptDPI } from '@thi.ng/hdom-components/canvas'
 import { hasWebGL } from '@thi.ng/checks'
 import { createFrameCatch } from '@tstackgl/regl-draw'
-import { createDrawMesh, Props } from './draw-mesh'
-import { Vec4, Mesh, Vec3 } from '@tstackgl/types'
+import { createDrawMesh, PropsBasicMaterial } from './draw-mesh'
+import { Mesh, Vec3 } from '@tstackgl/types'
 import createCamera from 'regl-camera' // TODO: remove dependency
 import createQuad from 'primitive-quad'
 import createBox from 'geo-3d-box'
@@ -17,11 +17,6 @@ import teapot from 'teapot'
 import * as tx from '@thi.ng/transducers'
 
 let loop = { cancel: function() {} }
-const state: {
-  triangleColor: Vec4
-} = {
-  triangleColor: [1, 0, 0, 1],
-}
 
 function createReglScene() {
   // canvas init hook
@@ -41,16 +36,21 @@ function createReglScene() {
       createSphere(2, { segments: 5 }),
       createIcosphere(2, { subdivisions: 1 }),
       createCapsule(2, 2, 8),
-      createTorus({ majorRadius: 2, minorSegments: 8, majorSegments: 16 }),
+      createTorus({ majorRadius: 2, minorSegments: 8, majorSegments: 18 }),
       bunny,
       teapot,
     ]
 
+    const lightProps = {
+      diffuseColor: [0.4, 0.4, 0.4] as Vec3,
+      ambientColor: [0.1, 0.1, 0.1] as Vec3,
+      lightDirection: [-1.0 / Math.sqrt(3), 1.0 / Math.sqrt(3), 1.0 / Math.sqrt(3)] as Vec3,
+    }
     const numRow = 2
     const indexes = [...tx.range(meshes.length)]
     const xform = tx.comp(
       tx.map(
-        ([x, i]: [Mesh, number]): Partial<Props> => {
+        ([x, i]: [Mesh, number]): PropsBasicMaterial => {
           return {
             translate: [15 - Math.floor(i / numRow) * 10, 0, (i % numRow) * 10] as Vec3,
             scale:
@@ -59,6 +59,7 @@ function createReglScene() {
                 : i < meshes.length - 1
                 ? [0.4, 0.4, 0.4]
                 : [0.2, 0.2, 0.2],
+            ...lightProps,
           }
         },
       ),
@@ -78,22 +79,13 @@ function createReglScene() {
         drawCommands.forEach((draw, i) => {
           draw({
             ...props[i],
-            color: state.triangleColor,
-          } as Props)
+          } as PropsBasicMaterial)
         })
       })
     })
   }
 
-  const update = (
-    el: HTMLCanvasElement,
-    gl: WebGLRenderingContext,
-    ctx: any,
-    time: number,
-    frame: number,
-    ...args: any[]
-  ) => {}
-
+  const update = () => {}
   return { init, update }
 }
 
@@ -105,8 +97,6 @@ const app = () => {
   }
 
   const canvas = canvasWebGL(createReglScene())
-
-  console.log(canvas)
 
   return [
     'div.h-100.flex.flex-column',

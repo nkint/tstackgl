@@ -43,28 +43,26 @@ void main () {
 }
 `
 
-interface Uniforms {
-  color: Vec4
+interface PropsGeometry {
   translate: Vec3
   scale: Vec3
+}
 
+interface PropsLight {
   diffuseColor: Vec3
   ambientColor: Vec3
   lightDirection: Vec3
 }
 
+export type PropsBasicMaterial = PropsGeometry & PropsLight
+
+interface Uniforms extends PropsBasicMaterial {}
 interface Attributes {
   position: Array<Vec3>
 }
 
-export interface Props {
-  color: Vec4
-  translate: Vec3
-  scale: Vec3
-}
-
 export function createDrawMesh(regl: createRegl.Regl, mesh: Mesh) {
-  return regl<Uniforms, Attributes, Props>({
+  return regl<Uniforms, Attributes, PropsBasicMaterial>({
     vert,
     frag,
 
@@ -73,13 +71,12 @@ export function createDrawMesh(regl: createRegl.Regl, mesh: Mesh) {
     },
 
     uniforms: {
-      color: regl.prop<Props, 'color'>('color'),
-      translate: regl.prop<Props, 'translate'>('translate'),
-      scale: regl.prop<Props, 'scale'>('scale'),
+      translate: regl.prop<PropsGeometry, 'translate'>('translate'),
+      scale: regl.prop<PropsGeometry, 'scale'>('scale'),
 
-      diffuseColor: [0.4, 0.4, 0.4],
-      ambientColor: [0.1, 0.1, 0.1],
-      lightDirection: [-1.0 / Math.sqrt(3), 1.0 / Math.sqrt(3), 1.0 / Math.sqrt(3)],
+      diffuseColor: regl.prop<PropsLight, 'diffuseColor'>('diffuseColor'),
+      ambientColor: regl.prop<PropsLight, 'ambientColor'>('ambientColor'),
+      lightDirection: regl.prop<PropsLight, 'lightDirection'>('lightDirection'),
     },
 
     elements: () => mesh.cells,
