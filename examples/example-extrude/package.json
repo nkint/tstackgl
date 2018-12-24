@@ -1,5 +1,5 @@
 {
-  "name": "@tstackgl/examples-extrude-demo",
+  "name": "@tstackgl/examples-extrude",
   "version": "0.0.0",
   "description": "extrude demo",
   "author": "nkint <nootropic.kint@gmail.com>",
@@ -15,6 +15,9 @@
     "typescript": "^3.2.2"
   },
   "dependencies": {
+    "@thi.ng/hdom": "latest",
+    "@thi.ng/hdom-components": "latest",
+    "@thi.ng/transducers": "latest",
     "@tstackgl/geometry": "^0.0.0",
     "@tstackgl/regl-draw": "^0.0.0",
     "@tstackgl/types": "^0.0.0",
