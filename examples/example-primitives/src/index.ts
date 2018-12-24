@@ -3,7 +3,7 @@ import { start } from '@thi.ng/hdom'
 import { canvasWebGL, adaptDPI } from '@thi.ng/hdom-components/canvas'
 import { hasWebGL } from '@thi.ng/checks'
 import { createFrameCatch } from '@tstackgl/regl-draw'
-import { createDrawMesh, PropsBasicMaterial } from './draw-mesh'
+import { createBasicMesh, PropsBasicMaterial } from './draw-basic-mesh'
 import { Mesh, Vec3 } from '@tstackgl/types'
 import createCamera from 'regl-camera' // TODO: remove dependency
 import createQuad from 'primitive-quad'
@@ -17,6 +17,8 @@ import teapot from 'teapot'
 import * as tx from '@thi.ng/transducers'
 
 let loop = { cancel: function() {} }
+
+// TODO: add createCheckerTexture from https://github.com/glo-js/glo-demo-primitive/blob/master/index.js
 
 function createReglScene() {
   // canvas init hook
@@ -65,7 +67,7 @@ function createReglScene() {
       ),
     )
 
-    const drawCommands = meshes.map(mesh => createDrawMesh(regl, mesh))
+    const drawCommands = meshes.map(mesh => createBasicMesh(regl, mesh))
 
     loop = frameCatch(function({}) {
       camera((cameraState: any) => {

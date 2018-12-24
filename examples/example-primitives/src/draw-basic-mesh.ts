@@ -1,5 +1,5 @@
 import createRegl from 'regl'
-import { Vec4, Vec3, Mesh } from '@tstackgl/types'
+import { Vec3, Mesh } from '@tstackgl/types'
 
 const vert = `
 precision mediump float;
@@ -61,7 +61,7 @@ interface Attributes {
   position: Array<Vec3>
 }
 
-export function createDrawMesh(regl: createRegl.Regl, mesh: Mesh) {
+export function createBasicMesh(regl: createRegl.Regl, mesh: Mesh) {
   return regl<Uniforms, Attributes, PropsBasicMaterial>({
     vert,
     frag,
