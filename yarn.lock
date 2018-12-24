@@ -1683,6 +1683,11 @@ builtins@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/builtins/-/builtins-1.0.3.tgz#cb94faeb61c8696451db36534e1422f94f0aee88"
 
+bunny@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/bunny/-/bunny-1.0.1.tgz#86383da45ab7a99571a5a572b7be0e3564815f9e"
+  integrity sha1-hjg9pFq3qZVxpaVyt74ONWSBX54=
+
 byline@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/byline/-/byline-5.0.0.tgz#741c5216468eadc457b03410118ad77de8c1ddb1"
@@ -3116,6 +3121,11 @@ gentle-fs@^2.0.0:
     read-cmd-shim "^1.0.1"
     slide "^1.1.6"
 
+geo-3d-box@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/geo-3d-box/-/geo-3d-box-2.0.2.tgz#34b7521b5345a47297bad25899c81bf29824bd99"
+  integrity sha1-NLdSG1NFpHKXutJYmcgb8pgkvZk=
+
 get-caller-file@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-1.0.3.tgz#f978fa4c90d1dfe7ff2d6beda2a515e713bdcf4a"
@@ -3235,6 +3245,14 @@ glob-parent@^3.1.0:
 glob-to-regexp@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/glob-to-regexp/-/glob-to-regexp-0.3.0.tgz#8c5a1494d2066c570cc3bfe4496175acc4d502ab"
+
+glob@^3.2.9:
+  version "3.2.11"
+  resolved "https://registry.yarnpkg.com/glob/-/glob-3.2.11.tgz#4a973f635b9190f715d10987d5c00fd2815ebe3d"
+  integrity sha1-Spc/Y1uRkPcV0QmH1cAP0oFevj0=
+  dependencies:
+    inherits "2"
+    minimatch "0.3"
 
 glob@^7.0.3, glob@^7.0.5, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3:
   version "7.1.3"
@@ -3737,6 +3755,11 @@ is-glob@^4.0.0:
   dependencies:
     is-extglob "^2.1.1"
 
+is-little-endian@~0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/is-little-endian/-/is-little-endian-0.0.0.tgz#9709559b72b2ec492f626c6305ad393ea90b668c"
+  integrity sha1-lwlVm3Ky7EkvYmxjBa05PqkLZow=
+
 is-number@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/is-number/-/is-number-3.0.0.tgz#24fd6201a4782cf50561c810276afc7d12d71195"
@@ -4198,6 +4221,11 @@ loud-rejection@^1.0.0:
     currently-unhandled "^0.4.1"
     signal-exit "^3.0.0"
 
+lru-cache@2:
+  version "2.7.3"
+  resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-2.7.3.tgz#6d4524e8b955f95d4f5b58851ce21dd72fb4e952"
+  integrity sha1-bUUk6LlV+V1PW1iFHOId1y+06VI=
+
 lru-cache@^4.1.2, lru-cache@^4.1.3:
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-4.1.5.tgz#8bbe50ea85bed59bc9e33dcab8235ee9bcf443cd"
@@ -4242,6 +4270,13 @@ map-age-cleaner@^0.1.1:
 map-cache@^0.2.2:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/map-cache/-/map-cache-0.2.2.tgz#c32abd0bd6525d9b051645bb4f26ac5dc98a0dbf"
+
+map-limit@0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/map-limit/-/map-limit-0.0.0.tgz#b95e8efb78817825bd69af30b986abe23c18c74f"
+  integrity sha1-uV6O+3iBeCW9aa8wuYar4jwYx08=
+  dependencies:
+    once "~1.3.0"
 
 map-obj@^1.0.0, map-obj@^1.0.1:
   version "1.0.1"
@@ -4370,6 +4405,14 @@ minimalistic-assert@^1.0.0, minimalistic-assert@^1.0.1:
 minimalistic-crypto-utils@^1.0.0, minimalistic-crypto-utils@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/minimalistic-crypto-utils/-/minimalistic-crypto-utils-1.0.1.tgz#f6c00c1c0b082246e5c4d99dfb8c7c083b2b582a"
+
+minimatch@0.3:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-0.3.0.tgz#275d8edaac4f1bb3326472089e7949c8394699dd"
+  integrity sha1-J12O2qxPG7MyZHIInnlJyDlGmd0=
+  dependencies:
+    lru-cache "2"
+    sigmund "~1.0.0"
 
 minimatch@^3.0.0, minimatch@^3.0.4:
   version "3.0.4"
@@ -4815,6 +4858,13 @@ once@^1.3.0, once@^1.3.1, once@^1.4.0:
   dependencies:
     wrappy "1"
 
+once@~1.3.0:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/once/-/once-1.3.3.tgz#b2e261557ce4c314ec8304f3fa82663e4297ca20"
+  integrity sha1-suJhVXzkwxTsgwTz+oJmPkKXyiA=
+  dependencies:
+    wrappy "1"
+
 onetime@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/onetime/-/onetime-2.0.1.tgz#067428230fd67443b2794b22bba528b6867962d4"
@@ -5087,6 +5137,14 @@ parse-json@^4.0.0:
   dependencies:
     error-ex "^1.3.1"
     json-parse-better-errors "^1.0.1"
+
+parse-ply@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/parse-ply/-/parse-ply-0.1.0.tgz#6348de8725268ccc0524965276651bc7b301d5cd"
+  integrity sha1-Y0jehyUmjMwFJJZSdmUbx7MB1c0=
+  dependencies:
+    is-little-endian "~0.0.0"
+    through "~2.3.4"
 
 parse-unit@^1.0.1:
   version "1.0.1"
@@ -5698,6 +5756,11 @@ prepend-http@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
 
+primitive-capsule@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/primitive-capsule/-/primitive-capsule-3.0.1.tgz#c0502610dd90259db7017f9e8ef42e964799ce21"
+  integrity sha1-wFAmEN2QJZ23AX+ejvQulkeZziE=
+
 primitive-icosphere@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/primitive-icosphere/-/primitive-icosphere-1.0.2.tgz#61176a0a5fc5bed6b2bf3bd8566db24642ba43fe"
@@ -5706,6 +5769,27 @@ primitive-icosphere@^1.0.2:
     gl-vec2 "^1.0.0"
     gl-vec3 "^1.0.3"
     icosphere "^1.0.0"
+
+primitive-quad@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/primitive-quad/-/primitive-quad-2.0.0.tgz#c20993e4f9600238926bb500e529053043ef8aeb"
+  integrity sha1-wgmT5PlgAjiSa7UA5SkFMEPvius=
+
+primitive-sphere@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/primitive-sphere/-/primitive-sphere-3.0.0.tgz#7609bda5f6f6c9252213efa3127060ee65e6f732"
+  integrity sha1-dgm9pfb2ySUiE++jEnBg7mXm9zI=
+  dependencies:
+    gl-mat4 "^1.1.4"
+    gl-vec3 "^1.0.3"
+
+primitive-torus@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/primitive-torus/-/primitive-torus-1.0.4.tgz#7baef6d63da3999aa0b32f26d1c4af7b31843668"
+  integrity sha1-e6721j2jmZqgsy8m0cSvezGENmg=
+  dependencies:
+    defined "^1.0.0"
+    gl-vec3 "^1.0.3"
 
 private@^0.1.6:
   version "0.1.8"
@@ -6305,7 +6389,7 @@ shebang-regex@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-1.0.0.tgz#da42f49740c0b42db2ca9728571cb190c98efea3"
 
-sigmund@^1.0.1:
+sigmund@^1.0.1, sigmund@~1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/sigmund/-/sigmund-1.0.1.tgz#3ff21f198cad2175f9f3b781853fd94d0d19b590"
 
@@ -6490,6 +6574,15 @@ ssri@^6.0.0, ssri@^6.0.1:
 stable@~0.1.6:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/stable/-/stable-0.1.8.tgz#836eb3c8382fe2936feaf544631017ce7d47a3cf"
+
+stanford-dragon@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/stanford-dragon/-/stanford-dragon-1.1.1.tgz#27ad03f131801a87320597d21f1dc22c919772b0"
+  integrity sha1-J60D8TGAGocyBZfSHx3CLJGXcrA=
+  dependencies:
+    glob "^3.2.9"
+    map-limit "0.0.0"
+    parse-ply "^0.1.0"
 
 static-eval@^2.0.0:
   version "2.0.0"
@@ -6724,6 +6817,11 @@ tar@^4, tar@^4.4.6:
     safe-buffer "^5.1.2"
     yallist "^3.0.2"
 
+teapot@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/teapot/-/teapot-1.0.0.tgz#e89f7054ea6645acefbd71540e163e9cb44eddb5"
+  integrity sha1-6J9wVOpmRazvvXFUDhY+nLRO3bU=
+
 temp-dir@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/temp-dir/-/temp-dir-1.0.0.tgz#0a7c0ea26d3a39afa7e0ebea9c1fc0bc4daa011d"
@@ -6758,7 +6856,7 @@ through2@^2.0.0, through2@^2.0.2, through2@~2.0.3:
     readable-stream "~2.3.6"
     xtend "~4.0.1"
 
-through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6:
+through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6, through@~2.3.4:
   version "2.3.8"
   resolved "http://registry.npmjs.org/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
 
