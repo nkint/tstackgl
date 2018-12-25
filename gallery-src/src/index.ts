@@ -36,7 +36,7 @@ const content = () => {
     [
       'iframe.w-100.h-100',
       {
-        src: `./examples/${state.value.selected}/index.html`,
+        src: `./${state.value.selected}/index.html`,
         frameborder: 0,
         allowfullscreen: true,
       },
