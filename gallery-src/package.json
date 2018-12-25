@@ -6,7 +6,7 @@
     "clean": "rm -rf .cache dist ../gallery-dist",
     "build": "yarn clean && parcel build src/index.html -d ../gallery-dist --no-cache --detailed-report --public-url ./",
     "start": "parcel src/index.html -p 8080 --open",
-    "deploy": "cd .. && git subtree push --prefix gallery-out origin gh-pages"
+    "deploy": "cd .. && git subtree push --prefix gallery-dist origin gh-pages"
   },
   "author": "nkint",
   "license": "MIT",
