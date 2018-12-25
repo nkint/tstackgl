@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-const EXAMPLE_PATH = '../../examples'
+const EXAMPLE_PATH = '../examples'
 
 const examples = fs
   .readdirSync(EXAMPLE_PATH)

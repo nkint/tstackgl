@@ -32,9 +32,9 @@ const navbar = () => {
 const content = () => {
   console.log('render content', { selected: state.value.selected })
   return () => [
-    'div.ba.w-100',
+    'div.ba.w-100.h-100',
     [
-      'iframe',
+      'iframe.w-100.h-100',
       {
         src: `./examples/${state.value.selected}/index.html`,
         frameborder: 0,
