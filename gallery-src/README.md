@@ -11,7 +11,7 @@ $ yarn build
 # exectue a script that prepares all the examples to be accessible via iframe in the github pages
 $ ts-node ./script/prepare-examples.ts
 # let git know that we are ready to deploy github pages..
-$ git add gallery-dist && git commit -m "new changes in the gallery.."
+$ git add ../gallery-dist && git commit -m "new changes in the gallery.."
 # push only the `gallery-dist` folder in to the gh-pages  branch
 $ yarn deploy
 ```
