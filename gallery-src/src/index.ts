@@ -3,6 +3,9 @@ import { start } from '@thi.ng/hdom'
 import * as tx from '@thi.ng/transducers'
 import * as icep from '@thi.ng/interceptors'
 import data from './data.json'
+import { title } from './ui/title'
+import { paragraph } from './ui/paragraph'
+import { link } from './ui/link'
 
 const state = new Atom({
   selected: '',
@@ -19,49 +22,25 @@ const navbar = () => {
   console.log('render navbar')
   const branch = tx.transduce(
     tx.map((datum: { title: string }) => [
-      `p.pointer${datum.title === state.value.selected ? '.b' : ''}`,
-      { onclick: () => bus.dispatch(['select', datum.title]) },
+      `p.pointer.s-light-grey.s-over${datum.title === state.value.selected ? '.b' : ''}`,
+      {
+        onclick: () => bus.dispatch(['select', datum.title]),
+        style: {
+          'font-family': 'Fantasque Sans Mono',
+          'font-size': '1rem',
+          height: '1.5rem',
+          'line-height': '1.5rem',
+          'padding-bottom': '1px',
+        },
+      },
+
       datum.title,
     ]),
     tx.push(),
     data,
   )
-  return () => ['div.ba', ['div.w5', branch]]
+  return () => ['div.pa4.w5', [title, ['#tstack', 'span.s-light-grey', 'gl']], ['div', branch]]
 }
-
-const title = (ctx: any, text: string) => [
-  'h1.s-black',
-  { style: { 'font-weight': 100, 'line-height': '1.2em', 'font-size': '2.5rem' } },
-  text,
-]
-
-const paragraph = (...args: Array<any>) => [
-  //
-  'p.s-grey',
-  {
-    style: {
-      'font-family': 'Fantasque Sans Mono',
-      'font-weight': 100,
-      'font-size': '0.9rem',
-      'line-height': '1.6em',
-    },
-  },
-  ...args.slice(1),
-]
-
-const link = (ctx: any, href: string, text: string) => [
-  'a.s-blue',
-  {
-    href,
-    style: {
-      'text-decoration': 'none',
-      background: 'linear-gradient(to bottom, transparent 0%, #66C4FF 1%) repeat-x',
-      'background-size': '1px 1px',
-      'background-position': 'left bottom',
-    },
-  },
-  text,
-]
 
 const intro = [
   'div.pa5',
@@ -81,7 +60,7 @@ const intro = [
 const content = () => {
   console.log('render content', { selected: state.value.selected })
   return () => [
-    'div.ba.w-100.h-100',
+    'div.w-100.h-100',
     state.value.selected === ''
       ? intro
       : [

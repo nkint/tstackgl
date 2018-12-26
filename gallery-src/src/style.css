@@ -72,3 +72,9 @@ html {
 .s-bg-white {
   background-color: #ffffff;
 }
+
+.s-over:hover {
+  border-bottom: 1px solid #f2f2f2;
+  padding-bottom: 0;
+  color: #66c4ff;
+}
