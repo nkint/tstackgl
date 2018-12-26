@@ -1,5 +1,7 @@
 monorepo containing experiments with typescript, regl, stack.gl and the super @thi.ng/umbrella
 
+[Example gallery](https://nkint.github.io/tstackgl/).
+
 WIP!
 only vaporwave for now.
 
