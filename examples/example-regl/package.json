@@ -1,7 +1,7 @@
 {
-  "name": "@tstackgl/examples-extrude",
+  "name": "@tstackgl/examples-regl",
   "version": "0.0.0",
-  "description": "extrude demo",
+  "description": "regl basics",
   "author": "nkint <nootropic.kint@gmail.com>",
   "license": "MIT",
   "scripts": {
@@ -21,9 +21,18 @@
     "@tstackgl/geometry": "^0.0.0",
     "@tstackgl/regl-draw": "^0.0.0",
     "@tstackgl/types": "^0.0.0",
-    "regl": "^1.3.11",
-    "regl-camera": "^2.1.1"
+    "regl": "^1.3.11"
   },
+  "keywords": [
+    "example",
+    "webgl",
+    "stack.gl",
+    "tstack.gl",
+    "thi.ng",
+    "regl",
+    "3d",
+    "typescript"
+  ],
   "browserslist": [
     "last 3 Chrome versions"
   ],

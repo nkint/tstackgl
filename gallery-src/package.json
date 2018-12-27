@@ -1,0 +1,32 @@
+{
+  "name": "gallery",
+  "version": "1.0.0",
+  "description": "example gallery",
+  "scripts": {
+    "clean": "rm -rf .cache dist ../gallery-dist",
+    "build": "yarn clean && parcel build src/index.html -d ../gallery-dist --no-cache --detailed-report --public-url ./",
+    "start": "parcel src/index.html -p 8080 --open",
+    "deploy": "cd .. && git subtree push --prefix gallery-dist origin gh-pages"
+  },
+  "author": "nkint",
+  "license": "MIT",
+  "devDependencies": {
+    "parcel-bundler": "^1.10.3",
+    "terser": "^3.11.0",
+    "typescript": "^3.2.2"
+  },
+  "dependencies": {
+    "@thi.ng/atom": "^1.5.8",
+    "@thi.ng/hdom": "latest",
+    "@thi.ng/interceptors": "^1.9.2",
+    "@thi.ng/transducers": "latest",
+    "@types/shelljs": "^0.8.1",
+    "shelljs": "^0.8.3"
+  },
+  "browserslist": [
+    "last 3 Chrome versions"
+  ],
+  "browser": {
+    "process": false
+  }
+}

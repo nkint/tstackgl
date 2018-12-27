@@ -17,7 +17,6 @@ void main () {
 const frag = `
 precision mediump float;
 
-varying vec3 vViewPos;
 uniform vec4 color;
 
 void main () {
