@@ -13,6 +13,7 @@ import { createCylinder } from './primitive-cylinder'
 import { createBasicMesh, PropsBasicMaterial } from './draw-basic-mesh'
 import vec3 from 'gl-vec3'
 import { pointTowardsMat } from './pointTowards'
+import mat4 from 'gl-mat4'
 
 let loop = { cancel: function() {} }
 
@@ -30,7 +31,7 @@ function createReglScene() {
     const axis = createXYZ(regl, 150)
 
     const icosphere: Mesh = createIcosphere(100, { subdivisions: 1 })
-    const cylinder: Mesh = createCylinder(1, 1, 1, 3)
+    const cylinder: Mesh = createCylinder(20, 20, 200, 3)
 
     const drawIcosphere = createDrawMeshWireframe(regl, icosphere)
     const drawCylinder = createBasicMesh(regl, cylinder)
@@ -49,11 +50,13 @@ function createReglScene() {
     // const dir = vec3.create()
     const dir = vec3.normalize(vec3.create(), center)
     console.log({ dir })
+
     const rotationMat = pointTowardsMat(dir)
+    // mat4.transpose(rotationMat, rotationMat)
 
     const props: PropsBasicMaterial = {
       translate: [0, 0, 0],
-      scale: [20, 200, 20],
+      scale: [1, 1, 1],
       rotationMat,
 
       diffuseColor: [1, 0.2, 0.2],

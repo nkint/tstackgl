@@ -1,7 +1,7 @@
 import mat4 from 'gl-mat4'
 import vec3 from 'gl-vec3'
 import quat from 'gl-quat'
-import { Mesh, Vec3, Quat, Mat4 } from '@tstackgl/types'
+import { Vec3, Quat, Mat4 } from '@tstackgl/types'
 
 export function getAlignmentQuat(dir: Vec3, forward: Vec3): Quat {
   const target: Vec3 = vec3.normalize(vec3.create(), dir)
@@ -12,6 +12,7 @@ export function getAlignmentQuat(dir: Vec3, forward: Vec3): Quat {
 }
 
 export function createFromAxisAngle(axis: Vec3, angle: number): Quat {
+  // https://github.com/stackgl/gl-quat/blob/master/setAxisAngle.js
   angle *= 0.5
   const sin = Math.sin(angle)
   const cos = Math.cos(angle)
@@ -24,13 +25,6 @@ export function createFromAxisAngle(axis: Vec3, angle: number): Quat {
 
   return q
 }
-
-/**
- * Normalizes the vector to the given length.
- *
- * @param len desired length
- * @return itself
- */
 
 export function normalizeTo(out: Vec3, a: Vec3, len: number) {
   let mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
@@ -45,7 +39,54 @@ export function normalizeTo(out: Vec3, a: Vec3, len: number) {
 
 export function pointTowardsMat(dir: Vec3): Mat4 {
   const q: Quat = getAlignmentQuat(dir, [0, 0, 1])
-  return mat4.fromQuat(mat4.create(), q)
+  // return mat4.fromQuat(mat4.create(), q)
+  return quatToMatrix4x4(mat4.create(), q) // this is like mat4.fromQuat but transposed
+}
+
+function quatToMatrix4x4(out: Mat4, q: Quat) {
+  // Converts this quaternion to a rotation matrix.
+  //
+  // | 1 - 2(y^2 + z^2) 2(xy + wz) 2(xz - wy) 0 |
+  // | 2(xy - wz) 1 - 2(x^2 + z^2) 2(yz + wx) 0 |
+  // | 2(xz + wy) 2(yz - wx) 1 - 2(x^2 + y^2) 0 |
+  // | 0 0 0 1 |
+
+  const x = q[0]
+  const y = q[1]
+  const z = q[2]
+  const w = q[3]
+
+  const x2 = x + x
+  const y2 = y + y
+  const z2 = z + z
+  const xx = x * x2
+  const xy = x * y2
+  const xz = x * z2
+  const yy = y * y2
+  const yz = y * z2
+  const zz = z * z2
+  const wx = w * x2
+  const wy = w * y2
+  const wz = w * z2
+
+  out[0] = 1 - (yy + zz)
+  out[1] = xy - wz
+  out[2] = xz + wy
+  out[3] = 0
+  out[4] = xy + wz
+  out[5] = 1 - (xx + zz)
+  out[6] = yz - wx
+  out[7] = 0
+  out[8] = xz - wy
+  out[9] = yz + wx
+  out[10] = 1 - (xx + yy)
+  out[11] = 0
+  out[12] = 0
+  out[13] = 0
+  out[14] = 0
+  out[15] = 1
+
+  return out
 }
 
 /*

@@ -16,8 +16,6 @@ export function createCylinder(
   height: number,
   radialSegments: number,
 ): QuadMesh {
-  console.log(circleShape(radiusTop, [0, 0], radialSegments))
-
   const circle3 = (radius: number, y: number, shape: number) =>
     tx.map(([x, z]) => [x, y, z] as Vec3, circleShape(radius, [0, 0], shape))
 
