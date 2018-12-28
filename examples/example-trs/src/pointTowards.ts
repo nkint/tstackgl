@@ -91,7 +91,10 @@ function quatToMatrix4x4(out: Mat4, q: Quat) {
 
 /*
 
-TOXICLIBS point toward
+TOXICLIBS point toward:
+https://github.com/postspectacular/toxiclibs/blob/master/src.core/toxi/geom/mesh/WETriangleMesh.java
+https://github.com/postspectacular/toxiclibs/blob/master/src.core/toxi/geom/Quaternion.java
+https://github.com/postspectacular/toxiclibs/blob/master/src.core/toxi/geom/Vec3D.java
 
 WETMesh pointTowards(ReadonlyVec3D dir) {
   mesh.transform(
