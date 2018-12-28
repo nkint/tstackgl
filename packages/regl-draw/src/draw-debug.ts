@@ -17,29 +17,26 @@ void main () {
 const frag = `
 precision mediump float;
 
-uniform vec4 color;
+uniform vec3 color;
 
 void main () {
-  gl_FragColor = color;
+  gl_FragColor = vec4(color, 1.0);
 }`
-
-interface Uniforms {
-  color: createRegl.Vec4
-  translate: createREGL.Vec3
-}
 
 interface Attributes {
   position: Array<Vec3>
   normal: Array<Vec3>
 }
 
-interface Props {
-  color: createRegl.Vec4
+export interface Props {
+  color: Vec3
   translate: Vec3
 }
 
+interface Uniforms extends Props {}
+
 export function createDrawPointDebug(regl: createRegl.Regl, radius = 0.3) {
-  const mesh = createSphere(radius, { subdivisions: 2 })
+  const mesh = createSphere(radius, { subdivisions: 1 })
   const draw = regl<Uniforms, Attributes, Props>({
     frag,
     vert,

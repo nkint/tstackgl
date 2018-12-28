@@ -34,7 +34,7 @@ export function createDrawMeshWireframe(regl: createRegl.Regl, mesh: Mesh) {
   // const input: Vec3[] = [[1, 0, 3], [3, 2, 1], [5, 4, 7]]
   // expected = "[[[1,0],[0,3],[3,1]],[[3,2],[2,1],[1,3]],[[5,4],[4,7],[7,5]]]"
 
-  const triangleToSegments = (face: Vec3) => [...partition(2, 1, wrap(face, 1, false, true))]
+  const triangleToSegments = (face: Vec3) => partition(2, 1, wrap(face, 1, false, true))
   const wireframeCells = [...map(triangleToSegments, mesh.cells)]
 
   const draw = regl<Uniforms, Attributes, Props>({
