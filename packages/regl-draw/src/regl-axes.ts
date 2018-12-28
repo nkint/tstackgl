@@ -91,8 +91,10 @@ export function createXYZ(regl: createRegl.Regl, scale = 1) {
   const axes = createAxes(regl, scale)
   const axesLines = createAxesLines(regl, scale)
 
-  return function drawAxes() {
+  function draw() {
     axes()
     axesLines()
   }
+
+  return { draw }
 }

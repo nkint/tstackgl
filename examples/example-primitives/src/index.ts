@@ -78,8 +78,8 @@ function createReglScene() {
         regl.clear({ color: [0, 0, 0, 1] })
 
         const props = [...tx.iterator1(xform, tx.tuples(meshes, indexes))]
-        drawCommands.forEach((draw, i) => {
-          draw({
+        drawCommands.forEach((drawCommand, i) => {
+          drawCommand.draw({
             ...props[i],
           } as PropsBasicMaterial)
         })
