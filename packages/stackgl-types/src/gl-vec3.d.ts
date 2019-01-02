@@ -12,11 +12,11 @@ Adds two Vec3's
   export function add(out: Vec3, a: Vec3, b: Vec3): Vec3
 
   /* 
-Get the angle between two 3D vectors
-@param {Vec3} a The first operand
-@param {Vec3} b The second operand
-@returns {number} The angle in radians 
-*/
+    Get the angle between two 3D vectors
+    @param {Vec3} a The first operand
+    @param {Vec3} b The second operand
+    @returns {number} The angle in radians 
+  */
   export function angle(a: Vec3, b: Vec3): number
 
   /* 
