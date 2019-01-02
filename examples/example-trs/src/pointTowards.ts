@@ -3,7 +3,17 @@ import vec3 from 'gl-vec3'
 import quat from 'gl-quat'
 import { Vec3, Quat, Mat4 } from '@tstackgl/types'
 
-export function getAlignmentQuat(dir: Vec3, forward: Vec3): Quat {
+export function pointTowardsMat(dir: Vec3): Mat4 {
+  const q: Quat = quat.rotationTo(quat.create(), [0, 1, 0], dir)
+  return mat4.fromQuat(mat4.create(), q)
+  // const q: Quat = getAlignmentQuat(dir, [0, 0, 1])
+  // return mat4.fromQuat(mat4.create(), q)
+  // return quatToMatrix4x4(mat4.create(), q) // this is like mat4.fromQuat but transposed
+}
+
+// ----------------------------------------------------------------------
+
+function getAlignmentQuat(dir: Vec3, forward: Vec3): Quat {
   const target: Vec3 = vec3.normalize(vec3.create(), dir)
   const axis = vec3.cross(vec3.create(), forward, target)
   const length = vec3.length(axis) + 0.0001
@@ -11,7 +21,7 @@ export function getAlignmentQuat(dir: Vec3, forward: Vec3): Quat {
   return createFromAxisAngle(axis, angle)
 }
 
-export function createFromAxisAngle(axis: Vec3, angle: number): Quat {
+function createFromAxisAngle(axis: Vec3, angle: number): Quat {
   // https://github.com/stackgl/gl-quat/blob/master/setAxisAngle.js
   angle *= 0.5
   const sin = Math.sin(angle)
@@ -26,7 +36,7 @@ export function createFromAxisAngle(axis: Vec3, angle: number): Quat {
   return q
 }
 
-export function normalizeTo(out: Vec3, a: Vec3, len: number) {
+function normalizeTo(out: Vec3, a: Vec3, len: number) {
   let mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
   if (mag > 0) {
     mag = len / mag
@@ -35,12 +45,6 @@ export function normalizeTo(out: Vec3, a: Vec3, len: number) {
     out[2] = a[2] * mag
   }
   return out
-}
-
-export function pointTowardsMat(dir: Vec3): Mat4 {
-  const q: Quat = getAlignmentQuat(dir, [0, 0, 1])
-  // return mat4.fromQuat(mat4.create(), q)
-  return quatToMatrix4x4(mat4.create(), q) // this is like mat4.fromQuat but transposed
 }
 
 function quatToMatrix4x4(out: Mat4, q: Quat) {
