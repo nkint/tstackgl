@@ -104,7 +104,5710 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"../../../node_modules/regl/dist/regl.js":[function(require,module,exports) {
+})({"../../../node_modules/@thi.ng/hdom/api.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DEBUG = false;
+
+},{}],"../../../node_modules/@thi.ng/api/api.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DEFAULT_EPS = 1e-6;
+exports.EVENT_ALL = "*";
+exports.EVENT_ENABLE = "enable";
+exports.EVENT_DISABLE = "disable";
+exports.SEMAPHORE = Symbol();
+
+},{}],"../../../node_modules/@thi.ng/equiv/index.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const OBJP = Object.getPrototypeOf({});
+const FN = "function";
+const STR = "string";
+exports.equiv = (a, b) => {
+    let proto;
+    if (a === b) {
+        return true;
+    }
+    if (a != null) {
+        if (typeof a.equiv === FN) {
+            return a.equiv(b);
+        }
+    }
+    else {
+        return a == b;
+    }
+    if (b != null) {
+        if (typeof b.equiv === FN) {
+            return b.equiv(a);
+        }
+    }
+    else {
+        return a == b;
+    }
+    if (typeof a === STR || typeof b === STR) {
+        return false;
+    }
+    if ((proto = Object.getPrototypeOf(a), proto == null || proto === OBJP) &&
+        (proto = Object.getPrototypeOf(b), proto == null || proto === OBJP)) {
+        return exports.equivObject(a, b);
+    }
+    if (typeof a !== FN && a.length !== undefined &&
+        typeof b !== FN && b.length !== undefined) {
+        return exports.equivArrayLike(a, b);
+    }
+    if (a instanceof Set && b instanceof Set) {
+        return exports.equivSet(a, b);
+    }
+    if (a instanceof Map && b instanceof Map) {
+        return exports.equivMap(a, b);
+    }
+    if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime();
+    }
+    if (a instanceof RegExp && b instanceof RegExp) {
+        return a.toString() === b.toString();
+    }
+    // NaN
+    return (a !== a && b !== b);
+};
+exports.equivArrayLike = (a, b, _equiv = exports.equiv) => {
+    let l = a.length;
+    if (l === b.length) {
+        while (--l >= 0 && _equiv(a[l], b[l]))
+            ;
+    }
+    return l < 0;
+};
+exports.equivSet = (a, b, _equiv = exports.equiv) => (a.size === b.size) &&
+    _equiv([...a.keys()].sort(), [...b.keys()].sort());
+exports.equivMap = (a, b, _equiv = exports.equiv) => (a.size === b.size) &&
+    _equiv([...a].sort(), [...b].sort());
+exports.equivObject = (a, b, _equiv = exports.equiv) => {
+    if (Object.keys(a).length !== Object.keys(b).length) {
+        return false;
+    }
+    for (let k in a) {
+        if (!b.hasOwnProperty(k) || !_equiv(a[k], b[k])) {
+            return false;
+        }
+    }
+    return true;
+};
+
+},{}],"../../../node_modules/@thi.ng/diff/array.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const equiv_1 = require("@thi.ng/equiv");
+let _cachedFP;
+let _cachedPath;
+let _cachedEPC = [];
+let _cachedPathPos = [];
+const cachedFP = (size) => _cachedFP && _cachedFP.length >= size ?
+    _cachedFP :
+    (_cachedFP = new Int32Array(size));
+const cachedPath = (size) => _cachedPath && _cachedPath.length >= size ?
+    _cachedPath :
+    (_cachedPath = new Int32Array(size));
+const simpleDiff = (state, src, key, logDir, mode) => {
+    const n = src.length;
+    const linear = state.linear;
+    state.distance = n;
+    if (mode !== 0 /* ONLY_DISTANCE */) {
+        for (let i = 0, j = 0; i < n; i++, j += 3) {
+            linear[j] = logDir;
+            linear[j + 1] = i;
+            linear[j + 2] = src[i];
+        }
+        if (mode === 2 /* FULL */) {
+            const _state = state[key];
+            for (let i = 0; i < n; i++) {
+                _state[i] = src[i];
+            }
+        }
+    }
+    return state;
+};
+/**
+ * Based on "An O(NP) Sequence Comparison Algorithm""
+ * by Wu, Manber, Myers and Miller
+ *
+ * - http://www.itu.dk/stud/speciale/bepjea/xwebtex/litt/an-onp-sequence-comparison-algorithm.pdf
+ * - https://github.com/cubicdaiya/onp
+ *
+ * Various optimizations, fixes & refactorings.
+ * By default uses `@thi.ng/equiv` for equality checks.
+ *
+ * @param a "old" array
+ * @param b "new" array
+ * @param mode result mode
+ * @param equiv equality predicate function
+ */
+exports.diffArray = (a, b, mode = 2 /* FULL */, equiv = equiv_1.equiv) => {
+    const state = {
+        distance: 0,
+        adds: {},
+        dels: {},
+        const: {},
+        linear: []
+    };
+    if (a === b || (a == null && b == null)) {
+        return state;
+    }
+    else if (a == null || a.length === 0) {
+        return simpleDiff(state, b, "adds", 1, mode);
+    }
+    else if (b == null || b.length === 0) {
+        return simpleDiff(state, a, "dels", -1, mode);
+    }
+    const reverse = a.length >= b.length;
+    let _a, _b, na, nb;
+    if (reverse) {
+        _a = b;
+        _b = a;
+    }
+    else {
+        _a = a;
+        _b = b;
+    }
+    na = _a.length;
+    nb = _b.length;
+    const offset = na + 1;
+    const delta = nb - na;
+    const doff = delta + offset;
+    const size = na + nb + 3;
+    const path = cachedPath(size).fill(-1, 0, size);
+    const fp = cachedFP(size).fill(-1, 0, size);
+    const epc = _cachedEPC;
+    const pathPos = _cachedPathPos;
+    epc.length = 0;
+    pathPos.length = 0;
+    const snake = (k, p, pp) => {
+        const koff = k + offset;
+        let r, y;
+        if (p > pp) {
+            r = path[koff - 1];
+            y = p;
+        }
+        else {
+            r = path[koff + 1];
+            y = pp;
+        }
+        let x = y - k;
+        while (x < na && y < nb && equiv(_a[x], _b[y])) {
+            x++;
+            y++;
+        }
+        path[koff] = pathPos.length / 3;
+        pathPos.push(x, y, r);
+        return y;
+    };
+    let p = -1, k, ko;
+    do {
+        p++;
+        for (k = -p, ko = k + offset; k < delta; k++, ko++) {
+            fp[ko] = snake(k, fp[ko - 1] + 1, fp[ko + 1]);
+        }
+        for (k = delta + p, ko = k + offset; k > delta; k--, ko--) {
+            fp[ko] = snake(k, fp[ko - 1] + 1, fp[ko + 1]);
+        }
+        fp[doff] = snake(delta, fp[doff - 1] + 1, fp[doff + 1]);
+    } while (fp[doff] !== nb);
+    state.distance = delta + 2 * p;
+    if (mode !== 0 /* ONLY_DISTANCE */) {
+        p = path[doff] * 3;
+        while (p >= 0) {
+            epc.push(p);
+            p = pathPos[p + 2] * 3;
+        }
+        if (mode === 2 /* FULL */) {
+            buildFullLog(epc, pathPos, state, _a, _b, reverse);
+        }
+        else {
+            buildLinearLog(epc, pathPos, state, _a, _b, reverse);
+        }
+    }
+    return state;
+};
+const buildFullLog = (epc, pathPos, state, a, b, reverse) => {
+    const linear = state.linear;
+    const _const = state.const;
+    let i = epc.length, px = 0, py = 0;
+    let adds, dels, aID, dID;
+    if (reverse) {
+        adds = state.dels;
+        dels = state.adds;
+        aID = -1;
+        dID = 1;
+    }
+    else {
+        adds = state.adds;
+        dels = state.dels;
+        aID = 1;
+        dID = -1;
+    }
+    for (; --i >= 0;) {
+        const e = epc[i];
+        const ppx = pathPos[e];
+        const ppy = pathPos[e + 1];
+        const d = ppy - ppx;
+        while (px < ppx || py < ppy) {
+            const dp = py - px;
+            if (d > dp) {
+                linear.push(aID, py, adds[py] = b[py]);
+                py++;
+            }
+            else if (d < dp) {
+                linear.push(dID, px, dels[px] = a[px]);
+                px++;
+            }
+            else {
+                linear.push(0, px, _const[px] = a[px]);
+                px++;
+                py++;
+            }
+        }
+    }
+};
+const buildLinearLog = (epc, pathPos, state, a, b, reverse) => {
+    const linear = state.linear;
+    const aID = reverse ? -1 : 1;
+    const dID = reverse ? 1 : -1;
+    let i = epc.length, px = 0, py = 0;
+    for (; --i >= 0;) {
+        const e = epc[i];
+        const ppx = pathPos[e];
+        const ppy = pathPos[e + 1];
+        const d = ppy - ppx;
+        while (px < ppx || py < ppy) {
+            const dp = py - px;
+            if (d > dp) {
+                linear.push(aID, py, b[py]);
+                py++;
+            }
+            else if (d < dp) {
+                linear.push(dID, px, a[px]);
+                px++;
+            }
+            else {
+                linear.push(0, px, a[px]);
+                px++;
+                py++;
+            }
+        }
+    }
+};
+
+},{"@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/diff/object.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const equiv_1 = require("@thi.ng/equiv");
+exports.diffObject = (a, b, mode = 2 /* FULL */, _equiv = equiv_1.equiv) => a === b ?
+    { distance: 0 } :
+    mode === 0 /* ONLY_DISTANCE */ ?
+        diffObjectDist(a, b, _equiv) :
+        diffObjectFull(a, b, _equiv);
+const diffObjectDist = (a, b, _equiv) => {
+    let d = 0;
+    for (let k in a) {
+        const vb = b[k];
+        (vb === undefined || !_equiv(a[k], vb)) && d++;
+    }
+    for (let k in b) {
+        !(k in a) && d++;
+    }
+    return { distance: d };
+};
+const diffObjectFull = (a, b, _equiv) => {
+    let d = 0;
+    const adds = [];
+    const dels = [];
+    const edits = [];
+    for (let k in a) {
+        const vb = b[k];
+        if (vb === undefined) {
+            dels.push(k);
+            d++;
+        }
+        else if (!_equiv(a[k], vb)) {
+            edits.push(k, vb);
+            d++;
+        }
+    }
+    for (let k in b) {
+        if (!(k in a)) {
+            adds.push(k);
+            d++;
+        }
+    }
+    return { distance: d, adds, dels, edits };
+};
+
+},{"@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/hdom/diff.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const api_1 = require("@thi.ng/api/api");
+const array_1 = require("@thi.ng/diff/array");
+const object_1 = require("@thi.ng/diff/object");
+const equiv_1 = require("@thi.ng/equiv");
+const isArray = Array.isArray;
+const max = Math.max;
+// child index tracking template buffer
+const INDEX = (() => {
+    const res = new Array(2048);
+    for (let i = 2, n = res.length; i < n; i++) {
+        res[i] = i - 2;
+    }
+    return res;
+})();
+const buildIndex = (n) => {
+    if (n <= INDEX.length) {
+        return INDEX.slice(0, n);
+    }
+    const res = new Array(n);
+    while (--n >= 2) {
+        res[n] = n - 2;
+    }
+    return res;
+};
+/**
+ * See `HDOMImplementation` interface for further details.
+ *
+ * @param opts
+ * @param impl hdom implementation
+ * @param parent
+ * @param prev previous tree
+ * @param curr current tree
+ * @param child child index
+ */
+exports.diffTree = (opts, impl, parent, prev, curr, child = 0) => {
+    const attribs = curr[1];
+    if (attribs.__skip) {
+        return;
+    }
+    // always replace element if __diff = false
+    if (attribs.__diff === false) {
+        exports.releaseTree(prev);
+        impl.replaceChild(opts, parent, child, curr);
+        return;
+    }
+    // delegate to branch-local implementation
+    let _impl = attribs.__impl;
+    if (_impl && _impl !== impl) {
+        return _impl.diffTree(opts, _impl, parent, prev, curr, child);
+    }
+    const delta = array_1.diffArray(prev, curr, 1 /* ONLY_DISTANCE_LINEAR */, exports.equiv);
+    if (delta.distance === 0) {
+        return;
+    }
+    const edits = delta.linear;
+    const el = impl.getChild(parent, child);
+    let i;
+    let ii;
+    let j;
+    let idx;
+    let k;
+    let eq;
+    let status;
+    let val;
+    if (edits[0] !== 0 || prev[1].key !== attribs.key) {
+        // DEBUG && console.log("replace:", prev, curr);
+        exports.releaseTree(prev);
+        impl.replaceChild(opts, parent, child, curr);
+        return;
+    }
+    if ((val = prev.__release) && val !== curr.__release) {
+        exports.releaseTree(prev);
+    }
+    if (edits[3] !== 0) {
+        exports.diffAttributes(impl, el, prev[1], curr[1]);
+        // if attribs changed & distance == 2 then we're done here...
+        if (delta.distance === 2) {
+            return;
+        }
+    }
+    const numEdits = edits.length;
+    const prevLength = prev.length - 1;
+    const equivKeys = extractEquivElements(edits);
+    const offsets = buildIndex(prevLength + 1);
+    for (i = 2, ii = 6; ii < numEdits; i++, ii += 3) {
+        status = edits[ii];
+        if (status === -1) {
+            // element removed / edited?
+            val = edits[ii + 2];
+            if (isArray(val)) {
+                k = val[1].key;
+                if (k !== undefined && equivKeys[k][2] !== undefined) {
+                    eq = equivKeys[k];
+                    k = eq[0];
+                    // DEBUG && console.log(`diff equiv key @ ${k}:`, prev[k], curr[eq[2]]);
+                    exports.diffTree(opts, impl, el, prev[k], curr[eq[2]], offsets[k]);
+                }
+                else {
+                    idx = edits[ii + 1];
+                    // DEBUG && console.log("remove @", offsets[idx], val);
+                    exports.releaseTree(val);
+                    impl.removeChild(el, offsets[idx]);
+                    for (j = prevLength; j >= idx; j--) {
+                        offsets[j] = max(offsets[j] - 1, 0);
+                    }
+                }
+            }
+            else if (typeof val === "string") {
+                impl.setContent(el, "");
+            }
+        }
+        else if (status === 1) {
+            // element added/inserted?
+            val = edits[ii + 2];
+            if (typeof val === "string") {
+                impl.setContent(el, val);
+            }
+            else if (isArray(val)) {
+                k = val[1].key;
+                if (k === undefined || equivKeys[k][0] === undefined) {
+                    idx = edits[ii + 1];
+                    // DEBUG && console.log("insert @", offsets[idx], val);
+                    impl.createTree(opts, el, val, offsets[idx]);
+                    for (j = prevLength; j >= idx; j--) {
+                        offsets[j]++;
+                    }
+                }
+            }
+        }
+    }
+    // call __init after all children have been added/updated
+    if ((val = curr.__init) && val != prev.__init) {
+        val.apply(curr, [el, ...(curr.__args)]);
+    }
+};
+/**
+ * Helper function for `diffTree()` to compute & apply the difference
+ * between a node's `prev` and `curr` attributes.
+ *
+ * @param impl
+ * @param el
+ * @param prev
+ * @param curr
+ */
+exports.diffAttributes = (impl, el, prev, curr) => {
+    const delta = object_1.diffObject(prev, curr, 2 /* FULL */, equiv_1.equiv);
+    impl.removeAttribs(el, delta.dels, prev);
+    let val = api_1.SEMAPHORE;
+    let i, e, edits;
+    for (edits = delta.edits, i = edits.length; (i -= 2) >= 0;) {
+        const a = edits[i];
+        if (a.indexOf("on") === 0) {
+            impl.removeAttribs(el, [a], prev);
+        }
+        if (a !== "value") {
+            impl.setAttrib(el, a, edits[i + 1], curr);
+        }
+        else {
+            val = edits[i + 1];
+        }
+    }
+    for (edits = delta.adds, i = edits.length; --i >= 0;) {
+        e = edits[i];
+        if (e !== "value") {
+            impl.setAttrib(el, e, curr[e], curr);
+        }
+        else {
+            val = curr[e];
+        }
+    }
+    if (val !== api_1.SEMAPHORE) {
+        impl.setAttrib(el, "value", val, curr);
+    }
+};
+/**
+ * Recursively attempts to call the `release` lifecycle method on every
+ * element in given tree (branch), using depth-first descent. Each
+ * element is checked for the presence of the `__release` control
+ * attribute. If (and only if) it is set to `false`, further descent
+ * into that element's branch is skipped.
+ *
+ * @param tag
+ */
+exports.releaseTree = (tag) => {
+    if (isArray(tag)) {
+        let x;
+        if ((x = tag[1]) && x.__release === false) {
+            return;
+        }
+        if (tag.__release) {
+            // DEBUG && console.log("call __release", tag);
+            tag.__release.apply(tag.__this, tag.__args);
+            delete tag.__release;
+        }
+        for (x = tag.length; --x >= 2;) {
+            exports.releaseTree(tag[x]);
+        }
+    }
+};
+const extractEquivElements = (edits) => {
+    let k;
+    let val;
+    let ek;
+    const equiv = {};
+    for (let i = edits.length; (i -= 3) >= 0;) {
+        val = edits[i + 2];
+        if (isArray(val) && (k = val[1].key) !== undefined) {
+            ek = equiv[k];
+            !ek && (equiv[k] = ek = [, ,]);
+            ek[edits[i] + 1] = edits[i + 1];
+        }
+    }
+    return equiv;
+};
+const OBJP = Object.getPrototypeOf({});
+const FN = "function";
+const STR = "string";
+/**
+ * Customized version @thi.ng/equiv which takes `__diff` attributes into
+ * account (at any nesting level). If an hdom element's attribute object
+ * contains `__diff: false`, the object will ALWAYS be considered
+ * unequal, even if all other attributes in the object are equivalent.
+ *
+ * @param a
+ * @param b
+ */
+exports.equiv = (a, b) => {
+    let proto;
+    if (a === b) {
+        return true;
+    }
+    if (a != null) {
+        if (typeof a.equiv === FN) {
+            return a.equiv(b);
+        }
+    }
+    else {
+        return a == b;
+    }
+    if (b != null) {
+        if (typeof b.equiv === FN) {
+            return b.equiv(a);
+        }
+    }
+    else {
+        return a == b;
+    }
+    if (typeof a === STR || typeof b === STR) {
+        return false;
+    }
+    if ((proto = Object.getPrototypeOf(a), proto == null || proto === OBJP) &&
+        (proto = Object.getPrototypeOf(b), proto == null || proto === OBJP)) {
+        return !(a.__diff === false || b.__diff === false) &&
+            equiv_1.equivObject(a, b, exports.equiv);
+    }
+    if (typeof a !== FN && a.length !== undefined &&
+        typeof b !== FN && b.length !== undefined) {
+        return equiv_1.equivArrayLike(a, b, exports.equiv);
+    }
+    if (a instanceof Set && b instanceof Set) {
+        return equiv_1.equivSet(a, b, exports.equiv);
+    }
+    if (a instanceof Map && b instanceof Map) {
+        return equiv_1.equivMap(a, b, exports.equiv);
+    }
+    if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime();
+    }
+    if (a instanceof RegExp && b instanceof RegExp) {
+        return a.toString() === b.toString();
+    }
+    // NaN
+    return (a !== a && b !== b);
+};
+
+},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","@thi.ng/diff/array":"../../../node_modules/@thi.ng/diff/array.js","@thi.ng/diff/object":"../../../node_modules/@thi.ng/diff/object.js","@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/checks/is-array.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isArray = Array.isArray;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNotStringAndIterable(x) {
+    return x != null &&
+        typeof x !== "string" &&
+        typeof x[Symbol.iterator] === "function";
+}
+exports.isNotStringAndIterable = isNotStringAndIterable;
+
+},{}],"../../../node_modules/@thi.ng/hiccup/api.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SVG_NS = "http://www.w3.org/2000/svg";
+exports.XLINK_NS = "http://www.w3.org/1999/xlink";
+exports.TAG_REGEXP = /^([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?$/;
+// tslint:disable-next-line
+exports.SVG_TAGS = "animate animateColor animateMotion animateTransform circle clipPath color-profile defs desc discard ellipse feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feDropShadow feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence filter font foreignObject g image line linearGradient marker mask metadata mpath path pattern polygon polyline radialGradient rect set stop style svg switch symbol text textPath title tref tspan use view"
+    .split(" ")
+    .reduce((acc, x) => (acc[x] = 1, acc), {});
+// tslint:disable-next-line
+exports.VOID_TAGS = "area base br circle col command ellipse embed hr img input keygen line link meta param path polygon polyline rect source stop track use wbr"
+    .split(" ")
+    .reduce((acc, x) => (acc[x] = 1, acc), {});
+exports.ENTITIES = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&apos;",
+};
+exports.COMMENT = "__COMMENT__";
+exports.NO_SPANS = {
+    button: 1,
+    option: 1,
+    text: 1,
+    textarea: 1,
+};
+exports.ENTITY_RE = new RegExp(`[${Object.keys(exports.ENTITIES)}]`, "g");
+
+},{}],"../../../node_modules/@thi.ng/checks/is-function.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFunction(x) {
+    return typeof x === "function";
+}
+exports.isFunction = isFunction;
+
+},{}],"../../../node_modules/@thi.ng/hiccup/css.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_function_1 = require("@thi.ng/checks/is-function");
+exports.css = (rules) => {
+    let css = "", v;
+    for (let r in rules) {
+        v = rules[r];
+        if (is_function_1.isFunction(v)) {
+            v = v(rules);
+        }
+        v != null && (css += `${r}:${v};`);
+    }
+    return css;
+};
+
+},{"@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js"}],"../../../node_modules/@thi.ng/hdom/dom.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const isa = require("@thi.ng/checks/is-array");
+const isi = require("@thi.ng/checks/is-not-string-iterable");
+const api_1 = require("@thi.ng/hiccup/api");
+const css_1 = require("@thi.ng/hiccup/css");
+const isArray = isa.isArray;
+const isNotStringAndIterable = isi.isNotStringAndIterable;
+/**
+ * See `HDOMImplementation` interface for further details.
+ *
+ * @param opts
+ * @param parent
+ * @param tree
+ * @param insert
+ */
+exports.createTree = (opts, impl, parent, tree, insert) => {
+    if (isArray(tree)) {
+        const tag = tree[0];
+        if (typeof tag === "function") {
+            return exports.createTree(opts, impl, parent, tag.apply(null, [opts.ctx, ...tree.slice(1)]), insert);
+        }
+        const attribs = tree[1];
+        if (attribs.__impl) {
+            return attribs.__impl
+                .createTree(opts, parent, tree, insert);
+        }
+        const el = impl.createElement(parent, tag, attribs, insert);
+        if (tree.length > 2) {
+            const n = tree.length;
+            for (let i = 2; i < n; i++) {
+                exports.createTree(opts, impl, el, tree[i]);
+            }
+        }
+        if (tree.__init) {
+            tree.__init.apply(tree.__this, [el, ...tree.__args]);
+        }
+        return el;
+    }
+    if (isNotStringAndIterable(tree)) {
+        const res = [];
+        for (let t of tree) {
+            res.push(exports.createTree(opts, impl, parent, t));
+        }
+        return res;
+    }
+    if (tree == null) {
+        return parent;
+    }
+    return impl.createTextElement(parent, tree);
+};
+/**
+ * See `HDOMImplementation` interface for further details.
+ *
+ * @param opts
+ * @param parent
+ * @param tree
+ * @param index
+ */
+exports.hydrateTree = (opts, impl, parent, tree, index = 0) => {
+    if (isArray(tree)) {
+        const el = impl.getChild(parent, index);
+        if (typeof tree[0] === "function") {
+            exports.hydrateTree(opts, impl, parent, tree[0].apply(null, [opts.ctx, ...tree.slice(1)]), index);
+        }
+        const attribs = tree[1];
+        if (attribs.__impl) {
+            return attribs.__impl
+                .hydrateTree(opts, parent, tree, index);
+        }
+        if (tree.__init) {
+            tree.__init.apply(tree.__this, [el, ...tree.__args]);
+        }
+        for (let a in attribs) {
+            if (a.indexOf("on") === 0) {
+                impl.setAttrib(el, a, attribs[a]);
+            }
+        }
+        for (let n = tree.length, i = 2; i < n; i++) {
+            exports.hydrateTree(opts, impl, el, tree[i], i - 2);
+        }
+    }
+    else if (isNotStringAndIterable(tree)) {
+        for (let t of tree) {
+            exports.hydrateTree(opts, impl, parent, t, index);
+            index++;
+        }
+    }
+};
+/**
+ * Creates a new DOM element of type `tag` with optional `attribs`. If
+ * `parent` is not `null`, the new element will be inserted as child at
+ * given `insert` index. If `insert` is missing, the element will be
+ * appended to the `parent`'s list of children. Returns new DOM node.
+ *
+ * If `tag` is a known SVG element name, the new element will be created
+ * with the proper SVG XML namespace.
+ *
+ * @param parent
+ * @param tag
+ * @param attribs
+ * @param insert
+ */
+exports.createElement = (parent, tag, attribs, insert) => {
+    const el = api_1.SVG_TAGS[tag] ?
+        document.createElementNS(api_1.SVG_NS, tag) :
+        document.createElement(tag);
+    if (parent) {
+        if (insert == null) {
+            parent.appendChild(el);
+        }
+        else {
+            parent.insertBefore(el, parent.children[insert]);
+        }
+    }
+    if (attribs) {
+        exports.setAttribs(el, attribs);
+    }
+    return el;
+};
+exports.createTextElement = (parent, content, insert) => {
+    const el = document.createTextNode(content);
+    if (parent) {
+        if (insert === undefined) {
+            parent.appendChild(el);
+        }
+        else {
+            parent.insertBefore(el, parent.children[insert]);
+        }
+    }
+    return el;
+};
+exports.getChild = (parent, child) => parent.children[child];
+exports.replaceChild = (opts, impl, parent, child, tree) => (impl.removeChild(parent, child),
+    impl.createTree(opts, parent, tree, child));
+exports.cloneWithNewAttribs = (el, attribs) => {
+    const res = el.cloneNode(true);
+    exports.setAttribs(res, attribs);
+    el.parentNode.replaceChild(res, el);
+    return res;
+};
+exports.setContent = (el, body) => el.textContent = body;
+exports.setAttribs = (el, attribs) => {
+    for (let k in attribs) {
+        exports.setAttrib(el, k, attribs[k], attribs);
+    }
+    return el;
+};
+/**
+ * Sets a single attribute on given element. If attrib name is NOT an
+ * event name (prefix: "on") and its value is a function, it is called
+ * with given `attribs` object (usually the full attrib object passed to
+ * `setAttribs`) and the function's return value is used as the actual
+ * attrib value.
+ *
+ * Special rules apply for certain attributes:
+ *
+ * - "style": delegated to `setStyle()`
+ * - "value": delegated to `updateValueAttrib()`
+ * - attrib IDs starting with "on" are treated as event listeners
+ *
+ * If the given (or computed) attrib value is `false` or `undefined` the
+ * attrib is removed from the element.
+ *
+ * @param el
+ * @param id
+ * @param val
+ * @param attribs
+ */
+exports.setAttrib = (el, id, val, attribs) => {
+    if (id.startsWith("__"))
+        return;
+    const isListener = id.indexOf("on") === 0;
+    if (!isListener && typeof val === "function") {
+        val = val(attribs);
+    }
+    if (val !== undefined && val !== false) {
+        switch (id) {
+            case "style":
+                exports.setStyle(el, val);
+                break;
+            case "value":
+                exports.updateValueAttrib(el, val);
+                break;
+            case "checked":
+                // TODO add more native attribs?
+                el[id] = val;
+                break;
+            default:
+                if (isListener) {
+                    el.addEventListener(id.substr(2), val);
+                }
+                else {
+                    el.setAttribute(id, val);
+                }
+        }
+    }
+    else {
+        el[id] != null ? (el[id] = null) : el.removeAttribute(id);
+    }
+    return el;
+};
+/**
+ * Updates an element's `value` property. For form elements it too
+ * ensures the edit cursor retains its position.
+ *
+ * @param el
+ * @param v
+ */
+exports.updateValueAttrib = (el, v) => {
+    let ev;
+    switch (el.type) {
+        case "text":
+        case "textarea":
+        case "password":
+        case "email":
+        case "url":
+        case "tel":
+        case "search":
+            if ((ev = el.value) !== undefined && typeof v === "string") {
+                const off = v.length - (ev.length - el.selectionStart);
+                el.value = v;
+                el.selectionStart = el.selectionEnd = off;
+                break;
+            }
+        default:
+            el.value = v;
+    }
+};
+exports.removeAttribs = (el, attribs, prev) => {
+    for (let i = attribs.length; --i >= 0;) {
+        const a = attribs[i];
+        if (a.indexOf("on") === 0) {
+            el.removeEventListener(a.substr(2), prev[a]);
+        }
+        else {
+            el[a] ? (el[a] = null) : el.removeAttribute(a);
+        }
+    }
+};
+exports.setStyle = (el, styles) => (el.setAttribute("style", css_1.css(styles)), el);
+exports.clearDOM = (el) => el.innerHTML = "";
+exports.removeChild = (parent, childIdx) => {
+    const n = parent.children[childIdx];
+    if (n !== undefined) {
+        n.remove();
+    }
+};
+
+},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-not-string-iterable":"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js","@thi.ng/hiccup/api":"../../../node_modules/@thi.ng/hiccup/api.js","@thi.ng/hiccup/css":"../../../node_modules/@thi.ng/hiccup/css.js"}],"../../../node_modules/@thi.ng/checks/is-plain-object.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const OBJP = Object.getPrototypeOf({});
+/**
+ * Similar to `isObject()`, but also checks if prototype is that of
+ * `Object` (or `null`).
+ *
+ * @param x
+ */
+function isPlainObject(x) {
+    let proto;
+    return Object.prototype.toString.call(x) === "[object Object]" &&
+        (proto = Object.getPrototypeOf(x), proto === null || proto === OBJP);
+}
+exports.isPlainObject = isPlainObject;
+
+},{}],"../../../node_modules/@thi.ng/errors/illegal-arguments.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class IllegalArgumentError extends Error {
+    constructor(msg) {
+        super("illegal argument(s)" + (msg !== undefined ? ": " + msg : ""));
+    }
+}
+exports.IllegalArgumentError = IllegalArgumentError;
+function illegalArgs(msg) {
+    throw new IllegalArgumentError(msg);
+}
+exports.illegalArgs = illegalArgs;
+
+},{}],"../../../node_modules/@thi.ng/hdom/normalize.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const isa = require("@thi.ng/checks/is-array");
+const insi = require("@thi.ng/checks/is-not-string-iterable");
+const iso = require("@thi.ng/checks/is-plain-object");
+const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
+const api_1 = require("@thi.ng/hiccup/api");
+const isArray = isa.isArray;
+const isNotStringAndIterable = insi.isNotStringAndIterable;
+const isPlainObject = iso.isPlainObject;
+/**
+ * Expands single hiccup element/component into its canonical form:
+ *
+ * ```
+ * [tagname, {attribs}, ...children]
+ * ```
+ *
+ * Emmet-style ID and class names in the original tagname are moved into
+ * the attribs object, e.g.:
+ *
+ * ```
+ * ["div#foo.bar.baz"] => ["div", {id: "foo", class: "bar baz"}]
+ * ```
+ *
+ * If both Emmet-style classes AND a `class` attrib exists, the former
+ * are appended to the latter:
+ *
+ * ```
+ * ["div.bar.baz", {class: "foo"}] => ["div", {class: "foo bar baz"}]
+ * ```
+ *
+ * @param spec
+ * @param keys
+ */
+exports.normalizeElement = (spec, keys) => {
+    let tag = spec[0], hasAttribs = isPlainObject(spec[1]), match, id, clazz, attribs;
+    if (typeof tag !== "string" || !(match = api_1.TAG_REGEXP.exec(tag))) {
+        illegal_arguments_1.illegalArgs(`${tag} is not a valid tag name`);
+    }
+    // return orig if already normalized and satisfies key requirement
+    if (tag === match[1] && hasAttribs && (!keys || spec[1].key)) {
+        return spec;
+    }
+    attribs = hasAttribs ? Object.assign({}, spec[1]) : {};
+    id = match[2];
+    clazz = match[3];
+    if (id) {
+        attribs.id = id;
+    }
+    if (clazz) {
+        clazz = clazz.replace(/\./g, " ");
+        if (attribs.class) {
+            attribs.class += " " + clazz;
+        }
+        else {
+            attribs.class = clazz;
+        }
+    }
+    return [match[1], attribs, ...spec.slice(hasAttribs ? 2 : 1)];
+};
+/**
+ * See `HDOMImplementation` interface for further details.
+ *
+ * @param opts
+ * @param tree
+ */
+exports.normalizeTree = (opts, tree) => _normalizeTree(tree, opts, opts.ctx, [0], opts.keys !== false, opts.span !== false);
+const _normalizeTree = (tree, opts, ctx, path, keys, span) => {
+    if (tree == null) {
+        return;
+    }
+    if (isArray(tree)) {
+        if (tree.length === 0) {
+            return;
+        }
+        let norm, nattribs = tree[1], impl;
+        // if available, use branch-local normalize implementation
+        if (nattribs && (impl = nattribs.__impl) && (impl = impl.normalizeTree)) {
+            return impl(opts, tree);
+        }
+        const tag = tree[0];
+        // use result of function call
+        // pass ctx as first arg and remaining array elements as rest args
+        if (typeof tag === "function") {
+            return _normalizeTree(tag.apply(null, [ctx, ...tree.slice(1)]), opts, ctx, path, keys, span);
+        }
+        // component object w/ life cycle methods
+        // (render() is the only required hook)
+        if (typeof tag.render === "function") {
+            const args = [ctx, ...tree.slice(1)];
+            norm = _normalizeTree(tag.render.apply(tag, args), opts, ctx, path, keys, span);
+            if (isArray(norm)) {
+                norm.__this = tag;
+                norm.__init = tag.init;
+                norm.__release = tag.release;
+                norm.__args = args;
+            }
+            return norm;
+        }
+        norm = exports.normalizeElement(tree, keys);
+        nattribs = norm[1];
+        if (nattribs.__normalize === false) {
+            return norm;
+        }
+        if (keys && nattribs.key === undefined) {
+            nattribs.key = path.join("-");
+        }
+        if (norm.length > 2) {
+            const tag = norm[0];
+            const res = [tag, nattribs];
+            span = span && !api_1.NO_SPANS[tag];
+            for (let i = 2, j = 2, k = 0, n = norm.length; i < n; i++) {
+                let el = norm[i];
+                if (el != null) {
+                    const isarray = isArray(el);
+                    if ((isarray && isArray(el[0])) || (!isarray && isNotStringAndIterable(el))) {
+                        for (let c of el) {
+                            c = _normalizeTree(c, opts, ctx, path.concat(k), keys, span);
+                            if (c !== undefined) {
+                                res[j++] = c;
+                            }
+                            k++;
+                        }
+                    }
+                    else {
+                        el = _normalizeTree(el, opts, ctx, path.concat(k), keys, span);
+                        if (el !== undefined) {
+                            res[j++] = el;
+                        }
+                        k++;
+                    }
+                }
+            }
+            return res;
+        }
+        return norm;
+    }
+    if (typeof tree === "function") {
+        return _normalizeTree(tree(ctx), opts, ctx, path, keys, span);
+    }
+    if (typeof tree.toHiccup === "function") {
+        return _normalizeTree(tree.toHiccup(opts.ctx), opts, ctx, path, keys, span);
+    }
+    if (typeof tree.deref === "function") {
+        return _normalizeTree(tree.deref(), opts, ctx, path, keys, span);
+    }
+    return span ?
+        ["span", keys ? { key: path.join("-") } : {}, tree.toString()] :
+        tree.toString();
+};
+
+},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-not-string-iterable":"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js","@thi.ng/checks/is-plain-object":"../../../node_modules/@thi.ng/checks/is-plain-object.js","@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","@thi.ng/hiccup/api":"../../../node_modules/@thi.ng/hiccup/api.js"}],"../../../node_modules/@thi.ng/hdom/default.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const diff_1 = require("./diff");
+const dom_1 = require("./dom");
+const normalize_1 = require("./normalize");
+/**
+ * Default target implementation to manipulate browser DOM.
+ */
+exports.DEFAULT_IMPL = {
+    createTree(opts, parent, tree, child) {
+        return dom_1.createTree(opts, this, parent, tree, child);
+    },
+    hydrateTree(opts, parent, tree, child) {
+        return dom_1.hydrateTree(opts, this, parent, tree, child);
+    },
+    diffTree(opts, parent, prev, curr, child) {
+        diff_1.diffTree(opts, this, parent, prev, curr, child);
+    },
+    normalizeTree: normalize_1.normalizeTree,
+    getElementById(id) {
+        return document.getElementById(id);
+    },
+    getChild: dom_1.getChild,
+    createElement: dom_1.createElement,
+    createTextElement: dom_1.createTextElement,
+    replaceChild(opts, parent, child, tree) {
+        dom_1.replaceChild(opts, this, parent, child, tree);
+    },
+    removeChild: dom_1.removeChild,
+    setContent: dom_1.setContent,
+    removeAttribs: dom_1.removeAttribs,
+    setAttrib: dom_1.setAttrib,
+};
+
+},{"./diff":"../../../node_modules/@thi.ng/hdom/diff.js","./dom":"../../../node_modules/@thi.ng/hdom/dom.js","./normalize":"../../../node_modules/@thi.ng/hdom/normalize.js"}],"../../../node_modules/@thi.ng/checks/implements-function.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function implementsFunction(x, fn) {
+    return x != null && typeof x[fn] === "function";
+}
+exports.implementsFunction = implementsFunction;
+
+},{}],"../../../node_modules/@thi.ng/hiccup/deref.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const implements_function_1 = require("@thi.ng/checks/implements-function");
+/**
+ * Takes an arbitrary `ctx` object and array of `keys`. Attempts to call
+ * `.deref()` on all given keys' values and stores result values instead
+ * of original. Returns updated copy of `ctx` or original if `ctx` is
+ * `null` or no keys were given.
+ *
+ * @param ctx
+ * @param keys
+ */
+exports.derefContext = (ctx, keys) => {
+    if (ctx == null || !keys || !keys.length)
+        return ctx;
+    const res = Object.assign({}, ctx);
+    for (let k of keys) {
+        const v = res[k];
+        implements_function_1.implementsFunction(v, "deref") && (res[k] = v.deref());
+    }
+    return res;
+};
+
+},{"@thi.ng/checks/implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js"}],"../../../node_modules/@thi.ng/checks/is-string.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isString(x) {
+    return typeof x === "string";
+}
+exports.isString = isString;
+
+},{}],"../../../node_modules/@thi.ng/hdom/utils.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_string_1 = require("@thi.ng/checks/is-string");
+exports.resolveRoot = (root, impl) => is_string_1.isString(root) ?
+    impl.getElementById(root) :
+    root;
+
+},{"@thi.ng/checks/is-string":"../../../node_modules/@thi.ng/checks/is-string.js"}],"../../../node_modules/@thi.ng/hdom/render-once.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const deref_1 = require("@thi.ng/hiccup/deref");
+const default_1 = require("./default");
+const utils_1 = require("./utils");
+/**
+ * One-off hdom tree conversion & target DOM application. Takes same
+ * options as `start()`, but performs no diffing and only creates or
+ * hydrates target once. The given tree is first normalized and if
+ * result is `null` or `undefined` no further action will be taken.
+ *
+ * @param tree
+ * @param opts
+ * @param impl
+ */
+exports.renderOnce = (tree, opts = {}, impl = default_1.DEFAULT_IMPL) => {
+    opts = Object.assign({ root: "app" }, opts);
+    opts.ctx = deref_1.derefContext(opts.ctx, opts.autoDerefKeys);
+    const root = utils_1.resolveRoot(opts.root, impl);
+    tree = impl.normalizeTree(opts, tree);
+    if (!tree)
+        return;
+    opts.hydrate ?
+        impl.hydrateTree(opts, root, tree) :
+        impl.createTree(opts, root, tree);
+};
+
+},{"@thi.ng/hiccup/deref":"../../../node_modules/@thi.ng/hiccup/deref.js","./default":"../../../node_modules/@thi.ng/hdom/default.js","./utils":"../../../node_modules/@thi.ng/hdom/utils.js"}],"../../../node_modules/@thi.ng/hdom/start.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const deref_1 = require("@thi.ng/hiccup/deref");
+const default_1 = require("./default");
+const utils_1 = require("./utils");
+/**
+ * Takes an hiccup tree (array, function or component object w/ life
+ * cycle methods) and an optional object of DOM update options. Starts
+ * RAF update loop, in each iteration first normalizing given tree, then
+ * computing diff to previous frame's tree and applying any changes to
+ * the real DOM. The `ctx` option can be used for passing arbitrary
+ * config data or state down into the hiccup component tree. Any
+ * embedded component function in the tree will receive this context
+ * object (shallow copy) as first argument, as will life cycle methods
+ * in component objects. If the `autoDerefKeys` option is given, attempts
+ * to auto-expand/deref the given keys in the user supplied context
+ * object (`ctx` option) prior to *each* tree normalization. All of
+ * these values should implement the thi.ng/api `IDeref` interface (e.g.
+ * atoms, cursors, views, rstreams etc.). This feature can be used to
+ * define dynamic contexts linked to the main app state, e.g. using
+ * derived views provided by thi.ng/atom.
+ *
+ * **Selective updates**: No updates will be applied if the given hiccup
+ * tree is `undefined` or `null` or a root component function returns no
+ * value. This way a given root function can do some state handling of
+ * its own and implement fail-fast checks to determine no DOM updates
+ * are necessary, save effort re-creating a new hiccup tree and request
+ * skipping DOM updates via this function. In this case, the previous
+ * DOM tree is kept around until the root function returns a tree again,
+ * which then is diffed and applied against the previous tree kept as
+ * usual. Any number of frames may be skipped this way.
+ *
+ * **Important:** Unless the `hydrate` option is enabled, the parent
+ * element given is assumed to have NO children at the time when
+ * `start()` is called. Since hdom does NOT track the real DOM, the
+ * resulting changes will result in potentially undefined behavior if
+ * the parent element wasn't empty. Likewise, if `hydrate` is enabled,
+ * it is assumed that an equivalent DOM (minus listeners) already exists
+ * (i.e. generated via SSR) when `start()` is called. Any other
+ * discrepancies between the pre-existing DOM and the hdom trees will
+ * cause undefined behavior.
+ *
+ * Returns a function, which when called, immediately cancels the update
+ * loop.
+ *
+ * @param tree hiccup DOM tree
+ * @param opts options
+ * @param impl hdom target implementation
+ */
+exports.start = (tree, opts = {}, impl = default_1.DEFAULT_IMPL) => {
+    const _opts = Object.assign({ root: "app" }, opts);
+    let prev = [];
+    let isActive = true;
+    const root = utils_1.resolveRoot(_opts.root, impl);
+    const update = () => {
+        if (isActive) {
+            _opts.ctx = deref_1.derefContext(opts.ctx, _opts.autoDerefKeys);
+            const curr = impl.normalizeTree(_opts, tree);
+            if (curr != null) {
+                if (_opts.hydrate) {
+                    impl.hydrateTree(_opts, root, curr);
+                    _opts.hydrate = false;
+                }
+                else {
+                    impl.diffTree(_opts, root, prev, curr);
+                }
+                prev = curr;
+            }
+            // check again in case one of the components called cancel
+            isActive && requestAnimationFrame(update);
+        }
+    };
+    requestAnimationFrame(update);
+    return () => (isActive = false);
+};
+
+},{"@thi.ng/hiccup/deref":"../../../node_modules/@thi.ng/hiccup/deref.js","./default":"../../../node_modules/@thi.ng/hdom/default.js","./utils":"../../../node_modules/@thi.ng/hdom/utils.js"}],"../../../node_modules/@thi.ng/hdom/index.js":[function(require,module,exports) {
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("./api"));
+__export(require("./default"));
+__export(require("./diff"));
+__export(require("./dom"));
+__export(require("./normalize"));
+__export(require("./render-once"));
+__export(require("./start"));
+
+},{"./api":"../../../node_modules/@thi.ng/hdom/api.js","./default":"../../../node_modules/@thi.ng/hdom/default.js","./diff":"../../../node_modules/@thi.ng/hdom/diff.js","./dom":"../../../node_modules/@thi.ng/hdom/dom.js","./normalize":"../../../node_modules/@thi.ng/hdom/normalize.js","./render-once":"../../../node_modules/@thi.ng/hdom/render-once.js","./start":"../../../node_modules/@thi.ng/hdom/start.js"}],"../../../node_modules/@thi.ng/hdom-components/canvas.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Configurable canvas component. Used as common base for `canvasWebGL`
+ * and `canvas2D` wrappers.
+ *
+ * @param type canvas context type
+ * @param handlers user handlers
+ * @param opts canvas context creation options
+ */
+const _canvas = (type, { init, update, release }, opts) => {
+    let el, ctx;
+    let frame = 0;
+    let time = 0;
+    return {
+        init(_el, hctx, ...args) {
+            el = _el;
+            exports.adaptDPI(el, el.width, el.height);
+            ctx = el.getContext(type, opts);
+            time = Date.now();
+            init && init(el, ctx, hctx, ...args);
+            update && update(el, ctx, hctx, time, frame++, ...args);
+        },
+        render(hctx, ...args) {
+            ctx && update && update(el, ctx, hctx, Date.now() - time, frame++, ...args);
+            return ["canvas", args[0]];
+        },
+        release(hctx, ...args) {
+            release && release(el, ctx, hctx, ...args);
+        }
+    };
+};
+/**
+ * Higher order WebGL canvas component delegating to user provided
+ * handlers.
+ *
+ * Note: Since this is an higher order component, if used within a
+ * non-static parent component, this function itself cannot be directly
+ * inlined into hdom tree and must be initialized prior/outside, however
+ * the returned component can be used as normal.
+ *
+ * ```
+ * const glcanvas = canvasWebGL({
+ *   render: (canv, gl, hctx, time, frame, ...args) => {
+ *     const col = 0.5 + 0.5 * Math.sin(time);
+ *     gl.clearColor(col, col, col, 1);
+ *   }
+ * });
+ * ...
+ * [glcanvas, {id: "foo", width: 640, height: 480}]
+ * ```
+ *
+ * @param handlers user provided handlers
+ * @param opts canvas context creation options
+ */
+exports.canvasWebGL = (handlers, opts) => _canvas("webgl", handlers, opts);
+/**
+ * Same as `canvasWebGL` but targets WebGL2.
+ *
+ * @param handlers user provided handlers
+ * @param opts canvas context creation options
+ */
+exports.canvasWebGL2 = (handlers, opts) => _canvas("webgl2", handlers, opts);
+/**
+ * Similar to `canvasWebGL`, but targets default 2D drawing context.
+ *
+ * @param handlers user provided handlers
+ * @param glopts canvas context creation options
+ */
+exports.canvas2D = (handlers, opts) => _canvas("2d", handlers, opts);
+/**
+ * Sets the canvas size to given `width` & `height` and adjusts style to
+ * compensate for HDPI devices. Note: For 2D canvases, this will
+ * automatically clear any prior canvas content.
+ *
+ * @param canvas
+ * @param width uncompensated pixel width
+ * @param height uncompensated pixel height
+ */
+exports.adaptDPI = (canvas, width, height) => {
+    const dpr = window.devicePixelRatio || 1;
+    if (dpr != 1) {
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+    }
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    return dpr;
+};
+
+},{}],"../../../node_modules/@thi.ng/checks/exists-not-null.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function existsAndNotNull(x) {
+    return x != null;
+}
+exports.existsAndNotNull = existsAndNotNull;
+
+},{}],"../../../node_modules/@thi.ng/checks/exists.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function exists(x) {
+    return x !== undefined;
+}
+exports.exists = exists;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-crypto.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasCrypto() {
+    return typeof window !== "undefined" && window["crypto"] !== undefined;
+}
+exports.hasCrypto = hasCrypto;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-max-length.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasMaxLength(len, x) {
+    return x != null && x.length <= len;
+}
+exports.hasMaxLength = hasMaxLength;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-min-length.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasMinLength(len, x) {
+    return x != null && x.length >= len;
+}
+exports.hasMinLength = hasMinLength;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-performance.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_function_1 = require("./is-function");
+function hasPerformance() {
+    return typeof performance !== 'undefined' && is_function_1.isFunction(performance.now);
+}
+exports.hasPerformance = hasPerformance;
+
+},{"./is-function":"../../../node_modules/@thi.ng/checks/is-function.js"}],"../../../node_modules/@thi.ng/checks/has-wasm.js":[function(require,module,exports) {
+var global = arguments[3];
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasWASM() {
+    return (typeof window !== "undefined" && typeof window["WebAssembly"] !== "undefined") ||
+        (typeof global !== "undefined" && typeof global["WebAssembly"] !== "undefined");
+}
+exports.hasWASM = hasWASM;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-webgl.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasWebGL() {
+    try {
+        document.createElement("canvas").getContext("webgl");
+        return true;
+    }
+    catch (e) {
+        return false;
+    }
+}
+exports.hasWebGL = hasWebGL;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-websocket.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasWebSocket() {
+    return typeof WebSocket !== "undefined";
+}
+exports.hasWebSocket = hasWebSocket;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-arraylike.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isArrayLike(x) {
+    return (x != null && typeof x !== "function" && x.length !== undefined);
+}
+exports.isArrayLike = isArrayLike;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-blob.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isBlob(x) {
+    return x instanceof Blob;
+}
+exports.isBlob = isBlob;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-boolean.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isBoolean(x) {
+    return typeof x === "boolean";
+}
+exports.isBoolean = isBoolean;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-chrome.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isChrome() {
+    return typeof window !== "undefined" && !!window["chrome"];
+}
+exports.isChrome = isChrome;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-date.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isDate(x) {
+    return x instanceof Date;
+}
+exports.isDate = isDate;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-even.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isEven(x) {
+    return (x % 2) === 0;
+}
+exports.isEven = isEven;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-false.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFalse(x) {
+    return x === false;
+}
+exports.isFalse = isFalse;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-file.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFile(x) {
+    return x instanceof File;
+}
+exports.isFile = isFile;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-firefox.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFirefox() {
+    return typeof window !== "undefined" && !!window["InstallTrigger"];
+}
+exports.isFirefox = isFirefox;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-ie.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isIE() {
+    return typeof document !== "undefined" &&
+        (typeof document["documentMode"] !== "undefined" ||
+            navigator.userAgent.indexOf("MSIE") > 0);
+}
+exports.isIE = isIE;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-in-range.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isInRange(min, max, x) {
+    return x >= min && x <= max;
+}
+exports.isInRange = isInRange;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-int32.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isInt32(x) {
+    return typeof x === "number" && (x | 0) === x;
+}
+exports.isInt32 = isInt32;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-iterable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isIterable(x) {
+    return x != null && typeof x[Symbol.iterator] === "function";
+}
+exports.isIterable = isIterable;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-map.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isMap(x) {
+    return x instanceof Map;
+}
+exports.isMap = isMap;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-mobile.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isMobile() {
+    return typeof navigator !== "undefined" &&
+        /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent) &&
+        !/crios/i.test(navigator.userAgent);
+}
+exports.isMobile = isMobile;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-nan.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNaN(x) {
+    return x !== x;
+}
+exports.isNaN = isNaN;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-negative.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNegative(x) {
+    return typeof x === "number" && x < 0;
+}
+exports.isNegative = isNegative;
+
+},{}],"../../../node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
+
+},{}],"../../../node_modules/@thi.ng/checks/is-node.js":[function(require,module,exports) {
+var process = require("process");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNode() {
+    if (typeof process === "object") {
+        if (typeof process.versions === "object") {
+            if (typeof process.versions.node !== "undefined") {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+exports.isNode = isNode;
+
+},{"process":"../../../node_modules/parcel-bundler/src/builtins/_empty.js"}],"../../../node_modules/@thi.ng/checks/is-null.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNull(x) {
+    return x === null;
+}
+exports.isNull = isNull;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-number.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNumber(x) {
+    return typeof x === "number";
+}
+exports.isNumber = isNumber;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-object.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isObject(x) {
+    return x !== null && typeof x === "object";
+}
+exports.isObject = isObject;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-odd.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isOdd(x) {
+    return (x % 2) !== 0;
+}
+exports.isOdd = isOdd;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-positive.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isPosititve(x) {
+    return typeof x === "number" && x > 0;
+}
+exports.isPosititve = isPosititve;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-promise.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isPromise(x) {
+    return x instanceof Promise;
+}
+exports.isPromise = isPromise;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-promiselike.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const implements_function_1 = require("./implements-function");
+function isPromiseLike(x) {
+    return x instanceof Promise ||
+        (implements_function_1.implementsFunction(x, "then") && implements_function_1.implementsFunction(x, "catch"));
+}
+exports.isPromiseLike = isPromiseLike;
+
+},{"./implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js"}],"../../../node_modules/@thi.ng/checks/is-regexp.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isRegExp(x) {
+    return x instanceof RegExp;
+}
+exports.isRegExp = isRegExp;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-safari.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_chrome_1 = require("./is-chrome");
+function isSafari() {
+    return typeof navigator !== "undefined" && /Safari/.test(navigator.userAgent) && !is_chrome_1.isChrome();
+}
+exports.isSafari = isSafari;
+
+},{"./is-chrome":"../../../node_modules/@thi.ng/checks/is-chrome.js"}],"../../../node_modules/@thi.ng/checks/is-set.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isSet(x) {
+    return x instanceof Set;
+}
+exports.isSet = isSet;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-symbol.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isSymbol(x) {
+    return typeof x === "symbol";
+}
+exports.isSymbol = isSymbol;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-transferable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isTransferable(x) {
+    return x instanceof ArrayBuffer ||
+        (typeof SharedArrayBuffer !== "undefined" && x instanceof SharedArrayBuffer) ||
+        (typeof MessagePort !== "undefined" && x instanceof MessagePort);
+}
+exports.isTransferable = isTransferable;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-true.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isTrue(x) {
+    return x === true;
+}
+exports.isTrue = isTrue;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-typedarray.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isTypedArray(x) {
+    return x && (x.constructor === Float32Array ||
+        x.constructor === Uint32Array ||
+        x.constructor === Uint8Array ||
+        x.constructor === Uint8ClampedArray ||
+        x.constructor === Int8Array ||
+        x.constructor === Uint16Array ||
+        x.constructor === Int16Array ||
+        x.constructor === Int32Array ||
+        x.constructor === Float64Array);
+}
+exports.isTypedArray = isTypedArray;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-uint32.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUint32(x) {
+    return typeof x === "number" && (x >>> 0) === x;
+}
+exports.isUint32 = isUint32;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-undefined.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUndefined(x) {
+    return x === undefined;
+}
+exports.isUndefined = isUndefined;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-uuid.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUUID(x) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
+}
+exports.isUUID = isUUID;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-uuid4.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUUIDv4(x) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
+}
+exports.isUUIDv4 = isUUIDv4;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-zero.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isZero(x) {
+    return x === 0;
+}
+exports.isZero = isZero;
+
+},{}],"../../../node_modules/@thi.ng/checks/index.js":[function(require,module,exports) {
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("./exists-not-null"));
+__export(require("./exists"));
+__export(require("./has-crypto"));
+__export(require("./has-max-length"));
+__export(require("./has-min-length"));
+__export(require("./has-performance"));
+__export(require("./has-wasm"));
+__export(require("./has-webgl"));
+__export(require("./has-websocket"));
+__export(require("./implements-function"));
+__export(require("./is-array"));
+__export(require("./is-arraylike"));
+__export(require("./is-blob"));
+__export(require("./is-boolean"));
+__export(require("./is-chrome"));
+__export(require("./is-date"));
+__export(require("./is-even"));
+__export(require("./is-false"));
+__export(require("./is-file"));
+__export(require("./is-firefox"));
+__export(require("./is-function"));
+__export(require("./is-ie"));
+__export(require("./is-in-range"));
+__export(require("./is-int32"));
+__export(require("./is-iterable"));
+__export(require("./is-map"));
+__export(require("./is-mobile"));
+__export(require("./is-nan"));
+__export(require("./is-negative"));
+__export(require("./is-node"));
+__export(require("./is-not-string-iterable"));
+__export(require("./is-null"));
+__export(require("./is-number"));
+__export(require("./is-object"));
+__export(require("./is-odd"));
+__export(require("./is-plain-object"));
+__export(require("./is-positive"));
+__export(require("./is-promise"));
+__export(require("./is-promiselike"));
+__export(require("./is-regexp"));
+__export(require("./is-safari"));
+__export(require("./is-set"));
+__export(require("./is-string"));
+__export(require("./is-symbol"));
+__export(require("./is-transferable"));
+__export(require("./is-true"));
+__export(require("./is-typedarray"));
+__export(require("./is-uint32"));
+__export(require("./is-undefined"));
+__export(require("./is-uuid"));
+__export(require("./is-uuid4"));
+__export(require("./is-zero"));
+
+},{"./exists-not-null":"../../../node_modules/@thi.ng/checks/exists-not-null.js","./exists":"../../../node_modules/@thi.ng/checks/exists.js","./has-crypto":"../../../node_modules/@thi.ng/checks/has-crypto.js","./has-max-length":"../../../node_modules/@thi.ng/checks/has-max-length.js","./has-min-length":"../../../node_modules/@thi.ng/checks/has-min-length.js","./has-performance":"../../../node_modules/@thi.ng/checks/has-performance.js","./has-wasm":"../../../node_modules/@thi.ng/checks/has-wasm.js","./has-webgl":"../../../node_modules/@thi.ng/checks/has-webgl.js","./has-websocket":"../../../node_modules/@thi.ng/checks/has-websocket.js","./implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js","./is-array":"../../../node_modules/@thi.ng/checks/is-array.js","./is-arraylike":"../../../node_modules/@thi.ng/checks/is-arraylike.js","./is-blob":"../../../node_modules/@thi.ng/checks/is-blob.js","./is-boolean":"../../../node_modules/@thi.ng/checks/is-boolean.js","./is-chrome":"../../../node_modules/@thi.ng/checks/is-chrome.js","./is-date":"../../../node_modules/@thi.ng/checks/is-date.js","./is-even":"../../../node_modules/@thi.ng/checks/is-even.js","./is-false":"../../../node_modules/@thi.ng/checks/is-false.js","./is-file":"../../../node_modules/@thi.ng/checks/is-file.js","./is-firefox":"../../../node_modules/@thi.ng/checks/is-firefox.js","./is-function":"../../../node_modules/@thi.ng/checks/is-function.js","./is-ie":"../../../node_modules/@thi.ng/checks/is-ie.js","./is-in-range":"../../../node_modules/@thi.ng/checks/is-in-range.js","./is-int32":"../../../node_modules/@thi.ng/checks/is-int32.js","./is-iterable":"../../../node_modules/@thi.ng/checks/is-iterable.js","./is-map":"../../../node_modules/@thi.ng/checks/is-map.js","./is-mobile":"../../../node_modules/@thi.ng/checks/is-mobile.js","./is-nan":"../../../node_modules/@thi.ng/checks/is-nan.js","./is-negative":"../../../node_modules/@thi.ng/checks/is-negative.js","./is-node":"../../../node_modules/@thi.ng/checks/is-node.js","./is-not-string-iterable":"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js","./is-null":"../../../node_modules/@thi.ng/checks/is-null.js","./is-number":"../../../node_modules/@thi.ng/checks/is-number.js","./is-object":"../../../node_modules/@thi.ng/checks/is-object.js","./is-odd":"../../../node_modules/@thi.ng/checks/is-odd.js","./is-plain-object":"../../../node_modules/@thi.ng/checks/is-plain-object.js","./is-positive":"../../../node_modules/@thi.ng/checks/is-positive.js","./is-promise":"../../../node_modules/@thi.ng/checks/is-promise.js","./is-promiselike":"../../../node_modules/@thi.ng/checks/is-promiselike.js","./is-regexp":"../../../node_modules/@thi.ng/checks/is-regexp.js","./is-safari":"../../../node_modules/@thi.ng/checks/is-safari.js","./is-set":"../../../node_modules/@thi.ng/checks/is-set.js","./is-string":"../../../node_modules/@thi.ng/checks/is-string.js","./is-symbol":"../../../node_modules/@thi.ng/checks/is-symbol.js","./is-transferable":"../../../node_modules/@thi.ng/checks/is-transferable.js","./is-true":"../../../node_modules/@thi.ng/checks/is-true.js","./is-typedarray":"../../../node_modules/@thi.ng/checks/is-typedarray.js","./is-uint32":"../../../node_modules/@thi.ng/checks/is-uint32.js","./is-undefined":"../../../node_modules/@thi.ng/checks/is-undefined.js","./is-uuid":"../../../node_modules/@thi.ng/checks/is-uuid.js","./is-uuid4":"../../../node_modules/@thi.ng/checks/is-uuid4.js","./is-zero":"../../../node_modules/@thi.ng/checks/is-zero.js"}],"../../../node_modules/@thi.ng/transducers/reduced.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class Reduced {
+    constructor(val) {
+        this.value = val;
+    }
+    deref() {
+        return this.value;
+    }
+}
+exports.Reduced = Reduced;
+function reduced(x) {
+    return new Reduced(x);
+}
+exports.reduced = reduced;
+function isReduced(x) {
+    return x instanceof Reduced;
+}
+exports.isReduced = isReduced;
+function ensureReduced(x) {
+    return x instanceof Reduced ? x : new Reduced(x);
+}
+exports.ensureReduced = ensureReduced;
+function unreduced(x) {
+    return x instanceof Reduced ? x.deref() : x;
+}
+exports.unreduced = unreduced;
+
+},{}],"../../../node_modules/@thi.ng/errors/illegal-arity.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class IllegalArityError extends Error {
+    constructor(n) {
+        super(`illegal arity: ${n}`);
+    }
+}
+exports.IllegalArityError = IllegalArityError;
+function illegalArity(n) {
+    throw new IllegalArityError(n);
+}
+exports.illegalArity = illegalArity;
+
+},{}],"../../../node_modules/@thi.ng/transducers/reduce.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const implements_function_1 = require("@thi.ng/checks/implements-function");
+const is_arraylike_1 = require("@thi.ng/checks/is-arraylike");
+const is_iterable_1 = require("@thi.ng/checks/is-iterable");
+const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
+const reduced_1 = require("./reduced");
+function reduce(...args) {
+    let acc, xs;
+    switch (args.length) {
+        case 3:
+            xs = args[2];
+            acc = args[1];
+            break;
+        case 2:
+            xs = args[1];
+            break;
+        default:
+            illegal_arity_1.illegalArity(args.length);
+    }
+    const rfn = args[0];
+    const init = rfn[0];
+    const complete = rfn[1];
+    const reduce = rfn[2];
+    acc = acc == null ? init() : acc;
+    if (implements_function_1.implementsFunction(xs, "$reduce")) {
+        acc = xs.$reduce(reduce, acc);
+    }
+    else if (is_arraylike_1.isArrayLike(xs)) {
+        for (let i = 0, n = xs.length; i < n; i++) {
+            acc = reduce(acc, xs[i]);
+            if (reduced_1.isReduced(acc)) {
+                acc = acc.deref();
+                break;
+            }
+        }
+    }
+    else {
+        for (let x of xs) {
+            acc = reduce(acc, x);
+            if (reduced_1.isReduced(acc)) {
+                acc = acc.deref();
+                break;
+            }
+        }
+    }
+    return reduced_1.unreduced(complete(acc));
+}
+exports.reduce = reduce;
+/**
+ * Convenience helper for building a full `Reducer` using the identity
+ * function (i.e. `(x) => x`) as completion step (true for 90% of all
+ * bundled transducers).
+ *
+ * @param init init step of reducer
+ * @param rfn reduction step of reducer
+ */
+function reducer(init, rfn) {
+    return [init, (acc) => acc, rfn];
+}
+exports.reducer = reducer;
+exports.$$reduce = (rfn, args) => {
+    const n = args.length - 1;
+    return is_iterable_1.isIterable(args[n]) ?
+        args.length > 1 ?
+            reduce(rfn.apply(null, args.slice(0, n)), args[n]) :
+            reduce(rfn(), args[0]) :
+        undefined;
+};
+
+},{"@thi.ng/checks/implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js","@thi.ng/checks/is-arraylike":"../../../node_modules/@thi.ng/checks/is-arraylike.js","@thi.ng/checks/is-iterable":"../../../node_modules/@thi.ng/checks/is-iterable.js","@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/push.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function push(xs) {
+    return xs ?
+        [...xs] :
+        reduce_1.reducer(() => [], (acc, x) => (acc.push(x), acc));
+}
+exports.push = push;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/iterator.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const api_1 = require("@thi.ng/api/api");
+const is_iterable_1 = require("@thi.ng/checks/is-iterable");
+const reduced_1 = require("./reduced");
+const push_1 = require("./rfn/push");
+/**
+ * Takes a transducer and input iterable. Returns iterator of
+ * transformed results.
+ *
+ * @param xform
+ * @param xs
+ */
+function* iterator(xform, xs) {
+    const rfn = xform(push_1.push());
+    const complete = rfn[1];
+    const reduce = rfn[2];
+    for (let x of xs) {
+        const y = reduce([], x);
+        if (reduced_1.isReduced(y)) {
+            yield* reduced_1.unreduced(complete(y.deref()));
+            return;
+        }
+        if (y.length) {
+            yield* y;
+        }
+    }
+    yield* reduced_1.unreduced(complete([]));
+}
+exports.iterator = iterator;
+/**
+ * Optimized version of `iterator()` for transducers which are
+ * guaranteed to:
+ *
+ * 1) Only produce none or a single result per input
+ * 2) Do not require a `completion` reduction step
+ *
+ * @param xform
+ * @param xs
+ */
+function* iterator1(xform, xs) {
+    const reduce = xform([null, null, (_, x) => x])[2];
+    for (let x of xs) {
+        let y = reduce(api_1.SEMAPHORE, x);
+        if (reduced_1.isReduced(y)) {
+            y = reduced_1.unreduced(y.deref());
+            if (y !== api_1.SEMAPHORE) {
+                yield y;
+            }
+            return;
+        }
+        if (y !== api_1.SEMAPHORE) {
+            yield y;
+        }
+    }
+}
+exports.iterator1 = iterator1;
+/**
+ * Helper function used by various transducers to wrap themselves as
+ * transforming iterators. Delegates to `iterator1()` by default.
+ *
+ * @param xform
+ * @param args
+ * @param impl
+ */
+exports.$iter = (xform, args, impl = iterator1) => {
+    const n = args.length - 1;
+    return is_iterable_1.isIterable(args[n]) ?
+        args.length > 1 ?
+            impl(xform.apply(null, args.slice(0, n)), args[n]) :
+            impl(xform(), args[0]) :
+        undefined;
+};
+
+},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","@thi.ng/checks/is-iterable":"../../../node_modules/@thi.ng/checks/is-iterable.js","./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js","./rfn/push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/func/compr.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Reducer composition helper. Takes existing reducer `rfn` (a 3-tuple)
+ * and a reducing function `fn`. Returns a new reducer tuple of this
+ * form:
+ *
+ * ```
+ * [rfn[0], rfn[1], fn]
+ * ```
+ *
+ * `rfn[2]` reduces values of type `B` into an accumulator of type `A`.
+ * `fn` accepts values of type `C` and produces interim results of type
+ * `B`, which are then (possibly) passed to the "inner" `rfn[2]`
+ * function. Therefore the resulting reducer takes inputs of `C` and an
+ * accumulator of type `A`.
+ *
+ * It is assumed that `fn` internally calls `rfn[2]` to pass its own
+ * results for further processing by the nested reducer `rfn`.
+ *
+ * @param rfn
+ * @param fn
+ */
+function compR(rfn, fn) {
+    return [rfn[0], rfn[1], fn];
+}
+exports.compR = compR;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/map.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function map(fn, src) {
+    return src ?
+        iterator_1.iterator1(map(fn), src) :
+        (rfn) => {
+            const r = rfn[2];
+            return compr_1.compR(rfn, (acc, x) => r(acc, fn(x)));
+        };
+}
+exports.map = map;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/transduce.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
+const reduce_1 = require("./reduce");
+const map_1 = require("./xform/map");
+function transduce(...args) {
+    let acc, xs;
+    switch (args.length) {
+        case 4:
+            xs = args[3];
+            acc = args[2];
+            break;
+        case 3:
+            xs = args[2];
+            break;
+        case 2:
+            return map_1.map((x) => transduce(args[0], args[1], x));
+        default:
+            illegal_arity_1.illegalArity(args.length);
+    }
+    return reduce_1.reduce(args[0](args[1]), acc, xs);
+}
+exports.transduce = transduce;
+
+},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./xform/map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/run.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const transduce_1 = require("./transduce");
+const nop = () => { };
+function run(tx, ...args) {
+    if (args.length === 1) {
+        transduce_1.transduce(tx, [nop, nop, nop], args[0]);
+    }
+    else {
+        const fx = args[0];
+        transduce_1.transduce(tx, [nop, nop, (_, x) => fx(x)], args[1]);
+    }
+}
+exports.run = run;
+
+},{"./transduce":"../../../node_modules/@thi.ng/transducers/transduce.js"}],"../../../node_modules/@thi.ng/transducers/step.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduced_1 = require("./reduced");
+const push_1 = require("./rfn/push");
+/**
+ * Single-step transducer execution wrapper.
+ * Returns array if transducer produces multiple results
+ * and undefined if there was no output. Else returns single
+ * result value.
+ *
+ * Likewise, once a transducer has produced a final / reduced
+ * value, all further invocations of the stepper function will
+ * return undefined.
+ *
+ * ```
+ * // single result
+ * step(map(x => x * 10))(1);
+ * // 10
+ *
+ * // multiple results
+ * step(mapcat(x => [x, x + 1, x + 2]))(1)
+ * // [ 1, 2, 3 ]
+ *
+ * // no result
+ * f = step(filter(even))
+ * f(1); // undefined
+ * f(2); // 2
+ *
+ * // reduced value termination
+ * f = step(take(2));
+ * f(1); // 1
+ * f(1); // 1
+ * f(1); // undefined
+ * f(1); // undefined
+ * ```
+ *
+ * @param tx
+ */
+function step(tx) {
+    const [_, complete, reduce] = tx(push_1.push());
+    _;
+    let done = false;
+    return (x) => {
+        if (!done) {
+            let acc = reduce([], x);
+            done = reduced_1.isReduced(acc);
+            if (done) {
+                acc = complete(acc.deref());
+            }
+            return acc.length === 1 ?
+                acc[0] :
+                acc.length > 0 ?
+                    acc :
+                    undefined;
+        }
+    };
+}
+exports.step = step;
+
+},{"./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js","./rfn/push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/add.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function add(...args) {
+    const res = reduce_1.$$reduce(add, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const init = args[0] || 0;
+    return reduce_1.reducer(() => init, (acc, x) => acc + x);
+}
+exports.add = add;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/assoc-map.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function assocMap(xs) {
+    return xs ?
+        reduce_1.reduce(assocMap(), xs) :
+        reduce_1.reducer(() => new Map(), (acc, [k, v]) => acc.set(k, v));
+}
+exports.assocMap = assocMap;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/assoc-obj.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function assocObj(xs) {
+    return xs ?
+        reduce_1.reduce(assocObj(), xs) :
+        reduce_1.reducer(() => new Object(), (acc, [k, v]) => (acc[k] = v, acc));
+}
+exports.assocObj = assocObj;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/conj.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function conj(xs) {
+    return xs ?
+        reduce_1.reduce(conj(), xs) :
+        reduce_1.reducer(() => new Set(), (acc, x) => acc.add(x));
+}
+exports.conj = conj;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/count.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function count(...args) {
+    const res = reduce_1.$$reduce(count, args);
+    if (res !== undefined) {
+        return res;
+    }
+    let offset = args[0] || 0;
+    let step = args[1] || 1;
+    return reduce_1.reducer(() => offset, (acc, _) => acc + step);
+}
+exports.count = count;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/div.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function div(init, xs) {
+    return xs ?
+        reduce_1.reduce(div(init), xs) :
+        reduce_1.reducer(() => init, (acc, x) => acc / x);
+}
+exports.div = div;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/every.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+const reduced_1 = require("../reduced");
+function every(...args) {
+    const res = reduce_1.$$reduce(every, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const pred = args[0];
+    return reduce_1.reducer(() => true, pred ?
+        (acc, x) => (pred(x) ? acc : reduced_1.reduced(false)) :
+        (acc, x) => (x ? acc : reduced_1.reduced(false)));
+}
+exports.every = every;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/fill.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function fill(...args) {
+    const res = reduce_1.$$reduce(fill, args);
+    if (res !== undefined) {
+        return res;
+    }
+    let start = args[0] || 0;
+    return reduce_1.reducer(() => [], (acc, x) => (acc[start++] = x, acc));
+}
+exports.fill = fill;
+function fillN(...args) {
+    return fill(...args);
+}
+exports.fillN = fillN;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/func/identity.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function identity(x) { return x; }
+exports.identity = identity;
+
+},{}],"../../../node_modules/@thi.ng/transducers/rfn/group-by-map.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const identity_1 = require("../func/identity");
+const reduce_1 = require("../reduce");
+const push_1 = require("./push");
+function groupByMap(...args) {
+    const res = reduce_1.$$reduce(groupByMap, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const opts = Object.assign({ key: identity_1.identity, group: push_1.push() }, args[0]);
+    const [init, _, reduce] = opts.group;
+    _;
+    return reduce_1.reducer(() => new Map(), (acc, x) => {
+        const k = opts.key(x);
+        return acc.set(k, acc.has(k) ?
+            reduce(acc.get(k), x) :
+            reduce(init(), x));
+    });
+}
+exports.groupByMap = groupByMap;
+
+},{"../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/frequencies.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const identity_1 = require("../func/identity");
+const reduce_1 = require("../reduce");
+const count_1 = require("./count");
+const group_by_map_1 = require("./group-by-map");
+function frequencies(...args) {
+    return reduce_1.$$reduce(frequencies, args) ||
+        group_by_map_1.groupByMap({ key: args[0] || identity_1.identity, group: count_1.count() });
+}
+exports.frequencies = frequencies;
+
+},{"../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./count":"../../../node_modules/@thi.ng/transducers/rfn/count.js","./group-by-map":"../../../node_modules/@thi.ng/transducers/rfn/group-by-map.js"}],"../../../node_modules/@thi.ng/transducers/rfn/group-by-obj.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const identity_1 = require("../func/identity");
+const reduce_1 = require("../reduce");
+const push_1 = require("./push");
+function groupByObj(...args) {
+    const res = reduce_1.$$reduce(groupByObj, args);
+    if (res) {
+        return res;
+    }
+    const _opts = Object.assign({ key: identity_1.identity, group: push_1.push() }, args[0]);
+    const [_init, _, _reduce] = _opts.group;
+    _;
+    return reduce_1.reducer(() => ({}), (acc, x) => {
+        const k = _opts.key(x);
+        acc[k] = acc[k] ?
+            _reduce(acc[k], x) :
+            _reduce(_init(), x);
+        return acc;
+    });
+}
+exports.groupByObj = groupByObj;
+
+},{"../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/group-binary.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const group_by_obj_1 = require("./group-by-obj");
+const push_1 = require("./push");
+function branchPred(key, b, l, r) {
+    return (x) => key(x) & b ? r : l;
+}
+/**
+ * Creates a bottom-up, unbalanced binary tree of desired depth and
+ * choice of data structures. Any value can be indexed, as long as a
+ * numeric representation (key) can be obtained. This numeric key is
+ * produced by the supplied `key` function. IMPORTANT: the returned
+ * values MUST be unsigned and less than the provided bit length (i.e.
+ * `0 .. (2^bits) - 1` range).
+ *
+ * By default the tree is constructed using plain objects for branches,
+ * with left branches stored as "l" and right ones as "r". The original
+ * values are stored at the lowest tree level using a customizable
+ * nested reducer. By default leaves are collected in arrays (using the
+ * `push()` reducer), but any suitable reducer can be used (e.g.
+ * `conj()` to collect values into sets).
+ *
+ * Index by lowest 4-bits of ID value:
+ *
+ * ```
+ * tree = reduce(
+ *   groupBinary(4, x => x.id & 0xf),
+ *   [{id: 3}, {id: 8}, {id: 15}, {id: 0}]
+ * )
+ *
+ * tree.l.l.l.l
+ * // [ { id: 0 } ]
+ * tree.r.r.r.r
+ * // [ { id: 15 } ]
+ * tree.l.l.r.r
+ * // [ { id: 3 } ]
+ * ```
+ *
+ * Collecting as array:
+ *
+ * ```
+ * tree = reduce(
+ *   groupBinary(4, identity, ()=>[], push(), 0, 1),
+ *   [1,2,3,4,5,6,7]
+ * )
+ *
+ * tree[0][1][0][1] // 0101 == 5 in binary
+ * // [ 5 ]
+ *
+ * tree[0][1][1]    // 011* == branch
+ * // [ [ 6 ], [ 7 ] ]
+ * ```
+ *
+ * Using `frequencies` as leaf reducer:
+ *
+ * ```
+ * tree = reduce(
+ *   groupBinary(3, (x: string) => x.length, null, frequencies()),
+ *   "aa bbb dddd ccccc bbb eeee fff".split(" ")
+ * )
+ * // [ [ undefined,
+ * //     [ Map { 'aa' => 1 },
+ * //       Map { 'bbb' => 2, 'fff' => 1 } ] ],
+ * //   [ [ Map { 'dddd' => 1, 'eeee' => 1 },
+ * //       Map { 'ccccc' => 1 } ] ] ]
+ *
+ * tree[0][1][1]
+ * // Map { 'bbb' => 2, 'fff' => 1 }
+ * ```
+ *
+ * @param bits index range (always from 0)
+ * @param key key function
+ * @param branch function to create a new branch container (object or
+ * array)
+ * @param leaf reducer for leaf collection
+ * @param left key for storing left branches (e.g. `0` for arrays)
+ * @param right key for storing right branches (e.g. `1` for arrays)
+ */
+function groupBinary(bits, key, branch, leaf, left = "l", right = "r") {
+    const init = branch || (() => ({}));
+    let rfn = group_by_obj_1.groupByObj({
+        key: branchPred(key, 1, left, right),
+        group: leaf || push_1.push(),
+    });
+    for (let i = 2, maxIndex = 1 << bits; i < maxIndex; i <<= 1) {
+        rfn = group_by_obj_1.groupByObj({ key: branchPred(key, i, left, right), group: [init, rfn[1], rfn[2]] });
+    }
+    return [init, rfn[1], rfn[2]];
+}
+exports.groupBinary = groupBinary;
+
+},{"./group-by-obj":"../../../node_modules/@thi.ng/transducers/rfn/group-by-obj.js","./push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/last.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function last(xs) {
+    return xs ?
+        reduce_1.reduce(last(), xs) :
+        reduce_1.reducer(() => undefined, (_, x) => x);
+}
+exports.last = last;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/compare/index.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function compare(a, b) {
+    if (a === b) {
+        return 0;
+    }
+    if (a == null) {
+        return b == null ? 0 : -1;
+    }
+    if (b == null) {
+        return a == null ? 0 : 1;
+    }
+    if (typeof a.compare === "function") {
+        return a.compare(b);
+    }
+    if (typeof b.compare === "function") {
+        return -b.compare(a);
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+exports.compare = compare;
+
+},{}],"../../../node_modules/@thi.ng/transducers/rfn/max-compare.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compare_1 = require("@thi.ng/compare");
+const reduce_1 = require("../reduce");
+function maxCompare(...args) {
+    const res = reduce_1.$$reduce(maxCompare, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const init = args[0];
+    const cmp = args[1] || compare_1.compare;
+    return reduce_1.reducer(init, (acc, x) => cmp(acc, x) >= 0 ? acc : x);
+}
+exports.maxCompare = maxCompare;
+
+},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/max.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function max(xs) {
+    return xs ?
+        reduce_1.reduce(max(), xs) :
+        reduce_1.reducer(() => -Infinity, (acc, x) => Math.max(acc, x));
+}
+exports.max = max;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/mean.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function mean(xs) {
+    let n = 0;
+    return xs ?
+        reduce_1.reduce(mean(), xs) :
+        [
+            () => 0,
+            (acc) => acc / n,
+            (acc, x) => (n++, acc + x),
+        ];
+}
+exports.mean = mean;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/min-compare.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compare_1 = require("@thi.ng/compare");
+const reduce_1 = require("../reduce");
+function minCompare(...args) {
+    const res = reduce_1.$$reduce(minCompare, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const init = args[0];
+    const cmp = args[1] || compare_1.compare;
+    return reduce_1.reducer(init, (acc, x) => cmp(acc, x) <= 0 ? acc : x);
+}
+exports.minCompare = minCompare;
+
+},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/min.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function min(xs) {
+    return xs ?
+        reduce_1.reduce(min(), xs) :
+        reduce_1.reducer(() => Infinity, (acc, x) => Math.min(acc, x));
+}
+exports.min = min;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/mul.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function mul(...args) {
+    const res = reduce_1.$$reduce(mul, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const init = args[0] || 1;
+    return reduce_1.reducer(() => init, (acc, x) => acc * x);
+}
+exports.mul = mul;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/push-copy.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function pushCopy() {
+    return reduce_1.reducer(() => [], (acc, x) => ((acc = acc.slice()).push(x), acc));
+}
+exports.pushCopy = pushCopy;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/reductions.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+const reduced_1 = require("../reduced");
+function reductions(rfn, xs) {
+    const [init, complete, _reduce] = rfn;
+    return xs ?
+        reduce_1.reduce(reductions(rfn), xs) :
+        [
+            () => [init()],
+            (acc) => (acc[acc.length - 1] = complete(acc[acc.length - 1]), acc),
+            (acc, x) => {
+                const res = _reduce(acc[acc.length - 1], x);
+                if (reduced_1.isReduced(res)) {
+                    acc.push(res.deref());
+                    return reduced_1.reduced(acc);
+                }
+                acc.push(res);
+                return acc;
+            }
+        ];
+}
+exports.reductions = reductions;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/some.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+const reduced_1 = require("../reduced");
+function some(...args) {
+    const res = reduce_1.$$reduce(some, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const pred = args[0];
+    return reduce_1.reducer(() => false, pred ?
+        (acc, x) => (pred(x) ? reduced_1.reduced(true) : acc) :
+        (acc, x) => (x ? reduced_1.reduced(true) : acc));
+}
+exports.some = some;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/str.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function str(sep, xs) {
+    sep = sep || "";
+    let first = true;
+    return xs ?
+        [...xs].join(sep) :
+        reduce_1.reducer(() => "", (acc, x) => (acc = first ? acc + x : acc + sep + x, first = false, acc));
+}
+exports.str = str;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/sub.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduce_1 = require("../reduce");
+function sub(...args) {
+    const res = reduce_1.$$reduce(sub, args);
+    if (res !== undefined) {
+        return res;
+    }
+    const init = args[0] || 0;
+    return reduce_1.reducer(() => init, (acc, x) => acc - x);
+}
+exports.sub = sub;
+
+},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/xform/base64.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+const B64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const B64_SAFE = B64_CHARS.substr(0, 62) + "-_";
+function base64Decode(src) {
+    return src ?
+        iterator_1.iterator1(base64Decode(), src) :
+        (rfn) => {
+            const r = rfn[2];
+            let bc = 0, bs = 0;
+            return compr_1.compR(rfn, (acc, x) => {
+                switch (x) {
+                    case "-":
+                        x = "+";
+                        break;
+                    case "_":
+                        x = "/";
+                        break;
+                    case "=":
+                        return reduced_1.reduced(acc);
+                    default:
+                }
+                let y = B64_CHARS.indexOf(x);
+                bs = bc & 3 ? (bs << 6) + y : y;
+                if (bc++ & 3) {
+                    acc = r(acc, 255 & bs >> (-2 * bc & 6));
+                }
+                return acc;
+            });
+        };
+}
+exports.base64Decode = base64Decode;
+function base64Encode(...args) {
+    const iter = iterator_1.$iter(base64Encode, args, iterator_1.iterator);
+    if (iter) {
+        return [...iter].join("");
+    }
+    return (([init, complete, reduce]) => {
+        let state = 0;
+        let b;
+        const opts = Object.assign({ safe: false, buffer: 1024 }, args[0]);
+        const chars = opts.safe ? B64_SAFE : B64_CHARS;
+        const buf = [];
+        return [
+            init,
+            (acc) => {
+                switch (state) {
+                    case 1:
+                        buf.push(chars[b >> 18 & 0x3f], chars[b >> 12 & 0x3f], "=", "=");
+                        break;
+                    case 2:
+                        buf.push(chars[b >> 18 & 0x3f], chars[b >> 12 & 0x3f], chars[b >> 6 & 0x3f], "=");
+                        break;
+                    default:
+                }
+                while (buf.length && !reduced_1.isReduced(acc)) {
+                    acc = reduce(acc, buf.shift());
+                }
+                return complete(acc);
+            },
+            (acc, x) => {
+                switch (state) {
+                    case 0:
+                        state = 1;
+                        b = x << 16;
+                        break;
+                    case 1:
+                        state = 2;
+                        b += x << 8;
+                        break;
+                    default:
+                        state = 0;
+                        b += x;
+                        buf.push(chars[b >> 18 & 0x3f], chars[b >> 12 & 0x3f], chars[b >> 6 & 0x3f], chars[b & 0x3f]);
+                        if (buf.length >= opts.buffer) {
+                            for (let i = 0, n = buf.length; i < n && !reduced_1.isReduced(acc); i++) {
+                                acc = reduce(acc, buf[i]);
+                            }
+                            buf.length = 0;
+                        }
+                }
+                return acc;
+            }
+        ];
+    });
+}
+exports.base64Encode = base64Encode;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/benchmark.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function benchmark(src) {
+    return src ?
+        iterator_1.iterator1(benchmark(), src) :
+        (rfn) => {
+            const r = rfn[2];
+            let prev = Date.now();
+            return compr_1.compR(rfn, (acc, _) => {
+                const t = Date.now();
+                const x = t - prev;
+                prev = t;
+                return r(acc, x);
+            });
+        };
+}
+exports.benchmark = benchmark;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/bits.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function bits(...args) {
+    return iterator_1.$iter(bits, args, iterator_1.iterator) ||
+        ((rfn) => {
+            const reduce = rfn[2];
+            const size = (args[0] || 8) - 1;
+            const msb = args[1] !== false;
+            return compr_1.compR(rfn, msb ?
+                (acc, x) => {
+                    for (let i = size; i >= 0 && !reduced_1.isReduced(acc); i--) {
+                        acc = reduce(acc, (x >>> i) & 1);
+                    }
+                    return acc;
+                } :
+                (acc, x) => {
+                    for (let i = 0; i <= size && !reduced_1.isReduced(acc); i++) {
+                        acc = reduce(acc, (x >>> i) & 1);
+                    }
+                    return acc;
+                });
+        });
+}
+exports.bits = bits;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/cat.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const reduced_1 = require("../reduced");
+/**
+ * Transducer to concatenate iterable values.
+ */
+function cat() {
+    return (rfn) => {
+        const r = rfn[2];
+        return compr_1.compR(rfn, (acc, x) => {
+            if (x) {
+                for (let y of x) {
+                    acc = r(acc, y);
+                    if (reduced_1.isReduced(acc)) {
+                        break;
+                    }
+                }
+            }
+            return acc;
+        });
+    };
+}
+exports.cat = cat;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/iter/range.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduced_1 = require("../reduced");
+function range(from, to, step) {
+    return new Range(from, to, step);
+}
+exports.range = range;
+;
+/**
+ * Simple class wrapper around given range interval and implementing
+ * `Iterable` and `IReducible` interfaces, the latter is used to
+ * accelerate use with `reduce`.
+ */
+class Range {
+    constructor(from, to, step) {
+        if (from === undefined) {
+            from = 0;
+            to = Infinity;
+        }
+        else if (to === undefined) {
+            to = from;
+            from = 0;
+        }
+        step = step === undefined ? (from < to ? 1 : -1) : step;
+        this.from = from;
+        this.to = to;
+        this.step = step;
+    }
+    *[Symbol.iterator]() {
+        const step = this.step;
+        const to = this.to;
+        let from = this.from;
+        if (step > 0) {
+            while (from < to) {
+                yield from;
+                from += step;
+            }
+        }
+        else if (step < 0) {
+            while (from > to) {
+                yield from;
+                from += step;
+            }
+        }
+    }
+    $reduce(rfn, acc) {
+        const step = this.step;
+        if (step > 0) {
+            for (let i = this.from, n = this.to; i < n && !reduced_1.isReduced(acc); i += step) {
+                acc = rfn(acc, i);
+            }
+        }
+        else {
+            for (let i = this.from, n = this.to; i > n && !reduced_1.isReduced(acc); i += step) {
+                acc = rfn(acc, i);
+            }
+        }
+        return acc;
+    }
+}
+exports.Range = Range;
+
+},{"../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/iter/range2d.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
+const range_1 = require("./range");
+function* range2d(...args) {
+    let fromX, toX, fromY, toY, stepX, stepY;
+    switch (args.length) {
+        case 6:
+            stepX = args[4];
+            stepY = args[5];
+        case 4:
+            [fromX, toX, fromY, toY] = args;
+            break;
+        case 2:
+            [toX, toY] = args;
+            fromX = fromY = 0;
+            break;
+        default:
+            illegal_arity_1.illegalArity(args.length);
+    }
+    const rx = range_1.range(fromX, toX, stepX);
+    for (let y of range_1.range(fromY, toY, stepY)) {
+        for (let x of rx) {
+            yield [x, y];
+        }
+    }
+}
+exports.range2d = range2d;
+
+},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./range":"../../../node_modules/@thi.ng/transducers/iter/range.js"}],"../../../node_modules/@thi.ng/transducers/iter/tuples.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* tuples(...src) {
+    const iters = src.map((s) => s[Symbol.iterator]());
+    while (true) {
+        const tuple = [];
+        for (let i of iters) {
+            let v = i.next();
+            if (v.done) {
+                return;
+            }
+            tuple.push(v.value);
+        }
+        yield tuple;
+    }
+}
+exports.tuples = tuples;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/convolve.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
+const range2d_1 = require("../iter/range2d");
+const tuples_1 = require("../iter/tuples");
+const iterator_1 = require("../iterator");
+const add_1 = require("../rfn/add");
+const transduce_1 = require("../transduce");
+const map_1 = require("./map");
+exports.buildKernel2d = (weights, w, h) => {
+    const w2 = w >> 1;
+    const h2 = h >> 1;
+    return [...tuples_1.tuples(weights, range2d_1.range2d(-w2, w2 + 1, -h2, h2 + 1))];
+};
+const kernelLookup2d = (src, x, y, width, height, wrap, border) => wrap ?
+    ([w, [ox, oy]]) => {
+        const xx = x < -ox ? width + ox : x >= width - ox ? ox - 1 : x + ox;
+        const yy = y < -oy ? height + oy : y >= height - oy ? oy - 1 : y + oy;
+        return w * src[yy * width + xx];
+    } :
+    ([w, [ox, oy]]) => {
+        return (x < -ox || y < -oy || x >= width - ox || y >= height - oy) ?
+            border :
+            w * src[(y + oy) * width + x + ox];
+    };
+function convolve2d(opts, _src) {
+    if (_src) {
+        return iterator_1.iterator1(convolve2d(opts), _src);
+    }
+    const { src, width, height } = opts;
+    const wrap = opts.wrap !== false;
+    const border = opts.border || 0;
+    let kernel = opts.kernel;
+    if (!kernel) {
+        if (!(opts.weights && opts.kwidth && opts.kheight)) {
+            illegal_arguments_1.illegalArgs(`no kernel or kernel config`);
+        }
+        kernel = exports.buildKernel2d(opts.weights, opts.kwidth, opts.kheight);
+    }
+    return map_1.map((p) => transduce_1.transduce(map_1.map(kernelLookup2d(src, p[0], p[1], width, height, wrap, border)), add_1.add(), kernel));
+}
+exports.convolve2d = convolve2d;
+
+},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../iter/range2d":"../../../node_modules/@thi.ng/transducers/iter/range2d.js","../iter/tuples":"../../../node_modules/@thi.ng/transducers/iter/tuples.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../rfn/add":"../../../node_modules/@thi.ng/transducers/rfn/add.js","../transduce":"../../../node_modules/@thi.ng/transducers/transduce.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/dedupe.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const api_1 = require("@thi.ng/api/api");
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function dedupe(...args) {
+    return iterator_1.$iter(dedupe, args) ||
+        ((rfn) => {
+            const r = rfn[2];
+            const equiv = args[0];
+            let prev = api_1.SEMAPHORE;
+            return compr_1.compR(rfn, equiv ?
+                (acc, x) => {
+                    acc = equiv(prev, x) ? acc : r(acc, x);
+                    prev = x;
+                    return acc;
+                } :
+                (acc, x) => {
+                    acc = prev === x ? acc : r(acc, x);
+                    prev = x;
+                    return acc;
+                });
+        });
+}
+exports.dedupe = dedupe;
+
+},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/func/delay.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function delay(x, t) {
+    return new Promise((resolve) => setTimeout(() => resolve(x), t));
+}
+exports.delay = delay;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/delayed.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const delay_1 = require("../func/delay");
+const map_1 = require("./map");
+/**
+ * Yields transducer which wraps incoming values in promises, which
+ * resolve after specified delay time (in ms).
+ *
+ * **Only to be used in async contexts and NOT with `transduce`
+ * directly.**
+ *
+ * @param t
+ */
+function delayed(t) {
+    return map_1.map((x) => delay_1.delay(x, t));
+}
+exports.delayed = delayed;
+
+},{"../func/delay":"../../../node_modules/@thi.ng/transducers/func/delay.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/distinct.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function distinct(...args) {
+    return iterator_1.$iter(distinct, args) ||
+        ((rfn) => {
+            const r = rfn[2];
+            const opts = (args[0] || {});
+            const key = opts.key;
+            const seen = (opts.cache || (() => new Set()))();
+            return compr_1.compR(rfn, key ?
+                (acc, x) => {
+                    const k = key(x);
+                    return !seen.has(k) ? (seen.add(k), r(acc, x)) : acc;
+                } :
+                (acc, x) => !seen.has(x) ? (seen.add(x), r(acc, x)) : acc);
+        });
+}
+exports.distinct = distinct;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/throttle.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function throttle(pred, src) {
+    return src ?
+        iterator_1.iterator1(throttle(pred), src) :
+        (rfn) => {
+            const r = rfn[2];
+            const _pred = pred();
+            return compr_1.compR(rfn, (acc, x) => _pred(x) ? r(acc, x) : acc);
+        };
+}
+exports.throttle = throttle;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/drop-nth.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const throttle_1 = require("./throttle");
+const iterator_1 = require("../iterator");
+function dropNth(n, src) {
+    if (src) {
+        return iterator_1.iterator1(dropNth(n), src);
+    }
+    n = Math.max(0, n - 1);
+    return throttle_1.throttle(() => {
+        let skip = n;
+        return () => skip-- > 0 ? true : (skip = n, false);
+    });
+}
+exports.dropNth = dropNth;
+
+},{"./throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/drop-while.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function dropWhile(...args) {
+    return iterator_1.$iter(dropWhile, args) ||
+        ((rfn) => {
+            const r = rfn[2];
+            const pred = args[0];
+            let ok = true;
+            return compr_1.compR(rfn, (acc, x) => (ok = ok && pred(x)) ? acc : r(acc, x));
+        });
+}
+exports.dropWhile = dropWhile;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/drop.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function drop(n, src) {
+    return src ?
+        iterator_1.iterator1(drop(n), src) :
+        (rfn) => {
+            const r = rfn[2];
+            let m = n;
+            return compr_1.compR(rfn, (acc, x) => m > 0 ? (m--, acc) : r(acc, x));
+        };
+}
+exports.drop = drop;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/duplicate.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function duplicate(n = 1, src) {
+    return src ?
+        iterator_1.iterator(duplicate(n), src) :
+        (rfn) => {
+            const r = rfn[2];
+            return compr_1.compR(rfn, (acc, x) => {
+                for (let i = n; i >= 0 && !reduced_1.isReduced(acc); i--) {
+                    acc = r(acc, x);
+                }
+                return acc;
+            });
+        };
+}
+exports.duplicate = duplicate;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/filter.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const compr_1 = require("../func/compr");
+function filter(pred, src) {
+    return src ?
+        iterator_1.iterator1(filter(pred), src) :
+        (rfn) => {
+            const r = rfn[2];
+            return compr_1.compR(rfn, (acc, x) => pred(x) ? r(acc, x) : acc);
+        };
+}
+exports.filter = filter;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js"}],"../../../node_modules/@thi.ng/transducers/func/fuzzy-match.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const equiv_1 = require("@thi.ng/equiv");
+/**
+ * Performs a fuzzy search of `query` in `domain` and returns `true` if
+ * successful. The optional `eq` predicate can be used to customize item
+ * equality checking. Uses @thi.ng/equiv by default.
+ *
+ * Related transducer: `filterFuzzy()` (/xform/filter-fuzzy.ts)
+ *
+ * Adapted and generalized from:
+ * https://github.com/bevacqua/fufuzzyzzysearch (MIT)
+ *
+ * @param domain
+ * @param query
+ * @param eq
+ */
+function fuzzyMatch(domain, query, eq = equiv_1.equiv) {
+    const nd = domain.length;
+    const nq = query.length;
+    if (nq > nd) {
+        return false;
+    }
+    if (nq === nd) {
+        return eq(query, domain);
+    }
+    next: for (let i = 0, j = 0; i < nq; i++) {
+        const q = query[i];
+        while (j < nd) {
+            if (eq(domain[j++], q)) {
+                continue next;
+            }
+        }
+        return false;
+    }
+    return true;
+}
+exports.fuzzyMatch = fuzzyMatch;
+
+},{"@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/transducers/xform/filter-fuzzy.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const fuzzy_match_1 = require("../func/fuzzy-match");
+const iterator_1 = require("../iterator");
+const filter_1 = require("./filter");
+function filterFuzzy(...args) {
+    const iter = args.length > 1 && iterator_1.$iter(filterFuzzy, args);
+    if (iter) {
+        return iter;
+    }
+    const query = args[0];
+    const { key, equiv } = (args[1] || {});
+    return filter_1.filter((x) => fuzzy_match_1.fuzzyMatch(key != null ? key(x) : x, query, equiv));
+}
+exports.filterFuzzy = filterFuzzy;
+
+},{"../func/fuzzy-match":"../../../node_modules/@thi.ng/transducers/func/fuzzy-match.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js"}],"../../../node_modules/@thi.ng/transducers/xform/flatten-with.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function flattenWith(fn, src) {
+    return src ?
+        iterator_1.iterator(flattenWith(fn), src) :
+        (rfn) => {
+            const reduce = rfn[2];
+            const flatten = (acc, x) => {
+                const xx = fn(x);
+                if (xx) {
+                    for (let y of xx) {
+                        acc = flatten(acc, y);
+                        if (reduced_1.isReduced(acc)) {
+                            break;
+                        }
+                    }
+                    return acc;
+                }
+                return reduce(acc, x);
+            };
+            return compr_1.compR(rfn, flatten);
+        };
+}
+exports.flattenWith = flattenWith;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/flatten.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const flatten_with_1 = require("./flatten-with");
+function flatten(src) {
+    return flatten_with_1.flattenWith((x) => x != null && x[Symbol.iterator] && typeof x !== "string" ? x : undefined, src);
+}
+exports.flatten = flatten;
+
+},{"./flatten-with":"../../../node_modules/@thi.ng/transducers/xform/flatten-with.js"}],"../../../node_modules/@thi.ng/memoize/memoizej.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function memoizeJ(fn, cache) {
+    !cache && (cache = {});
+    return (...args) => {
+        const key = JSON.stringify(args);
+        if (key !== undefined) {
+            return key in cache ?
+                cache[key] :
+                (cache[key] = fn.apply(null, args));
+        }
+        return fn.apply(null, args);
+    };
+}
+exports.memoizeJ = memoizeJ;
+
+},{}],"../../../node_modules/@thi.ng/strings/repeat.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const memoizej_1 = require("@thi.ng/memoize/memoizej");
+/**
+ * @param ch character
+ * @param n repeat count
+ */
+exports.repeat = memoizej_1.memoizeJ((ch, n) => ch.repeat(n));
+
+},{"@thi.ng/memoize/memoizej":"../../../node_modules/@thi.ng/memoize/memoizej.js"}],"../../../node_modules/@thi.ng/strings/radix.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const memoizej_1 = require("@thi.ng/memoize/memoizej");
+const repeat_1 = require("./repeat");
+/**
+ * Returns a `Stringer` which formats given numbers to `radix`, `len`
+ * and with optional prefix (not included in `len`).
+ *
+ * @param radix
+ * @param len
+ * @param prefix
+ */
+exports.radix = memoizej_1.memoizeJ((radix, n, prefix = "") => {
+    const buf = repeat_1.repeat("0", n);
+    return (x) => {
+        x = (x >>> 0).toString(radix);
+        return prefix + (x.length < n ? buf.substr(x.length) + x : x);
+    };
+});
+/**
+ * 8bit binary conversion preset.
+ */
+exports.B8 = exports.radix(2, 8);
+/**
+ * 8bit hex conversion preset.
+ * Assumes unsigned inputs.
+ */
+exports.U8 = exports.radix(16, 2);
+/**
+ * 16bit hex conversion preset.
+ * Assumes unsigned inputs.
+ */
+exports.U16 = exports.radix(16, 4);
+/**
+ * 24bit hex conversion preset.
+ * Assumes unsigned inputs.
+ */
+exports.U24 = exports.radix(16, 6);
+/**
+ * 32bit hex conversion preset.
+ * Assumes unsigned inputs.
+ */
+exports.U32 = exports.radix(16, 8);
+/**
+ * 64bit hex conversion preset (2x 32bit ints)
+ * Assumes unsigned inputs.
+ */
+exports.U64 = (hi, lo) => exports.U32(hi) + exports.U32(lo);
+
+},{"@thi.ng/memoize/memoizej":"../../../node_modules/@thi.ng/memoize/memoizej.js","./repeat":"../../../node_modules/@thi.ng/strings/repeat.js"}],"../../../node_modules/@thi.ng/compose/comp.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
+function comp(...fns) {
+    let [a, b, c, d, e, f, g, h, i, j] = fns;
+    switch (fns.length) {
+        case 0:
+            illegal_arity_1.illegalArity(0);
+        case 1:
+            return a;
+        case 2:
+            return (...xs) => a(b(...xs));
+        case 3:
+            return (...xs) => a(b(c(...xs)));
+        case 4:
+            return (...xs) => a(b(c(d(...xs))));
+        case 5:
+            return (...xs) => a(b(c(d(e(...xs)))));
+        case 6:
+            return (...xs) => a(b(c(d(e(f(...xs))))));
+        case 7:
+            return (...xs) => a(b(c(d(e(f(g(...xs)))))));
+        case 8:
+            return (...xs) => a(b(c(d(e(f(g(h(...xs))))))));
+        case 9:
+            return (...xs) => a(b(c(d(e(f(g(h(i(...xs)))))))));
+        case 10:
+        default:
+            const fn = (...xs) => a(b(c(d(e(f(g(h(i(j(...xs))))))))));
+            return fns.length === 10 ? fn : compI(fn, ...fns.slice(10));
+    }
+}
+exports.comp = comp;
+function compI(...fns) {
+    return comp.apply(null, fns.reverse());
+}
+exports.compI = compI;
+
+},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js"}],"../../../node_modules/@thi.ng/transducers/func/comp.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const comp_1 = require("@thi.ng/compose/comp");
+function comp(...fns) {
+    return comp_1.comp.apply(null, fns);
+}
+exports.comp = comp;
+
+},{"@thi.ng/compose/comp":"../../../node_modules/@thi.ng/compose/comp.js"}],"../../../node_modules/@thi.ng/compose/juxt.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function juxt(...fns) {
+    const [a, b, c, d, e, f, g, h] = fns;
+    switch (fns.length) {
+        case 1:
+            return (x) => [a(x)];
+        case 2:
+            return (x) => [a(x), b(x)];
+        case 3:
+            return (x) => [a(x), b(x), c(x)];
+        case 4:
+            return (x) => [a(x), b(x), c(x), d(x)];
+        case 5:
+            return (x) => [a(x), b(x), c(x), d(x), e(x)];
+        case 6:
+            return (x) => [a(x), b(x), c(x), d(x), e(x), f(x)];
+        case 7:
+            return (x) => [a(x), b(x), c(x), d(x), e(x), f(x), g(x)];
+        case 8:
+            return (x) => [a(x), b(x), c(x), d(x), e(x), f(x), g(x), h(x)];
+        default:
+            return (x) => {
+                let res = new Array(fns.length);
+                for (let i = fns.length - 1; i >= 0; i--) {
+                    res[i] = fns[i](x);
+                }
+                return res;
+            };
+    }
+}
+exports.juxt = juxt;
+
+},{}],"../../../node_modules/@thi.ng/transducers/func/juxt.js":[function(require,module,exports) {
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("@thi.ng/compose/juxt"));
+
+},{"@thi.ng/compose/juxt":"../../../node_modules/@thi.ng/compose/juxt.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function mapIndexed(...args) {
+    return iterator_1.$iter(mapIndexed, args) ||
+        ((rfn) => {
+            const r = rfn[2];
+            const fn = args[0];
+            let i = args[1] || 0;
+            return compr_1.compR(rfn, (acc, x) => r(acc, fn(i++, x)));
+        });
+}
+exports.mapIndexed = mapIndexed;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/pad-last.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function padLast(n, fill, src) {
+    return src ?
+        iterator_1.iterator(padLast(n, fill), src) :
+        ([init, complete, reduce]) => {
+            let m = 0;
+            return [
+                init,
+                (acc) => {
+                    let rem = m % n;
+                    if (rem > 0) {
+                        while (++rem <= n && !reduced_1.isReduced(acc)) {
+                            acc = reduce(acc, fill);
+                        }
+                    }
+                    return complete(acc);
+                },
+                (acc, x) => (m++, reduce(acc, x))
+            ];
+        };
+}
+exports.padLast = padLast;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+function partition(...args) {
+    const iter = iterator_1.$iter(partition, args, iterator_1.iterator);
+    if (iter) {
+        return iter;
+    }
+    let size = args[0], all, step;
+    if (typeof args[1] == "number") {
+        step = args[1];
+        all = args[2];
+    }
+    else {
+        step = size;
+        all = args[1];
+    }
+    return ([init, complete, reduce]) => {
+        let buf = [];
+        let skip = 0;
+        return [
+            init,
+            (acc) => {
+                if (all && buf.length > 0) {
+                    acc = reduce(acc, buf);
+                    buf = [];
+                }
+                return complete(acc);
+            },
+            (acc, x) => {
+                if (skip <= 0) {
+                    if (buf.length < size) {
+                        buf.push(x);
+                    }
+                    if (buf.length === size) {
+                        acc = reduce(acc, buf);
+                        buf = step < size ? buf.slice(step) : [];
+                        skip = step - size;
+                    }
+                }
+                else {
+                    skip--;
+                }
+                return acc;
+            }
+        ];
+    };
+}
+exports.partition = partition;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/hex-dump.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const radix_1 = require("@thi.ng/strings/radix");
+const comp_1 = require("../func/comp");
+const juxt_1 = require("../func/juxt");
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+const map_indexed_1 = require("./map-indexed");
+const pad_last_1 = require("./pad-last");
+const partition_1 = require("./partition");
+function hexDump(...args) {
+    const iter = iterator_1.$iter(hexDump, args);
+    if (iter) {
+        return iter;
+    }
+    const { cols, address } = Object.assign({ cols: 16, address: 0 }, args[0]);
+    return comp_1.comp(pad_last_1.padLast(cols, 0), map_1.map(juxt_1.juxt(radix_1.U8, (x) => x > 31 && x < 128 ? String.fromCharCode(x) : ".")), partition_1.partition(cols, true), map_1.map(juxt_1.juxt((x) => x.map((y) => y[0]).join(" "), (x) => x.map((y) => y[1]).join(""))), map_indexed_1.mapIndexed((i, [h, a]) => `${radix_1.U32(address + i * cols)} | ${h} | ${a}`));
+}
+exports.hexDump = hexDump;
+
+},{"@thi.ng/strings/radix":"../../../node_modules/@thi.ng/strings/radix.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/juxt":"../../../node_modules/@thi.ng/transducers/func/juxt.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js","./map-indexed":"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js","./pad-last":"../../../node_modules/@thi.ng/transducers/xform/pad-last.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js"}],"../../../node_modules/@thi.ng/transducers/xform/indexed.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const map_indexed_1 = require("./map-indexed");
+function indexed(...args) {
+    const iter = iterator_1.$iter(indexed, args);
+    if (iter) {
+        return iter;
+    }
+    const from = args[0] || 0;
+    return map_indexed_1.mapIndexed((i, x) => [from + i, x]);
+}
+exports.indexed = indexed;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map-indexed":"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js"}],"../../../node_modules/@thi.ng/transducers/xform/interleave.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function interleave(sep, src) {
+    return src ?
+        iterator_1.iterator(interleave(sep), src) :
+        (rfn) => {
+            const r = rfn[2];
+            const _sep = typeof sep === "function" ? sep : () => sep;
+            return compr_1.compR(rfn, (acc, x) => {
+                acc = r(acc, _sep());
+                return reduced_1.isReduced(acc) ? acc : r(acc, x);
+            });
+        };
+}
+exports.interleave = interleave;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/interpose.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function interpose(sep, src) {
+    return src ?
+        iterator_1.iterator(interpose(sep), src) :
+        (rfn) => {
+            const r = rfn[2];
+            const _sep = typeof sep === "function" ? sep : () => sep;
+            let first = true;
+            return compr_1.compR(rfn, (acc, x) => {
+                if (first) {
+                    first = false;
+                    return r(acc, x);
+                }
+                acc = r(acc, _sep());
+                return reduced_1.isReduced(acc) ? acc : r(acc, x);
+            });
+        };
+}
+exports.interpose = interpose;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/keep.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const identity_1 = require("../func/identity");
+const iterator_1 = require("../iterator");
+function keep(...args) {
+    return iterator_1.$iter(keep, args) ||
+        ((rfn) => {
+            const r = rfn[2];
+            const pred = args[0] || identity_1.identity;
+            return compr_1.compR(rfn, (acc, x) => pred(x) != null ? r(acc, x) : acc);
+        });
+}
+exports.keep = keep;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/labeled.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_function_1 = require("@thi.ng/checks/is-function");
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+function labeled(id, src) {
+    return src ?
+        iterator_1.iterator1(labeled(id), src) :
+        map_1.map(is_function_1.isFunction(id) ?
+            (x) => [id(x), x] :
+            (x) => [id, x]);
+}
+exports.labeled = labeled;
+
+},{"@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/func/deep-transform.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_function_1 = require("@thi.ng/checks/is-function");
+/**
+ * Higher-order deep object transformer. Accepts a nested `spec`
+ * array reflecting same key structure as the object to be mapped,
+ * but with functions or sub-specs as their values.
+ * Returns a new function, which when called, recursively applies
+ * nested transformers in post-order traversal (child transformers
+ * are run first) and returns the result of the root transformer.
+ *
+ * The transform specs are given as arrays in this format:
+ *
+ * ```
+ * [tx-function, {key1: [tx-function, {...}], key2: tx-fn}]
+ * ```
+ *
+ * If a key in the spec has no further sub maps, its transform
+ * function can be given directly without having to wrap it into
+ * the usual array structure.
+ *
+ * ```
+ * // source object to be transformed
+ * src = {
+ *    meta: {
+ *      author: { name: "Alice", email: "a@b.com" },
+ *      date: 1041510896000
+ *    },
+ *    type: "post",
+ *    title: "Hello world",
+ *    body: "Ratione necessitatibus doloremque itaque."
+ * };
+ *
+ * // deep transformation spec
+ * spec = [
+ *    // root transform (called last)
+ *    ({type, meta, title, body}) => ["div", {class: type}, title, meta, body],
+ *    // object of transform sub-specs
+ *    {
+ *      meta: [
+ *        ({author, date}) => ["div.meta", author, `(${date})`],
+ *        {
+ *          author: ({email, name}) => ["a", {href: `mailto:${email}`}, name],
+ *          date: (d) => new Date(d).toLocaleString()
+ *        }
+ *      ],
+ *      title: (title) => ["h1", title]
+ *    }
+ * ];
+ *
+ * // build transformer & apply to src
+ * deepTransform(spec)(src);
+ *
+ * // [ "div",
+ * //   { class: "article" },
+ * //   [ "h1", "Hello world" ],
+ * //   [ "div.meta",
+ * //     [ "a", { href: "mailto:a@.b.com" }, "Alice" ],
+ * //     "(1/2/2003, 12:34:56 PM)" ],
+ * //   "Ratione necessitatibus doloremque itaque." ]
+ * ```
+ *
+ * @param spec transformation spec
+ */
+function deepTransform(spec) {
+    if (is_function_1.isFunction(spec)) {
+        return spec;
+    }
+    const mapfns = Object.keys(spec[1] || {}).reduce((acc, k) => (acc[k] = deepTransform(spec[1][k]), acc), {});
+    return (x) => {
+        const res = Object.assign({}, x);
+        for (let k in mapfns) {
+            res[k] = mapfns[k](res[k]);
+        }
+        return spec[0](res);
+    };
+}
+exports.deepTransform = deepTransform;
+
+},{"@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-deep.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const deep_transform_1 = require("../func/deep-transform");
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+function mapDeep(spec, src) {
+    return src ?
+        iterator_1.iterator1(mapDeep(spec), src) :
+        map_1.map(deep_transform_1.deepTransform(spec));
+}
+exports.mapDeep = mapDeep;
+
+},{"../func/deep-transform":"../../../node_modules/@thi.ng/transducers/func/deep-transform.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-keys.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+function mapKeys(...args) {
+    const iter = iterator_1.$iter(mapKeys, args);
+    if (iter) {
+        return iter;
+    }
+    const keys = args[0];
+    const copy = args[1] !== false;
+    return map_1.map((x) => {
+        const res = copy ? Object.assign({}, x) : x;
+        for (let k in keys) {
+            res[k] = keys[k](x[k]);
+        }
+        return res;
+    });
+}
+exports.mapKeys = mapKeys;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-nth.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function mapNth(...args) {
+    const iter = iterator_1.$iter(mapNth, args);
+    if (iter) {
+        return iter;
+    }
+    let n = args[0] - 1, offset, fn;
+    if (typeof args[1] === "number") {
+        offset = args[1];
+        fn = args[2];
+    }
+    else {
+        fn = args[1];
+        offset = 0;
+    }
+    return (rfn) => {
+        const r = rfn[2];
+        let skip = 0, off = offset;
+        return compr_1.compR(rfn, (acc, x) => {
+            if (off === 0) {
+                if (skip === 0) {
+                    skip = n;
+                    return r(acc, fn(x));
+                }
+                skip--;
+            }
+            else {
+                off--;
+            }
+            return r(acc, x);
+        });
+    };
+}
+exports.mapNth = mapNth;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-vals.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+function mapVals(...args) {
+    const iter = iterator_1.$iter(mapVals, args);
+    if (iter) {
+        return iter;
+    }
+    const fn = args[0];
+    const copy = args[1] !== false;
+    return map_1.map((x) => {
+        const res = copy ? {} : x;
+        for (let k in x) {
+            res[k] = fn(x[k]);
+        }
+        return res;
+    });
+}
+exports.mapVals = mapVals;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/mapcat.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const comp_1 = require("../func/comp");
+const iterator_1 = require("../iterator");
+const cat_1 = require("./cat");
+const map_1 = require("./map");
+function mapcat(fn, src) {
+    return src ?
+        iterator_1.iterator(mapcat(fn), src) :
+        comp_1.comp(map_1.map(fn), cat_1.cat());
+}
+exports.mapcat = mapcat;
+
+},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./cat":"../../../node_modules/@thi.ng/transducers/xform/cat.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/take.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function take(n, src) {
+    return src ?
+        iterator_1.iterator(take(n), src) :
+        (rfn) => {
+            const r = rfn[2];
+            let m = n;
+            return compr_1.compR(rfn, (acc, x) => --m > 0 ? r(acc, x) :
+                m === 0 ? reduced_1.ensureReduced(r(acc, x)) :
+                    reduced_1.reduced(acc));
+        };
+}
+exports.take = take;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/match-first.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const comp_1 = require("../func/comp");
+const iterator_1 = require("../iterator");
+const filter_1 = require("./filter");
+const take_1 = require("./take");
+function matchFirst(pred, src) {
+    return src ?
+        [...iterator_1.iterator1(matchFirst(pred), src)][0] :
+        comp_1.comp(filter_1.filter(pred), take_1.take(1));
+}
+exports.matchFirst = matchFirst;
+
+},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./take":"../../../node_modules/@thi.ng/transducers/xform/take.js"}],"../../../node_modules/@thi.ng/transducers/xform/take-last.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function takeLast(n, src) {
+    return src ?
+        iterator_1.iterator(takeLast(n), src) :
+        ([init, complete, reduce]) => {
+            const buf = [];
+            return [
+                init,
+                (acc) => {
+                    while (buf.length && !reduced_1.isReduced(acc)) {
+                        acc = reduce(acc, buf.shift());
+                    }
+                    return complete(acc);
+                },
+                (acc, x) => {
+                    if (buf.length === n) {
+                        buf.shift();
+                    }
+                    buf.push(x);
+                    return acc;
+                }
+            ];
+        };
+}
+exports.takeLast = takeLast;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/match-last.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const comp_1 = require("../func/comp");
+const iterator_1 = require("../iterator");
+const filter_1 = require("./filter");
+const take_last_1 = require("./take-last");
+function matchLast(pred, src) {
+    return src ?
+        [...iterator_1.iterator(matchLast(pred), src)][0] :
+        comp_1.comp(filter_1.filter(pred), take_last_1.takeLast(1));
+}
+exports.matchLast = matchLast;
+
+},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./take-last":"../../../node_modules/@thi.ng/transducers/xform/take-last.js"}],"../../../node_modules/@thi.ng/transducers/xform/moving-average.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function movingAverage(period, src) {
+    return src ?
+        iterator_1.iterator1(movingAverage(period), src) :
+        (rfn) => {
+            period |= 0;
+            period < 2 && illegal_arguments_1.illegalArgs("period must be >= 2");
+            const reduce = rfn[2];
+            const window = [];
+            let sum = 0;
+            return compr_1.compR(rfn, (acc, x) => {
+                const n = window.push(x);
+                sum += x;
+                n > period && (sum -= window.shift());
+                return n >= period ? reduce(acc, sum / period) : acc;
+            });
+        };
+}
+exports.movingAverage = movingAverage;
+;
+
+},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/moving-median.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compare_1 = require("@thi.ng/compare");
+const comp_1 = require("../func/comp");
+const identity_1 = require("../func/identity");
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+const partition_1 = require("./partition");
+function movingMedian(...args) {
+    const iter = iterator_1.$iter(movingMedian, args);
+    if (iter) {
+        return iter;
+    }
+    const { key, compare } = Object.assign({ key: identity_1.identity, compare: compare_1.compare }, args[1]);
+    const n = args[0];
+    const m = n >> 1;
+    return comp_1.comp(partition_1.partition(n, 1, true), map_1.map((window) => window.slice().sort((a, b) => compare(key(a), key(b)))[m]));
+}
+exports.movingMedian = movingMedian;
+
+},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js"}],"../../../node_modules/@thi.ng/transducers/xform/multiplex.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const juxt_1 = require("../func/juxt");
+const step_1 = require("../step");
+const map_1 = require("./map");
+function multiplex(...args) {
+    return map_1.map(juxt_1.juxt.apply(null, args.map(step_1.step)));
+}
+exports.multiplex = multiplex;
+
+},{"../func/juxt":"../../../node_modules/@thi.ng/transducers/func/juxt.js","../step":"../../../node_modules/@thi.ng/transducers/step.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/func/renamer.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function renamer(kmap) {
+    const ks = Object.keys(kmap);
+    const [a2, b2, c2] = ks;
+    const [a1, b1, c1] = ks.map((k) => kmap[k]);
+    switch (ks.length) {
+        case 3:
+            return (x) => {
+                const res = {};
+                let v;
+                v = x[c1], v !== undefined && (res[c2] = v);
+                v = x[b1], v !== undefined && (res[b2] = v);
+                v = x[a1], v !== undefined && (res[a2] = v);
+                return res;
+            };
+        case 2:
+            return (x) => {
+                const res = {};
+                let v;
+                v = x[b1], v !== undefined && (res[b2] = v);
+                v = x[a1], v !== undefined && (res[a2] = v);
+                return res;
+            };
+        case 1:
+            return (x) => {
+                const res = {};
+                let v = x[a1];
+                v !== undefined && (res[a2] = v);
+                return res;
+            };
+        default:
+            return (x) => {
+                let k, v;
+                const res = {};
+                for (let i = ks.length - 1; i >= 0; i--) {
+                    k = ks[i], v = x[kmap[k]], v !== undefined && (res[k] = v);
+                }
+                return res;
+            };
+    }
+}
+exports.renamer = renamer;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/rename.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_array_1 = require("@thi.ng/checks/is-array");
+const comp_1 = require("../func/comp");
+const renamer_1 = require("../func/renamer");
+const iterator_1 = require("../iterator");
+const transduce_1 = require("../transduce");
+const filter_1 = require("./filter");
+const map_1 = require("./map");
+function rename(...args) {
+    const iter = args.length > 2 && iterator_1.$iter(rename, args);
+    if (iter) {
+        return iter;
+    }
+    let kmap = args[0];
+    if (is_array_1.isArray(kmap)) {
+        kmap = kmap.reduce((acc, k, i) => (acc[k] = i, acc), {});
+    }
+    if (args[1]) {
+        const ks = Object.keys(kmap);
+        return map_1.map((y) => transduce_1.transduce(comp_1.comp(map_1.map((k) => [k, y[kmap[k]]]), filter_1.filter(x => x[1] !== undefined)), args[1], ks));
+    }
+    else {
+        return map_1.map(renamer_1.renamer(kmap));
+    }
+}
+exports.rename = rename;
+
+},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/renamer":"../../../node_modules/@thi.ng/transducers/func/renamer.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../transduce":"../../../node_modules/@thi.ng/transducers/transduce.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/multiplex-obj.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const comp_1 = require("../func/comp");
+const iterator_1 = require("../iterator");
+const multiplex_1 = require("./multiplex");
+const rename_1 = require("./rename");
+function multiplexObj(...args) {
+    const iter = iterator_1.$iter(multiplexObj, args);
+    if (iter) {
+        return iter;
+    }
+    const [xforms, rfn] = args;
+    const ks = Object.keys(xforms);
+    return comp_1.comp(multiplex_1.multiplex.apply(null, ks.map((k) => xforms[k])), rename_1.rename(ks, rfn));
+}
+exports.multiplexObj = multiplexObj;
+
+},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./multiplex":"../../../node_modules/@thi.ng/transducers/xform/multiplex.js","./rename":"../../../node_modules/@thi.ng/transducers/xform/rename.js"}],"../../../node_modules/@thi.ng/transducers/xform/noop.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * No-op / pass-through transducer, essentially the same as:
+ * `map(identity)`, but faster. Useful for testing and / or to keep
+ * existing values in a `multiplex()` tuple lane.
+ */
+function noop() {
+    return (rfn) => rfn;
+}
+exports.noop = noop;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/page.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const comp_1 = require("../func/comp");
+const iterator_1 = require("../iterator");
+const drop_1 = require("./drop");
+const take_1 = require("./take");
+function page(...args) {
+    return iterator_1.$iter(page, args) ||
+        comp_1.comp(drop_1.drop(args[0] * (args[1] || 10)), take_1.take(args[1] || 10));
+}
+exports.page = page;
+
+},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./drop":"../../../node_modules/@thi.ng/transducers/xform/drop.js","./take":"../../../node_modules/@thi.ng/transducers/xform/take.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-bits.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function partitionBits(...args) {
+    return iterator_1.$iter(partitionBits, args, iterator_1.iterator) ||
+        ((rfn) => {
+            const destSize = args[0];
+            const srcSize = args[1] || 8;
+            return destSize < srcSize ?
+                small(rfn, destSize, srcSize) :
+                destSize > srcSize ?
+                    large(rfn, destSize, srcSize) :
+                    rfn;
+        });
+}
+exports.partitionBits = partitionBits;
+const small = ([init, complete, reduce], n, wordSize) => {
+    const maxb = wordSize - n;
+    const m1 = (1 << wordSize) - 1;
+    const m2 = (1 << n) - 1;
+    let r = 0;
+    let y = 0;
+    return [
+        init,
+        (acc) => complete(r > 0 ? reduce(acc, y) : acc),
+        (acc, x) => {
+            let b = 0;
+            do {
+                acc = reduce(acc, y + ((x >>> (maxb + r)) & m2));
+                b += n - r;
+                x = (x << (n - r)) & m1;
+                y = 0;
+                r = 0;
+            } while (b <= maxb && !reduced_1.isReduced(acc));
+            r = wordSize - b;
+            y = r > 0 ? (x >>> maxb) & m2 : 0;
+            return acc;
+        }
+    ];
+};
+const large = ([init, complete, reduce], n, wordSize) => {
+    const m1 = (1 << wordSize) - 1;
+    let r = 0;
+    let y = 0;
+    return [
+        init,
+        (acc) => complete(r > 0 ? reduce(acc, y) : acc),
+        (acc, x) => {
+            if (r + wordSize <= n) {
+                y |= (x & m1) << (n - wordSize - r);
+                r += wordSize;
+                if (r === n) {
+                    acc = reduce(acc, y);
+                    y = 0;
+                    r = 0;
+                }
+            }
+            else {
+                const k = n - r;
+                r = wordSize - k;
+                acc = reduce(acc, y | ((x >>> r) & ((1 << k) - 1)));
+                y = (x & ((1 << r) - 1)) << (n - r);
+            }
+            return acc;
+        }
+    ];
+};
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-by.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const api_1 = require("@thi.ng/api/api");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function partitionBy(...args) {
+    return iterator_1.$iter(partitionBy, args, iterator_1.iterator) ||
+        (([init, complete, reduce]) => {
+            const fn = args[0];
+            const f = args[1] === true ? fn() : fn;
+            let prev = api_1.SEMAPHORE, chunk;
+            return [
+                init,
+                (acc) => {
+                    if (chunk && chunk.length) {
+                        acc = reduce(acc, chunk);
+                        chunk = null;
+                    }
+                    return complete(acc);
+                },
+                (acc, x) => {
+                    const curr = f(x);
+                    if (prev === api_1.SEMAPHORE) {
+                        prev = curr;
+                        chunk = [x];
+                    }
+                    else if (curr === prev) {
+                        chunk.push(x);
+                    }
+                    else {
+                        chunk && (acc = reduce(acc, chunk));
+                        chunk = reduced_1.isReduced(acc) ? null : [x];
+                        prev = curr;
+                    }
+                    return acc;
+                }
+            ];
+        });
+}
+exports.partitionBy = partitionBy;
+
+},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-of.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const partition_by_1 = require("./partition-by");
+function partitionOf(sizes, src) {
+    return src ?
+        iterator_1.iterator(partitionOf(sizes), src) :
+        partition_by_1.partitionBy(() => {
+            let i = 0, j = 0;
+            return () => {
+                if (i++ === sizes[j]) {
+                    i = 1;
+                    j = (j + 1) % sizes.length;
+                }
+                return j;
+            };
+        }, true);
+}
+exports.partitionOf = partitionOf;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./partition-by":"../../../node_modules/@thi.ng/transducers/xform/partition-by.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-sort.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compare_1 = require("@thi.ng/compare");
+const comp_1 = require("../func/comp");
+const identity_1 = require("../func/identity");
+const iterator_1 = require("../iterator");
+const mapcat_1 = require("./mapcat");
+const partition_1 = require("./partition");
+function partitionSort(...args) {
+    const iter = iterator_1.$iter(partitionSort, args, iterator_1.iterator);
+    if (iter) {
+        return iter;
+    }
+    const { key, compare } = Object.assign({ key: identity_1.identity, compare: compare_1.compare }, args[1]);
+    return comp_1.comp(partition_1.partition(args[0], true), mapcat_1.mapcat((window) => window.slice().sort((a, b) => compare(key(a), key(b)))));
+}
+exports.partitionSort = partitionSort;
+
+},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./mapcat":"../../../node_modules/@thi.ng/transducers/xform/mapcat.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-sync.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_array_1 = require("@thi.ng/checks/is-array");
+const identity_1 = require("../func/identity");
+const iterator_1 = require("../iterator");
+function partitionSync(...args) {
+    return iterator_1.$iter(partitionSync, args, iterator_1.iterator) ||
+        (([init, complete, reduce]) => {
+            let curr = {};
+            let first = true;
+            const currKeys = new Set();
+            const { key, mergeOnly, reset, all } = Object.assign({ key: identity_1.identity, mergeOnly: false, reset: true, all: true }, args[1]);
+            const ks = is_array_1.isArray(args[0]) ? new Set(args[0]) : args[0];
+            return [
+                init,
+                (acc) => {
+                    if ((reset && all && currKeys.size > 0) || (!reset && first)) {
+                        acc = reduce(acc, curr);
+                        curr = undefined;
+                        currKeys.clear();
+                        first = false;
+                    }
+                    return complete(acc);
+                },
+                (acc, x) => {
+                    const k = key(x);
+                    if (ks.has(k)) {
+                        curr[k] = x;
+                        currKeys.add(k);
+                        if (mergeOnly || currKeys.size >= ks.size) {
+                            acc = reduce(acc, curr);
+                            first = false;
+                            if (reset) {
+                                curr = {};
+                                currKeys.clear();
+                            }
+                            else {
+                                curr = Object.assign({}, curr);
+                            }
+                        }
+                    }
+                    return acc;
+                }
+            ];
+        });
+}
+exports.partitionSync = partitionSync;
+
+},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/pluck.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+function pluck(key, src) {
+    return src ?
+        iterator_1.iterator1(pluck(key), src) :
+        map_1.map((x) => x[key]);
+}
+exports.pluck = pluck;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/sample.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function sample(prob, src) {
+    return src ?
+        iterator_1.iterator1(sample(prob), src) :
+        (rfn) => {
+            const r = rfn[2];
+            return compr_1.compR(rfn, (acc, x) => Math.random() < prob ? r(acc, x) : acc);
+        };
+}
+exports.sample = sample;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/scan.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function scan(...args) {
+    return (args.length > 2 && iterator_1.$iter(scan, args, iterator_1.iterator)) ||
+        (([inito, completeo, reduceo]) => {
+            const [initi, completei, reducei] = args[0];
+            let acc = args.length > 1 && args[1] != null ? args[1] : initi();
+            return [
+                inito,
+                (_acc) => {
+                    let a = completei(acc);
+                    if (a !== acc) {
+                        _acc = reduced_1.unreduced(reduceo(_acc, a));
+                    }
+                    acc = a;
+                    return completeo(_acc);
+                },
+                (_acc, x) => {
+                    acc = reducei(acc, x);
+                    if (reduced_1.isReduced(acc)) {
+                        return reduced_1.ensureReduced(reduceo(_acc, acc.deref()));
+                    }
+                    return reduceo(_acc, acc);
+                }
+            ];
+        });
+}
+exports.scan = scan;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/func/key-selector.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const renamer_1 = require("./renamer");
+function keySelector(keys) {
+    return renamer_1.renamer(keys.reduce((acc, x) => (acc[x] = x, acc), {}));
+}
+exports.keySelector = keySelector;
+
+},{"./renamer":"../../../node_modules/@thi.ng/transducers/func/renamer.js"}],"../../../node_modules/@thi.ng/transducers/xform/select-keys.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const key_selector_1 = require("../func/key-selector");
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+function selectKeys(keys, src) {
+    return src ?
+        iterator_1.iterator1(selectKeys(keys), src) :
+        map_1.map(key_selector_1.keySelector(keys));
+}
+exports.selectKeys = selectKeys;
+
+},{"../func/key-selector":"../../../node_modules/@thi.ng/transducers/func/key-selector.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/side-effect.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const map_1 = require("./map");
+/**
+ * Helper transducer. Applies given `fn` to each input value, presumably
+ * for side effects. Discards function's result and yields original
+ * inputs.
+ *
+ * @param fn side effect
+ */
+function sideEffect(fn) {
+    return map_1.map((x) => (fn(x), x));
+}
+exports.sideEffect = sideEffect;
+
+},{"./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/sliding-window.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+function slidingWindow(...args) {
+    const iter = iterator_1.$iter(slidingWindow, args);
+    if (iter) {
+        return iter;
+    }
+    const size = args[0];
+    const partial = args[1] !== false;
+    return (rfn) => {
+        const reduce = rfn[2];
+        let buf = [];
+        return compr_1.compR(rfn, (acc, x) => {
+            buf.push(x);
+            if (partial || buf.length === size) {
+                acc = reduce(acc, buf);
+                buf = buf.slice(buf.length === size ? 1 : 0);
+            }
+            return acc;
+        });
+    };
+}
+exports.slidingWindow = slidingWindow;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/func/shuffle.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function shuffleN(buf, n) {
+    const l = buf.length;
+    n = n < l ? n : l;
+    while (--n >= 0) {
+        const a = (Math.random() * l) | 0;
+        const b = (Math.random() * l) | 0;
+        const t = buf[a];
+        buf[a] = buf[b];
+        buf[b] = t;
+    }
+}
+exports.shuffleN = shuffleN;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/stream-shuffle.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const shuffle_1 = require("../func/shuffle");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function streamShuffle(...args) {
+    return iterator_1.$iter(streamShuffle, args, iterator_1.iterator) ||
+        (([init, complete, reduce]) => {
+            const n = args[0];
+            const maxSwaps = args[1] || n;
+            const buf = [];
+            return [
+                init,
+                (acc) => {
+                    while (buf.length && !reduced_1.isReduced(acc)) {
+                        shuffle_1.shuffleN(buf, maxSwaps);
+                        acc = reduce(acc, buf.shift());
+                    }
+                    acc = complete(acc);
+                    return acc;
+                },
+                (acc, x) => {
+                    buf.push(x);
+                    shuffle_1.shuffleN(buf, maxSwaps);
+                    if (buf.length === n) {
+                        acc = reduce(acc, buf.shift());
+                    }
+                    return acc;
+                }
+            ];
+        });
+}
+exports.streamShuffle = streamShuffle;
+
+},{"../func/shuffle":"../../../node_modules/@thi.ng/transducers/func/shuffle.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/func/binary-search.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Returns the supposed index of `x` in pre-sorted array-like collection
+ * `arr`. The `key` function first is used to obtain the actual sort
+ * value of `x` and each array item. The `cmp` comparator is then used to
+ * identify the index of `x`.
+ *
+ * @param arr
+ * @param key
+ * @param cmp
+ * @param x
+ * @returns index of `x`, else `-index` if item could not be found
+ */
+function binarySearch(arr, key, cmp, x) {
+    const kx = key(x);
+    let low = 0;
+    let high = arr.length - 1;
+    while (low <= high) {
+        const mid = (low + high) >>> 1;
+        const c = cmp(key(arr[mid]), kx);
+        if (c < 0) {
+            low = mid + 1;
+        }
+        else if (c > 0) {
+            high = mid - 1;
+        }
+        else {
+            return mid;
+        }
+    }
+    return -low;
+}
+exports.binarySearch = binarySearch;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/stream-sort.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compare_1 = require("@thi.ng/compare");
+const binary_search_1 = require("../func/binary-search");
+const identity_1 = require("../func/identity");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function streamSort(...args) {
+    const iter = iterator_1.$iter(streamSort, args, iterator_1.iterator);
+    if (iter) {
+        return iter;
+    }
+    const { key, compare } = Object.assign({ key: identity_1.identity, compare: compare_1.compare }, args[1]);
+    const n = args[0];
+    return ([init, complete, reduce]) => {
+        const buf = [];
+        return [
+            init,
+            (acc) => {
+                while (buf.length && !reduced_1.isReduced(acc)) {
+                    acc = reduce(acc, buf.shift());
+                }
+                return complete(acc);
+            },
+            (acc, x) => {
+                const idx = binary_search_1.binarySearch(buf, key, compare, x);
+                buf.splice(Math.abs(idx), 0, x);
+                if (buf.length === n) {
+                    acc = reduce(acc, buf.shift());
+                }
+                return acc;
+            }
+        ];
+    };
+}
+exports.streamSort = streamSort;
+
+},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../func/binary-search":"../../../node_modules/@thi.ng/transducers/func/binary-search.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/struct.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const comp_1 = require("../func/comp");
+const iterator_1 = require("../iterator");
+const map_keys_1 = require("./map-keys");
+const partition_1 = require("./partition");
+const partition_of_1 = require("./partition-of");
+const rename_1 = require("./rename");
+function struct(fields, src) {
+    return src ?
+        iterator_1.iterator(struct(fields), src) :
+        comp_1.comp(partition_of_1.partitionOf(fields.map((f) => f[1])), partition_1.partition(fields.length), rename_1.rename(fields.map((f) => f[0])), map_keys_1.mapKeys(fields.reduce((acc, f) => (f[2] ? (acc[f[0]] = f[2], acc) : acc), {}), false));
+}
+exports.struct = struct;
+
+},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map-keys":"../../../node_modules/@thi.ng/transducers/xform/map-keys.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js","./partition-of":"../../../node_modules/@thi.ng/transducers/xform/partition-of.js","./rename":"../../../node_modules/@thi.ng/transducers/xform/rename.js"}],"../../../node_modules/@thi.ng/transducers/func/swizzler.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Returns optimized function to select, repeat, reshape and / or
+ * reorder array/object values in the specified index order. The
+ * returned function can be used directly or as mapping function for the
+ * `map` transducer. Fast paths for up to 8 indices are provided, before
+ * a loop based approach is used.
+ *
+ * ```
+ * swizzler([0, 0, 0])([1, 2, 3, 4])    // [ 1, 1, 1 ]
+ * swizzler([1, 1, 3, 3])([1, 2, 3, 4]) // [ 2, 2, 4, 4 ]
+ * swizzler([2, 0])([1, 2, 3])          // [ 3, 1 ]
+ * ```
+ *
+ * Even though, objects can be used as input to the generated function,
+ * the returned values will always be in array form.
+ *
+ * ```
+ * swizzler(["a", "c", "b"])({a: 1, b: 2, c: 3}) // [ 1, 3, 2 ]
+ * ```
+ *
+ * @param order indices
+ */
+function swizzler(order) {
+    const [a, b, c, d, e, f, g, h] = order;
+    switch (order.length) {
+        case 0:
+            return () => [];
+        case 1:
+            return (x) => [x[a]];
+        case 2:
+            return (x) => [x[a], x[b]];
+        case 3:
+            return (x) => [x[a], x[b], x[c]];
+        case 4:
+            return (x) => [x[a], x[b], x[c], x[d]];
+        case 5:
+            return (x) => [x[a], x[b], x[c], x[d], x[e]];
+        case 6:
+            return (x) => [x[a], x[b], x[c], x[d], x[e], x[f]];
+        case 7:
+            return (x) => [x[a], x[b], x[c], x[d], x[e], x[f], x[g]];
+        case 8:
+            return (x) => [x[a], x[b], x[c], x[d], x[e], x[f], x[g], x[h]];
+        default:
+            return (x) => {
+                const res = [];
+                for (let i = order.length - 1; i >= 0; i--) {
+                    res[i] = x[order[i]];
+                }
+                return res;
+            };
+    }
+}
+exports.swizzler = swizzler;
+
+},{}],"../../../node_modules/@thi.ng/transducers/xform/swizzle.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const swizzler_1 = require("../func/swizzler");
+const iterator_1 = require("../iterator");
+const map_1 = require("./map");
+function swizzle(order, src) {
+    return src ?
+        iterator_1.iterator1(swizzle(order), src) :
+        map_1.map(swizzler_1.swizzler(order));
+}
+exports.swizzle = swizzle;
+
+},{"../func/swizzler":"../../../node_modules/@thi.ng/transducers/func/swizzler.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/take-nth.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const throttle_1 = require("./throttle");
+function takeNth(n, src) {
+    if (src) {
+        return iterator_1.iterator1(takeNth(n), src);
+    }
+    n = Math.max(0, n - 1);
+    return throttle_1.throttle(() => {
+        let skip = 0;
+        return () => (skip === 0 ? (skip = n, true) : (skip--, false));
+    });
+}
+exports.takeNth = takeNth;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js"}],"../../../node_modules/@thi.ng/transducers/xform/take-while.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function takeWhile(...args) {
+    return iterator_1.$iter(takeWhile, args) ||
+        ((rfn) => {
+            const r = rfn[2];
+            const pred = args[0];
+            let ok = true;
+            return compr_1.compR(rfn, (acc, x) => (ok = ok && pred(x)) ? r(acc, x) : reduced_1.reduced(acc));
+        });
+}
+exports.takeWhile = takeWhile;
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/throttle-time.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const throttle_1 = require("./throttle");
+function throttleTime(delay, src) {
+    return src ?
+        iterator_1.iterator1(throttleTime(delay), src) :
+        throttle_1.throttle(() => {
+            let last = 0;
+            return () => {
+                const t = Date.now();
+                return t - last >= delay ? (last = t, true) : false;
+            };
+        });
+}
+exports.throttleTime = throttleTime;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js"}],"../../../node_modules/@thi.ng/transducers/xform/trace.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const side_effect_1 = require("./side-effect");
+function trace(prefix = "") {
+    return side_effect_1.sideEffect((x) => console.log(prefix, x));
+}
+exports.trace = trace;
+
+},{"./side-effect":"../../../node_modules/@thi.ng/transducers/xform/side-effect.js"}],"../../../node_modules/@thi.ng/transducers/xform/utf8.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const compr_1 = require("../func/compr");
+const iterator_1 = require("../iterator");
+const reduced_1 = require("../reduced");
+function utf8Decode(src) {
+    return src ?
+        [...iterator_1.iterator1(utf8Decode(), src)].join("") :
+        (rfn) => {
+            const r = rfn[2];
+            let state = 0, u0, u1, u2, u3, u4;
+            return compr_1.compR(rfn, (acc, x) => {
+                switch (state) {
+                    case 0:
+                    default:
+                        if (x < 0x80) {
+                            return r(acc, String.fromCharCode(x));
+                        }
+                        u0 = x;
+                        state = 1;
+                        break;
+                    case 1:
+                        u1 = x & 0x3f;
+                        if ((u0 & 0xe0) === 0xc0) {
+                            state = 0;
+                            return r(acc, String.fromCharCode(((u0 & 0x1f) << 6) | u1));
+                        }
+                        state = 2;
+                        break;
+                    case 2:
+                        u2 = x & 0x3f;
+                        if ((u0 & 0xf0) === 0xe0) {
+                            state = 0;
+                            return r(acc, String.fromCharCode(((u0 & 0x0f) << 12) | (u1 << 6) | u2));
+                        }
+                        state = 3;
+                        break;
+                    case 3:
+                        u3 = x & 0x3f;
+                        if ((u0 & 0xf8) === 0xf0) {
+                            state = 0;
+                            return r(acc, codePoint(((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | u3));
+                        }
+                        state = 4;
+                        break;
+                    case 4:
+                        u4 = x & 0x3f;
+                        if ((u0 & 0xfc) === 0xf8) {
+                            state = 0;
+                            return r(acc, codePoint(((u0 & 3) << 24) | (u1 << 18) | (u2 << 12) | (u3 << 6) | u4));
+                        }
+                        state = 5;
+                        break;
+                    case 5:
+                        state = 0;
+                        return r(acc, codePoint(((u0 & 1) << 30) | (u1 << 24) | (u2 << 18) | (u3 << 12) | (u4 << 6) | (x & 0x3f)));
+                }
+                return acc;
+            });
+        };
+}
+exports.utf8Decode = utf8Decode;
+function utf8Encode(src) {
+    return src != null ?
+        iterator_1.iterator(utf8Encode(), src) :
+        (rfn) => {
+            const r = rfn[2];
+            return compr_1.compR(rfn, (acc, x) => {
+                let u = x.charCodeAt(0), buf;
+                if (u >= 0xd800 && u <= 0xdfff) {
+                    u = 0x10000 + ((u & 0x3ff) << 10) | (x.charCodeAt(1) & 0x3ff);
+                }
+                if (u < 0x80) {
+                    return r(acc, u);
+                }
+                else if (u < 0x800) {
+                    buf = [
+                        0xc0 | (u >> 6),
+                        0x80 | (u & 0x3f)
+                    ];
+                }
+                else if (u < 0x10000) {
+                    buf = [
+                        0xe0 | (u >> 12),
+                        0x80 | ((u >> 6) & 0x3f),
+                        0x80 | (u & 0x3f)
+                    ];
+                }
+                else if (u < 0x200000) {
+                    buf = [
+                        0xf0 | (u >> 18),
+                        0x80 | ((u >> 12) & 0x3f),
+                        0x80 | ((u >> 6) & 0x3f),
+                        0x80 | (u & 0x3f)
+                    ];
+                }
+                else if (u < 0x4000000) {
+                    buf = [
+                        0xf8 | (u >> 24),
+                        0x80 | ((u >> 18) & 0x3f),
+                        0x80 | ((u >> 12) & 0x3f),
+                        0x80 | ((u >> 6) & 0x3f),
+                        0x80 | (u & 0x3f)
+                    ];
+                }
+                else {
+                    buf = [
+                        0xfc | (u >> 30),
+                        0x80 | ((u >> 24) & 0x3f),
+                        0x80 | ((u >> 18) & 0x3f),
+                        0x80 | ((u >> 12) & 0x3f),
+                        0x80 | ((u >> 6) & 0x3f),
+                        0x80 | (u & 0x3f)
+                    ];
+                }
+                for (let i = 0, n = buf.length; i < n; i++) {
+                    acc = r(acc, buf[i]);
+                    if (reduced_1.isReduced(acc)) {
+                        break;
+                    }
+                }
+                return acc;
+            });
+        };
+}
+exports.utf8Encode = utf8Encode;
+const codePoint = (x) => x < 0x10000 ?
+    String.fromCharCode(x) :
+    (x -= 0x10000, String.fromCharCode(0xd800 | (x >> 10), 0xdc00 | (x & 0x3ff)));
+
+},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/word-wrap.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const iterator_1 = require("../iterator");
+const partition_by_1 = require("./partition-by");
+function wordWrap(...args) {
+    const iter = iterator_1.$iter(wordWrap, args, iterator_1.iterator);
+    if (iter) {
+        return iter;
+    }
+    const lineLength = args[0];
+    const { delim, always } = Object.assign({ delim: 1, always: true }, args[1]);
+    return partition_by_1.partitionBy(() => {
+        let n = 0;
+        let flag = false;
+        return (w) => {
+            n += w.length + delim;
+            if (n > lineLength + (always ? 0 : delim)) {
+                flag = !flag;
+                n = w.length + delim;
+            }
+            return flag;
+        };
+    }, true);
+}
+exports.wordWrap = wordWrap;
+
+},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./partition-by":"../../../node_modules/@thi.ng/transducers/xform/partition-by.js"}],"../../../node_modules/@thi.ng/transducers/func/constantly.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function constantly(x) {
+    return () => x;
+}
+exports.constantly = constantly;
+
+},{}],"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
+function ensureIterable(x) {
+    if (!(x != null && x[Symbol.iterator])) {
+        illegal_arguments_1.illegalArgs(`value is not iterable: ${x}`);
+    }
+    return x;
+}
+exports.ensureIterable = ensureIterable;
+
+},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js"}],"../../../node_modules/@thi.ng/transducers/func/ensure-array.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_array_1 = require("@thi.ng/checks/is-array");
+const is_arraylike_1 = require("@thi.ng/checks/is-arraylike");
+const ensure_iterable_1 = require("./ensure-iterable");
+/**
+ * Helper function to avoid unnecessary copying if `x` is already an
+ * array. First checks if `x` is an array and if so returns it. Else
+ * attempts to obtain an iterator from `x` and if successful collects it
+ * as array and returns it. Throws error if `x` isn't iterable.
+ *
+ * @param x
+ */
+function ensureArray(x) {
+    return is_array_1.isArray(x) ? x : [...ensure_iterable_1.ensureIterable(x)];
+}
+exports.ensureArray = ensureArray;
+function ensureArrayLike(x) {
+    return is_arraylike_1.isArrayLike(x) ? x : [...ensure_iterable_1.ensureIterable(x)];
+}
+exports.ensureArrayLike = ensureArrayLike;
+
+},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-arraylike":"../../../node_modules/@thi.ng/checks/is-arraylike.js","./ensure-iterable":"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js"}],"../../../node_modules/@thi.ng/transducers/func/even.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var is_even_1 = require("@thi.ng/checks/is-even");
+exports.even = is_even_1.isEven;
+
+},{"@thi.ng/checks/is-even":"../../../node_modules/@thi.ng/checks/is-even.js"}],"../../../node_modules/@thi.ng/transducers/func/hex.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const radix_1 = require("@thi.ng/strings/radix");
+/**
+ * @deprecated use thi.ng/strings `radix()` instead
+ *
+ * @param digits
+ * @param prefix
+ */
+exports.hex = (digits = 2, prefix = "") => radix_1.radix(16, digits, prefix);
+
+},{"@thi.ng/strings/radix":"../../../node_modules/@thi.ng/strings/radix.js"}],"../../../node_modules/@thi.ng/transducers/func/juxtr.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reduced_1 = require("../reduced");
+function juxtR(...rs) {
+    let [a, b, c] = rs;
+    const n = rs.length;
+    switch (n) {
+        case 1: {
+            const r = a[2];
+            return [
+                () => [a[0]()],
+                (acc) => [a[1](acc[0])],
+                (acc, x) => {
+                    const aa1 = r(acc[0], x);
+                    if (reduced_1.isReduced(aa1)) {
+                        return reduced_1.reduced([reduced_1.unreduced(aa1)]);
+                    }
+                    return [aa1];
+                }
+            ];
+        }
+        case 2: {
+            const ra = a[2];
+            const rb = b[2];
+            return [
+                () => [a[0](), b[0]()],
+                (acc) => [a[1](acc[0]), b[1](acc[1])],
+                (acc, x) => {
+                    const aa1 = ra(acc[0], x);
+                    const aa2 = rb(acc[1], x);
+                    if (reduced_1.isReduced(aa1) || reduced_1.isReduced(aa2)) {
+                        return reduced_1.reduced([reduced_1.unreduced(aa1), reduced_1.unreduced(aa2)]);
+                    }
+                    return [aa1, aa2];
+                }
+            ];
+        }
+        case 3: {
+            const ra = a[2];
+            const rb = b[2];
+            const rc = c[2];
+            return [
+                () => [a[0](), b[0](), c[0]()],
+                (acc) => [a[1](acc[0]), b[1](acc[1]), c[1](acc[2])],
+                (acc, x) => {
+                    const aa1 = ra(acc[0], x);
+                    const aa2 = rb(acc[1], x);
+                    const aa3 = rc(acc[2], x);
+                    if (reduced_1.isReduced(aa1) || reduced_1.isReduced(aa2) || reduced_1.isReduced(aa3)) {
+                        return reduced_1.reduced([reduced_1.unreduced(aa1), reduced_1.unreduced(aa2), reduced_1.unreduced(aa3)]);
+                    }
+                    return [aa1, aa2, aa3];
+                }
+            ];
+        }
+        default:
+            return [
+                () => rs.map((r) => r[0]()),
+                (acc) => rs.map((r, i) => r[1](acc[i])),
+                (acc, x) => {
+                    let done = false;
+                    const res = [];
+                    for (let i = 0; i < n; i++) {
+                        let a = rs[i][2](acc[i], x);
+                        if (reduced_1.isReduced(a)) {
+                            done = true;
+                            a = reduced_1.unreduced(a);
+                        }
+                        res[i] = a;
+                    }
+                    return done ? reduced_1.reduced(res) : res;
+                }
+            ];
+    }
+}
+exports.juxtR = juxtR;
+
+},{"../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/func/lookup.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Returns function accepting a single index arg used to
+ * lookup value in given array. No bounds checks are done.
+ *
+ * ```
+ * [...map(lookup1d([10, 20, 30]), [2,0,1])]
+ * // [ 30, 10, 20 ]
+ * ```
+ *
+ * @param src source data
+ */
+function lookup1d(src) {
+    return (i) => src[i];
+}
+exports.lookup1d = lookup1d;
+/**
+ * Returns function accepting a single `[x, y]` index tuple,
+ * used to lookup value in given array. Useful for transducers
+ * processing 2D data. **Note**: The source data MUST be in
+ * row major linearized format, i.e. 1D representation of 2D data
+ * (pixel buffer). No bounds checks are done.
+ *
+ * ```
+ * [...map(lookup2d([...range(9)], 3), range2d(2, -1, 0, 3))]
+ * // [ 2, 1, 0, 5, 4, 3, 8, 7, 6 ]
+ * ```
+ *
+ * @param src source data
+ * @param width number of items along X (columns)
+ */
+function lookup2d(src, width) {
+    return (i) => src[i[0] + i[1] * width];
+}
+exports.lookup2d = lookup2d;
+/**
+ * Same as `lookup2d()`, but for 3D data. The index ordering of the
+ * source data MUST be in Z, Y, X order (i.e. a stack of row major 2D slices).
+ * No bounds checks are done.
+ *
+ * @param src source data
+ * @param width number of items along X (columns)
+ * @param height number of items along Y (rows)
+ */
+function lookup3d(src, width, height) {
+    const stridez = width * height;
+    return (i) => src[i[0] + i[1] * width + i[2] * stridez];
+}
+exports.lookup3d = lookup3d;
+
+},{}],"../../../node_modules/@thi.ng/transducers/func/odd.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var is_odd_1 = require("@thi.ng/checks/is-odd");
+exports.odd = is_odd_1.isOdd;
+
+},{"@thi.ng/checks/is-odd":"../../../node_modules/@thi.ng/checks/is-odd.js"}],"../../../node_modules/@thi.ng/transducers/func/peek.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Returns last element of given array.
+ *
+ * @param x
+ */
+function peek(x) {
+    return x[x.length - 1];
+}
+exports.peek = peek;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/repeat.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* repeat(x, n = Infinity) {
+    while (n-- > 0) {
+        yield x;
+    }
+}
+exports.repeat = repeat;
+
+},{}],"../../../node_modules/@thi.ng/transducers/func/weighted-random.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const repeat_1 = require("../iter/repeat");
+const tuples_1 = require("../iter/tuples");
+/**
+ * If `weights` are given, it must be the same size as `choices`. If omitted,
+ * each choice will have same probability.
+ *
+ * https://www.electricmonk.nl/log/2009/12/23/weighted-random-distribution/
+ *
+ * @param choices
+ * @param weights
+ */
+function weightedRandom(choices, weights) {
+    const n = choices.length;
+    const opts = [...tuples_1.tuples(choices, weights || repeat_1.repeat(1))].sort((a, b) => b[1] - a[1]);
+    let total = 0, i, r, sum;
+    for (i = 0; i < n; i++) {
+        total += weights[i];
+    }
+    return () => {
+        r = Math.random() * total;
+        sum = total;
+        for (i = 0; i < n; i++) {
+            sum -= opts[i][1];
+            if (sum <= r) {
+                return opts[i][0];
+            }
+        }
+    };
+}
+exports.weightedRandom = weightedRandom;
+
+},{"../iter/repeat":"../../../node_modules/@thi.ng/transducers/iter/repeat.js","../iter/tuples":"../../../node_modules/@thi.ng/transducers/iter/tuples.js"}],"../../../node_modules/@thi.ng/transducers/iter/repeatedly.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* repeatedly(fn, n = Infinity) {
+    while (n-- > 0) {
+        yield fn();
+    }
+}
+exports.repeatedly = repeatedly;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/choices.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const weighted_random_1 = require("../func/weighted-random");
+const repeatedly_1 = require("./repeatedly");
+/**
+ * Returns an infinite iterator of random choices and their (optional)
+ * weights. If `weights` is given, it must have at least the same size
+ * as `choices`. If omitted, each choice will have same probability.
+ *
+ * See: `weightedRandom()`
+ *
+ * ```
+ * transduce(take(1000), frequencies(), choices("abcd", [1, 0.5, 0.25, 0.125]))
+ * // Map { 'c' => 132, 'a' => 545, 'b' => 251, 'd' => 72 }
+ * ```
+ *
+ * @param choices
+ * @param weights
+ */
+function choices(choices, weights) {
+    return repeatedly_1.repeatedly(weights ?
+        weighted_random_1.weightedRandom(choices, weights) :
+        () => choices[(Math.random() * choices.length) | 0]);
+}
+exports.choices = choices;
+
+},{"../func/weighted-random":"../../../node_modules/@thi.ng/transducers/func/weighted-random.js","./repeatedly":"../../../node_modules/@thi.ng/transducers/iter/repeatedly.js"}],"../../../node_modules/@thi.ng/transducers/func/random-id.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const choices_1 = require("../iter/choices");
+const take_1 = require("../xform/take");
+/**
+ * Generates and returns a random string of `len` characters (default
+ * 4), plus optional given `prefix` and using only provided `syms`
+ * characters (default lowercase a-z).
+ *
+ * ```
+ * randomID()
+ * "qgdt"
+ *
+ * randomID(8, "id-", "0123456789ABCDEF")
+ * "id-94EF6E1A"
+ * ```
+ *
+ * @param len
+ * @param prefix
+ * @param syms
+ */
+exports.randomID = (len = 4, prefix = "", syms = "abcdefghijklmnopqrstuvwxyz") => [prefix, ...take_1.take(len, choices_1.choices(syms))].join("");
+
+},{"../iter/choices":"../../../node_modules/@thi.ng/transducers/iter/choices.js","../xform/take":"../../../node_modules/@thi.ng/transducers/xform/take.js"}],"../../../node_modules/@thi.ng/transducers/iter/as-iterable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Helper function to (re)provide given iterable in iterator form.
+ *
+ * @param src
+ */
+function* asIterable(src) {
+    yield* src;
+}
+exports.asIterable = asIterable;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/concat.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const ensure_iterable_1 = require("../func/ensure-iterable");
+/**
+ * Yields iterator producing concatenation of given iterables.
+ * Undefined & null inputs are silently ignored, however any
+ * such values produced or contained in an input will remain.
+ *
+ * ```
+ * [...concat([1, 2, 3], null, [4, 5])]
+ * // [ 1, 2, 3, 4, 5 ]
+ *
+ * [...concat([1, 2, 3, undefined], null, [4, 5])]
+ * // [ 1, 2, 3, undefined, 4, 5 ]
+ * ```
+ *
+ * @param xs
+ */
+function* concat(...xs) {
+    for (let x of xs) {
+        x != null && (yield* ensure_iterable_1.ensureIterable(x));
+    }
+}
+exports.concat = concat;
+
+},{"../func/ensure-iterable":"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js"}],"../../../node_modules/@thi.ng/transducers/iter/cycle.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* cycle(input) {
+    let cache = [];
+    for (let i of input) {
+        cache.push(i);
+        yield i;
+    }
+    if (cache.length > 0) {
+        while (true) {
+            yield* cache;
+        }
+    }
+}
+exports.cycle = cycle;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/iterate.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* iterate(fn, seed) {
+    while (true) {
+        yield seed;
+        seed = fn(seed);
+    }
+}
+exports.iterate = iterate;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/keys.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* keys(x) {
+    for (let k in x) {
+        if (x.hasOwnProperty(k)) {
+            yield k;
+        }
+    }
+}
+exports.keys = keys;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/norm-range.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Yields sequence of `n+1` monotonically increasing numbers in the
+ * closed interval (0.0 .. 1.0). If `n <= 0`, yields nothing.
+ *
+ * ```
+ * [...normRange(4)]
+ * // [0, 0.25, 0.5, 0.75, 1.0]
+ * ```
+ *
+ * @param n number of steps
+ * @param inclLast include last value (i.e. `1.0`)
+ */
+function* normRange(n, inclLast = true) {
+    if (n > 0) {
+        for (let i = 0, m = inclLast ? n + 1 : n; i < m; i++) {
+            yield i / n;
+        }
+    }
+}
+exports.normRange = normRange;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/pairs.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* pairs(x) {
+    for (let k in x) {
+        if (x.hasOwnProperty(k)) {
+            yield [k, x[k]];
+        }
+    }
+}
+exports.pairs = pairs;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/permutations.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
+const ensure_array_1 = require("../func/ensure-array");
+const range_1 = require("./range");
+function* permutations(...src) {
+    const n = src.length - 1;
+    if (n < 0) {
+        return;
+    }
+    const step = new Array(n + 1).fill(0);
+    const realized = src.map(ensure_array_1.ensureArrayLike);
+    const total = realized.reduce((acc, x) => acc * x.length, 1);
+    for (let i = 0; i < total; i++) {
+        const tuple = [];
+        for (let j = n; j >= 0; j--) {
+            const r = realized[j];
+            let s = step[j];
+            if (s === r.length) {
+                step[j] = s = 0;
+                j > 0 && (step[j - 1]++);
+            }
+            tuple[j] = r[s];
+        }
+        step[n]++;
+        yield tuple;
+    }
+}
+exports.permutations = permutations;
+/**
+ * Iterator yielding the Cartesian Product for `n` items of `m` values
+ * each. If `m` is not given, defaults to value of `n`. The range of `m`
+ * is `0..m-1`. The optional `offsets` array can be used to define start
+ * values for each dimension.
+ *
+ * ```
+ * [...permutationsN(2)]
+ * // [ [0, 0], [0, 1], [1, 0], [1, 1] ]
+ *
+ * [...permutationsN(2, 3)]
+ * // [ [0, 0], [0, 1], [0, 2],
+ * //   [1, 0], [1, 1], [1, 2],
+ * //   [2, 0], [2, 1], [2, 2] ]
+ *
+ * [...permutationsN(2, 3, [10, 20])]
+ * // [ [ 10, 20 ], [ 10, 21 ], [ 11, 20 ], [ 11, 21 ] ]
+ * ```
+ *
+ * @param n
+ * @param m
+ * @param offsets
+ */
+function permutationsN(n, m = n, offsets) {
+    if (offsets && offsets.length < n) {
+        illegal_arguments_1.illegalArgs(`insufficient offsets, got ${offsets.length}, needed ${n}`);
+    }
+    const seqs = [];
+    while (--n >= 0) {
+        const o = offsets ? offsets[n] : 0;
+        seqs[n] = range_1.range(o, o + m);
+    }
+    return permutations.apply(null, seqs);
+}
+exports.permutationsN = permutationsN;
+
+},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js","./range":"../../../node_modules/@thi.ng/transducers/iter/range.js"}],"../../../node_modules/@thi.ng/transducers/iter/range3d.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
+const range_1 = require("./range");
+function* range3d(...args) {
+    let fromX, toX, fromY, toY, fromZ, toZ, stepX, stepY, stepZ;
+    switch (args.length) {
+        case 9:
+            stepX = args[6];
+            stepY = args[7];
+            stepZ = args[8];
+        case 6:
+            [fromX, toX, fromY, toY, fromZ, toZ] = args;
+            break;
+        case 3:
+            [toX, toY, toZ] = args;
+            fromX = fromY = fromZ = 0;
+            break;
+        default:
+            illegal_arity_1.illegalArity(args.length);
+    }
+    const rx = range_1.range(fromX, toX, stepX);
+    const ry = range_1.range(fromY, toY, stepY);
+    for (let z of range_1.range(fromZ, toZ, stepZ)) {
+        for (let y of ry) {
+            for (let x of rx) {
+                yield [x, y, z];
+            }
+        }
+    }
+}
+exports.range3d = range3d;
+
+},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./range":"../../../node_modules/@thi.ng/transducers/iter/range.js"}],"../../../node_modules/@thi.ng/transducers/iter/reverse.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const ensure_array_1 = require("../func/ensure-array");
+/**
+ * Yields iterator which consumes input and yield its values in reverse
+ * order. Important: Input MUST be finite.
+ *
+ * ```
+ * [...tx.reverse("hello world")]
+ * // [ "d", "l", "r", "o", "w", " ", "o", "l", "l", "e", "h" ]
+ * ```
+ *
+ * @param input
+ */
+function* reverse(input) {
+    const _input = ensure_array_1.ensureArray(input);
+    let n = _input.length;
+    while (--n >= 0) {
+        yield _input[n];
+    }
+}
+exports.reverse = reverse;
+
+},{"../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js"}],"../../../node_modules/@thi.ng/transducers/iter/vals.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function* vals(x) {
+    for (let k in x) {
+        if (x.hasOwnProperty(k)) {
+            yield x[k];
+        }
+    }
+}
+exports.vals = vals;
+
+},{}],"../../../node_modules/@thi.ng/transducers/iter/wrap.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
+const ensure_array_1 = require("../func/ensure-array");
+/**
+ * Yields iterator of `src` with the last `n` values of `src` prepended
+ * at the beginning (if `left` is truthy) and/or the first `n` values
+ * appended at the end (if `right` is truthy). Wraps both sides by
+ * default and throws error if `n` < 0 or larger than `src.length`.
+ *
+ * @param src
+ * @param n
+ * @param left
+ * @param right
+ */
+function* wrap(src, n = 1, left = true, right = true) {
+    const _src = ensure_array_1.ensureArray(src);
+    (n < 0 || n > _src.length) && illegal_arguments_1.illegalArgs(`wrong number of wrap items: got ${n}, but max: ${_src.length}`);
+    if (left) {
+        for (let m = _src.length, i = m - n; i < m; i++) {
+            yield _src[i];
+        }
+    }
+    yield* _src;
+    if (right) {
+        for (let i = 0; i < n; i++) {
+            yield _src[i];
+        }
+    }
+}
+exports.wrap = wrap;
+
+},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js"}],"../../../node_modules/@thi.ng/transducers/index.js":[function(require,module,exports) {
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("./iterator"));
+__export(require("./reduce"));
+__export(require("./reduced"));
+__export(require("./run"));
+__export(require("./step"));
+__export(require("./transduce"));
+__export(require("./rfn/add"));
+__export(require("./rfn/assoc-map"));
+__export(require("./rfn/assoc-obj"));
+__export(require("./rfn/conj"));
+__export(require("./rfn/count"));
+__export(require("./rfn/div"));
+__export(require("./rfn/every"));
+__export(require("./rfn/fill"));
+__export(require("./rfn/frequencies"));
+__export(require("./rfn/group-binary"));
+__export(require("./rfn/group-by-map"));
+__export(require("./rfn/group-by-obj"));
+__export(require("./rfn/last"));
+__export(require("./rfn/max-compare"));
+__export(require("./rfn/max"));
+__export(require("./rfn/mean"));
+__export(require("./rfn/min-compare"));
+__export(require("./rfn/min"));
+__export(require("./rfn/mul"));
+__export(require("./rfn/push-copy"));
+__export(require("./rfn/push"));
+__export(require("./rfn/reductions"));
+__export(require("./rfn/some"));
+__export(require("./rfn/str"));
+__export(require("./rfn/sub"));
+__export(require("./xform/base64"));
+__export(require("./xform/benchmark"));
+__export(require("./xform/bits"));
+__export(require("./xform/cat"));
+__export(require("./xform/convolve"));
+__export(require("./xform/dedupe"));
+__export(require("./xform/delayed"));
+__export(require("./xform/distinct"));
+__export(require("./xform/drop-nth"));
+__export(require("./xform/drop-while"));
+__export(require("./xform/drop"));
+__export(require("./xform/duplicate"));
+__export(require("./xform/filter"));
+__export(require("./xform/filter-fuzzy"));
+__export(require("./xform/flatten-with"));
+__export(require("./xform/flatten"));
+__export(require("./xform/hex-dump"));
+__export(require("./xform/indexed"));
+__export(require("./xform/interleave"));
+__export(require("./xform/interpose"));
+__export(require("./xform/keep"));
+__export(require("./xform/labeled"));
+__export(require("./xform/map-deep"));
+__export(require("./xform/map-indexed"));
+__export(require("./xform/map-keys"));
+__export(require("./xform/map-nth"));
+__export(require("./xform/map-vals"));
+__export(require("./xform/map"));
+__export(require("./xform/mapcat"));
+__export(require("./xform/match-first"));
+__export(require("./xform/match-last"));
+__export(require("./xform/moving-average"));
+__export(require("./xform/moving-median"));
+__export(require("./xform/multiplex"));
+__export(require("./xform/multiplex-obj"));
+__export(require("./xform/noop"));
+__export(require("./xform/pad-last"));
+__export(require("./xform/page"));
+__export(require("./xform/partition-bits"));
+__export(require("./xform/partition-by"));
+__export(require("./xform/partition-of"));
+__export(require("./xform/partition-sort"));
+__export(require("./xform/partition-sync"));
+__export(require("./xform/partition"));
+__export(require("./xform/pluck"));
+__export(require("./xform/rename"));
+__export(require("./xform/sample"));
+__export(require("./xform/scan"));
+__export(require("./xform/select-keys"));
+__export(require("./xform/side-effect"));
+__export(require("./xform/sliding-window"));
+__export(require("./xform/stream-shuffle"));
+__export(require("./xform/stream-sort"));
+__export(require("./xform/struct"));
+__export(require("./xform/swizzle"));
+__export(require("./xform/take-nth"));
+__export(require("./xform/take-last"));
+__export(require("./xform/take-while"));
+__export(require("./xform/take"));
+__export(require("./xform/throttle"));
+__export(require("./xform/throttle-time"));
+__export(require("./xform/trace"));
+__export(require("./xform/utf8"));
+__export(require("./xform/word-wrap"));
+__export(require("./func/binary-search"));
+__export(require("./func/comp"));
+__export(require("./func/compr"));
+__export(require("./func/constantly"));
+__export(require("./func/deep-transform"));
+__export(require("./func/delay"));
+__export(require("./func/ensure-array"));
+__export(require("./func/ensure-iterable"));
+__export(require("./func/even"));
+__export(require("./func/fuzzy-match"));
+__export(require("./func/hex"));
+__export(require("./func/identity"));
+__export(require("./func/juxt"));
+__export(require("./func/juxtr"));
+__export(require("./func/key-selector"));
+__export(require("./func/lookup"));
+__export(require("./func/odd"));
+__export(require("./func/peek"));
+__export(require("./func/random-id"));
+__export(require("./func/renamer"));
+__export(require("./func/swizzler"));
+__export(require("./func/weighted-random"));
+__export(require("./iter/as-iterable"));
+__export(require("./iter/choices"));
+__export(require("./iter/concat"));
+__export(require("./iter/cycle"));
+__export(require("./iter/iterate"));
+__export(require("./iter/keys"));
+__export(require("./iter/norm-range"));
+__export(require("./iter/pairs"));
+__export(require("./iter/permutations"));
+__export(require("./iter/range"));
+__export(require("./iter/range2d"));
+__export(require("./iter/range3d"));
+__export(require("./iter/repeat"));
+__export(require("./iter/repeatedly"));
+__export(require("./iter/reverse"));
+__export(require("./iter/tuples"));
+__export(require("./iter/vals"));
+__export(require("./iter/wrap"));
+
+},{"./iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js","./run":"../../../node_modules/@thi.ng/transducers/run.js","./step":"../../../node_modules/@thi.ng/transducers/step.js","./transduce":"../../../node_modules/@thi.ng/transducers/transduce.js","./rfn/add":"../../../node_modules/@thi.ng/transducers/rfn/add.js","./rfn/assoc-map":"../../../node_modules/@thi.ng/transducers/rfn/assoc-map.js","./rfn/assoc-obj":"../../../node_modules/@thi.ng/transducers/rfn/assoc-obj.js","./rfn/conj":"../../../node_modules/@thi.ng/transducers/rfn/conj.js","./rfn/count":"../../../node_modules/@thi.ng/transducers/rfn/count.js","./rfn/div":"../../../node_modules/@thi.ng/transducers/rfn/div.js","./rfn/every":"../../../node_modules/@thi.ng/transducers/rfn/every.js","./rfn/fill":"../../../node_modules/@thi.ng/transducers/rfn/fill.js","./rfn/frequencies":"../../../node_modules/@thi.ng/transducers/rfn/frequencies.js","./rfn/group-binary":"../../../node_modules/@thi.ng/transducers/rfn/group-binary.js","./rfn/group-by-map":"../../../node_modules/@thi.ng/transducers/rfn/group-by-map.js","./rfn/group-by-obj":"../../../node_modules/@thi.ng/transducers/rfn/group-by-obj.js","./rfn/last":"../../../node_modules/@thi.ng/transducers/rfn/last.js","./rfn/max-compare":"../../../node_modules/@thi.ng/transducers/rfn/max-compare.js","./rfn/max":"../../../node_modules/@thi.ng/transducers/rfn/max.js","./rfn/mean":"../../../node_modules/@thi.ng/transducers/rfn/mean.js","./rfn/min-compare":"../../../node_modules/@thi.ng/transducers/rfn/min-compare.js","./rfn/min":"../../../node_modules/@thi.ng/transducers/rfn/min.js","./rfn/mul":"../../../node_modules/@thi.ng/transducers/rfn/mul.js","./rfn/push-copy":"../../../node_modules/@thi.ng/transducers/rfn/push-copy.js","./rfn/push":"../../../node_modules/@thi.ng/transducers/rfn/push.js","./rfn/reductions":"../../../node_modules/@thi.ng/transducers/rfn/reductions.js","./rfn/some":"../../../node_modules/@thi.ng/transducers/rfn/some.js","./rfn/str":"../../../node_modules/@thi.ng/transducers/rfn/str.js","./rfn/sub":"../../../node_modules/@thi.ng/transducers/rfn/sub.js","./xform/base64":"../../../node_modules/@thi.ng/transducers/xform/base64.js","./xform/benchmark":"../../../node_modules/@thi.ng/transducers/xform/benchmark.js","./xform/bits":"../../../node_modules/@thi.ng/transducers/xform/bits.js","./xform/cat":"../../../node_modules/@thi.ng/transducers/xform/cat.js","./xform/convolve":"../../../node_modules/@thi.ng/transducers/xform/convolve.js","./xform/dedupe":"../../../node_modules/@thi.ng/transducers/xform/dedupe.js","./xform/delayed":"../../../node_modules/@thi.ng/transducers/xform/delayed.js","./xform/distinct":"../../../node_modules/@thi.ng/transducers/xform/distinct.js","./xform/drop-nth":"../../../node_modules/@thi.ng/transducers/xform/drop-nth.js","./xform/drop-while":"../../../node_modules/@thi.ng/transducers/xform/drop-while.js","./xform/drop":"../../../node_modules/@thi.ng/transducers/xform/drop.js","./xform/duplicate":"../../../node_modules/@thi.ng/transducers/xform/duplicate.js","./xform/filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./xform/filter-fuzzy":"../../../node_modules/@thi.ng/transducers/xform/filter-fuzzy.js","./xform/flatten-with":"../../../node_modules/@thi.ng/transducers/xform/flatten-with.js","./xform/flatten":"../../../node_modules/@thi.ng/transducers/xform/flatten.js","./xform/hex-dump":"../../../node_modules/@thi.ng/transducers/xform/hex-dump.js","./xform/indexed":"../../../node_modules/@thi.ng/transducers/xform/indexed.js","./xform/interleave":"../../../node_modules/@thi.ng/transducers/xform/interleave.js","./xform/interpose":"../../../node_modules/@thi.ng/transducers/xform/interpose.js","./xform/keep":"../../../node_modules/@thi.ng/transducers/xform/keep.js","./xform/labeled":"../../../node_modules/@thi.ng/transducers/xform/labeled.js","./xform/map-deep":"../../../node_modules/@thi.ng/transducers/xform/map-deep.js","./xform/map-indexed":"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js","./xform/map-keys":"../../../node_modules/@thi.ng/transducers/xform/map-keys.js","./xform/map-nth":"../../../node_modules/@thi.ng/transducers/xform/map-nth.js","./xform/map-vals":"../../../node_modules/@thi.ng/transducers/xform/map-vals.js","./xform/map":"../../../node_modules/@thi.ng/transducers/xform/map.js","./xform/mapcat":"../../../node_modules/@thi.ng/transducers/xform/mapcat.js","./xform/match-first":"../../../node_modules/@thi.ng/transducers/xform/match-first.js","./xform/match-last":"../../../node_modules/@thi.ng/transducers/xform/match-last.js","./xform/moving-average":"../../../node_modules/@thi.ng/transducers/xform/moving-average.js","./xform/moving-median":"../../../node_modules/@thi.ng/transducers/xform/moving-median.js","./xform/multiplex":"../../../node_modules/@thi.ng/transducers/xform/multiplex.js","./xform/multiplex-obj":"../../../node_modules/@thi.ng/transducers/xform/multiplex-obj.js","./xform/noop":"../../../node_modules/@thi.ng/transducers/xform/noop.js","./xform/pad-last":"../../../node_modules/@thi.ng/transducers/xform/pad-last.js","./xform/page":"../../../node_modules/@thi.ng/transducers/xform/page.js","./xform/partition-bits":"../../../node_modules/@thi.ng/transducers/xform/partition-bits.js","./xform/partition-by":"../../../node_modules/@thi.ng/transducers/xform/partition-by.js","./xform/partition-of":"../../../node_modules/@thi.ng/transducers/xform/partition-of.js","./xform/partition-sort":"../../../node_modules/@thi.ng/transducers/xform/partition-sort.js","./xform/partition-sync":"../../../node_modules/@thi.ng/transducers/xform/partition-sync.js","./xform/partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js","./xform/pluck":"../../../node_modules/@thi.ng/transducers/xform/pluck.js","./xform/rename":"../../../node_modules/@thi.ng/transducers/xform/rename.js","./xform/sample":"../../../node_modules/@thi.ng/transducers/xform/sample.js","./xform/scan":"../../../node_modules/@thi.ng/transducers/xform/scan.js","./xform/select-keys":"../../../node_modules/@thi.ng/transducers/xform/select-keys.js","./xform/side-effect":"../../../node_modules/@thi.ng/transducers/xform/side-effect.js","./xform/sliding-window":"../../../node_modules/@thi.ng/transducers/xform/sliding-window.js","./xform/stream-shuffle":"../../../node_modules/@thi.ng/transducers/xform/stream-shuffle.js","./xform/stream-sort":"../../../node_modules/@thi.ng/transducers/xform/stream-sort.js","./xform/struct":"../../../node_modules/@thi.ng/transducers/xform/struct.js","./xform/swizzle":"../../../node_modules/@thi.ng/transducers/xform/swizzle.js","./xform/take-nth":"../../../node_modules/@thi.ng/transducers/xform/take-nth.js","./xform/take-last":"../../../node_modules/@thi.ng/transducers/xform/take-last.js","./xform/take-while":"../../../node_modules/@thi.ng/transducers/xform/take-while.js","./xform/take":"../../../node_modules/@thi.ng/transducers/xform/take.js","./xform/throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js","./xform/throttle-time":"../../../node_modules/@thi.ng/transducers/xform/throttle-time.js","./xform/trace":"../../../node_modules/@thi.ng/transducers/xform/trace.js","./xform/utf8":"../../../node_modules/@thi.ng/transducers/xform/utf8.js","./xform/word-wrap":"../../../node_modules/@thi.ng/transducers/xform/word-wrap.js","./func/binary-search":"../../../node_modules/@thi.ng/transducers/func/binary-search.js","./func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","./func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","./func/constantly":"../../../node_modules/@thi.ng/transducers/func/constantly.js","./func/deep-transform":"../../../node_modules/@thi.ng/transducers/func/deep-transform.js","./func/delay":"../../../node_modules/@thi.ng/transducers/func/delay.js","./func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js","./func/ensure-iterable":"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js","./func/even":"../../../node_modules/@thi.ng/transducers/func/even.js","./func/fuzzy-match":"../../../node_modules/@thi.ng/transducers/func/fuzzy-match.js","./func/hex":"../../../node_modules/@thi.ng/transducers/func/hex.js","./func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","./func/juxt":"../../../node_modules/@thi.ng/transducers/func/juxt.js","./func/juxtr":"../../../node_modules/@thi.ng/transducers/func/juxtr.js","./func/key-selector":"../../../node_modules/@thi.ng/transducers/func/key-selector.js","./func/lookup":"../../../node_modules/@thi.ng/transducers/func/lookup.js","./func/odd":"../../../node_modules/@thi.ng/transducers/func/odd.js","./func/peek":"../../../node_modules/@thi.ng/transducers/func/peek.js","./func/random-id":"../../../node_modules/@thi.ng/transducers/func/random-id.js","./func/renamer":"../../../node_modules/@thi.ng/transducers/func/renamer.js","./func/swizzler":"../../../node_modules/@thi.ng/transducers/func/swizzler.js","./func/weighted-random":"../../../node_modules/@thi.ng/transducers/func/weighted-random.js","./iter/as-iterable":"../../../node_modules/@thi.ng/transducers/iter/as-iterable.js","./iter/choices":"../../../node_modules/@thi.ng/transducers/iter/choices.js","./iter/concat":"../../../node_modules/@thi.ng/transducers/iter/concat.js","./iter/cycle":"../../../node_modules/@thi.ng/transducers/iter/cycle.js","./iter/iterate":"../../../node_modules/@thi.ng/transducers/iter/iterate.js","./iter/keys":"../../../node_modules/@thi.ng/transducers/iter/keys.js","./iter/norm-range":"../../../node_modules/@thi.ng/transducers/iter/norm-range.js","./iter/pairs":"../../../node_modules/@thi.ng/transducers/iter/pairs.js","./iter/permutations":"../../../node_modules/@thi.ng/transducers/iter/permutations.js","./iter/range":"../../../node_modules/@thi.ng/transducers/iter/range.js","./iter/range2d":"../../../node_modules/@thi.ng/transducers/iter/range2d.js","./iter/range3d":"../../../node_modules/@thi.ng/transducers/iter/range3d.js","./iter/repeat":"../../../node_modules/@thi.ng/transducers/iter/repeat.js","./iter/repeatedly":"../../../node_modules/@thi.ng/transducers/iter/repeatedly.js","./iter/reverse":"../../../node_modules/@thi.ng/transducers/iter/reverse.js","./iter/tuples":"../../../node_modules/@thi.ng/transducers/iter/tuples.js","./iter/vals":"../../../node_modules/@thi.ng/transducers/iter/vals.js","./iter/wrap":"../../../node_modules/@thi.ng/transducers/iter/wrap.js"}],"draw-mesh-wireframe.ts":[function(require,module,exports) {
+"use strict";
+
+var __read = this && this.__read || function (o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+      r,
+      ar = [],
+      e;
+
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) {
+    e = {
+      error: error
+    };
+  } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally {
+      if (e) throw e.error;
+    }
+  }
+
+  return ar;
+};
+
+var __spread = this && this.__spread || function () {
+  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+
+  return ar;
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var transducers_1 = require("@thi.ng/transducers");
+
+var vert = "\nprecision mediump float;\nuniform mat4 projection, view;\nattribute vec3 position;\nvoid main () {\n  vec4 mpos = projection * view * vec4(position, 1.0);\n  gl_Position = mpos;\n}";
+var frag = "\nprecision mediump float;\nuniform vec3 color, fogColor;\nuniform float fogDensity;\n\nfloat fogFactorExp(\n  const float dist,\n  const float density\n) {\n  return 1.0 - clamp(exp(-density * dist), 0.0, 1.0);\n}\n\nvoid main () {\n  float fogDistance = gl_FragCoord.z / gl_FragCoord.w;\n  float fogAmount = fogFactorExp(fogDistance, fogDensity);\n\n  gl_FragColor = vec4(mix(color, fogColor, fogAmount), 1);\n}";
+
+exports.triangleToSegments = function (face) {
+  return __spread(transducers_1.partition(2, 1, transducers_1.wrap(face, 1, false, true)));
+};
+
+exports.cellsToWireframeEdge = function (cells) {
+  return transducers_1.mapcat(function (x) {
+    return x;
+  }, transducers_1.map(exports.triangleToSegments, cells));
+}; // const input: Vec3[] = [[1, 0, 3], [3, 2, 1], [5, 4, 7]]
+// const expected = [[1, 0], [0, 3], [3, 1], [3, 2], [2, 1], [1, 3], [5, 4], [4, 7], [7, 5]]
+
+
+function createDrawMeshWireframe(regl, mesh) {
+  var wireframeCells = __spread(exports.cellsToWireframeEdge(mesh.cells));
+
+  var draw = regl({
+    frag: frag,
+    vert: vert,
+    attributes: {
+      position: function () {
+        return mesh.positions;
+      }
+    },
+    uniforms: {
+      color: regl.prop('color'),
+      fogColor: regl.prop('fogColor'),
+      fogDensity: regl.prop('fogDensity')
+    },
+    elements: wireframeCells,
+    primitive: 'lines'
+  });
+  return {
+    draw: draw
+  };
+}
+
+exports.createDrawMeshWireframe = createDrawMeshWireframe;
+},{"@thi.ng/transducers":"../../../node_modules/@thi.ng/transducers/index.js"}],"draw-basic-mesh.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var vert = "\nprecision mediump float;\n\nuniform mat4 projection, view, model;\nattribute vec3 position, normal;\nvarying vec3 vViewPos;\n\nvoid main () {\n  vec4 mpos = projection * view * model * vec4(position, 1.0);\n  vViewPos = -(projection * view * model * vec4(position, 1.0)).xyz;\n  gl_Position = mpos;\n}\n";
+var frag = "\nprecision mediump float;\n#extension GL_OES_standard_derivatives: enable\n\nuniform vec3 diffuseColor, ambientColor, lightDirection;\nvarying vec3 vViewPos;\n\nvec3 faceNormal(vec3 pos) {\n  vec3 fdx = dFdx(pos);\n  vec3 fdy = dFdy(pos);\n  return normalize(cross(fdx, fdy));\n}\n\nvoid main () {\n  vec3 normal = faceNormal(vViewPos);\n\n  float brightness = max(\n    dot(\n      normalize(lightDirection),\n      normalize(normal)\n    ), 0.4);\n  vec3 lightColor = ambientColor + diffuseColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
+
+function createBasicMesh(regl, mesh) {
+  var draw = regl({
+    vert: vert,
+    frag: frag,
+    attributes: {
+      position: mesh.positions
+    },
+    uniforms: {
+      model: regl.prop('model'),
+      diffuseColor: regl.prop('diffuseColor'),
+      ambientColor: regl.prop('ambientColor'),
+      lightDirection: regl.prop('lightDirection')
+    },
+    elements: function () {
+      return mesh.cells;
+    }
+  });
+  return {
+    draw: draw
+  };
+}
+
+exports.createBasicMesh = createBasicMesh;
+},{}],"../../../node_modules/regl/dist/regl.js":[function(require,module,exports) {
 var define;
 var global = arguments[3];
 (function (global, factory) {
@@ -9768,1882 +15471,7 @@ return wrapREGL;
 })));
 
 
-},{}],"../../../node_modules/@thi.ng/hdom/api.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEBUG = false;
-
-},{}],"../../../node_modules/@thi.ng/api/api.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_EPS = 1e-6;
-exports.EVENT_ALL = "*";
-exports.EVENT_ENABLE = "enable";
-exports.EVENT_DISABLE = "disable";
-exports.SEMAPHORE = Symbol();
-
-},{}],"../../../node_modules/@thi.ng/equiv/index.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const OBJP = Object.getPrototypeOf({});
-const FN = "function";
-const STR = "string";
-exports.equiv = (a, b) => {
-    let proto;
-    if (a === b) {
-        return true;
-    }
-    if (a != null) {
-        if (typeof a.equiv === FN) {
-            return a.equiv(b);
-        }
-    }
-    else {
-        return a == b;
-    }
-    if (b != null) {
-        if (typeof b.equiv === FN) {
-            return b.equiv(a);
-        }
-    }
-    else {
-        return a == b;
-    }
-    if (typeof a === STR || typeof b === STR) {
-        return false;
-    }
-    if ((proto = Object.getPrototypeOf(a), proto == null || proto === OBJP) &&
-        (proto = Object.getPrototypeOf(b), proto == null || proto === OBJP)) {
-        return exports.equivObject(a, b);
-    }
-    if (typeof a !== FN && a.length !== undefined &&
-        typeof b !== FN && b.length !== undefined) {
-        return exports.equivArrayLike(a, b);
-    }
-    if (a instanceof Set && b instanceof Set) {
-        return exports.equivSet(a, b);
-    }
-    if (a instanceof Map && b instanceof Map) {
-        return exports.equivMap(a, b);
-    }
-    if (a instanceof Date && b instanceof Date) {
-        return a.getTime() === b.getTime();
-    }
-    if (a instanceof RegExp && b instanceof RegExp) {
-        return a.toString() === b.toString();
-    }
-    // NaN
-    return (a !== a && b !== b);
-};
-exports.equivArrayLike = (a, b, _equiv = exports.equiv) => {
-    let l = a.length;
-    if (l === b.length) {
-        while (--l >= 0 && _equiv(a[l], b[l]))
-            ;
-    }
-    return l < 0;
-};
-exports.equivSet = (a, b, _equiv = exports.equiv) => (a.size === b.size) &&
-    _equiv([...a.keys()].sort(), [...b.keys()].sort());
-exports.equivMap = (a, b, _equiv = exports.equiv) => (a.size === b.size) &&
-    _equiv([...a].sort(), [...b].sort());
-exports.equivObject = (a, b, _equiv = exports.equiv) => {
-    if (Object.keys(a).length !== Object.keys(b).length) {
-        return false;
-    }
-    for (let k in a) {
-        if (!b.hasOwnProperty(k) || !_equiv(a[k], b[k])) {
-            return false;
-        }
-    }
-    return true;
-};
-
-},{}],"../../../node_modules/@thi.ng/diff/array.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const equiv_1 = require("@thi.ng/equiv");
-let _cachedFP;
-let _cachedPath;
-let _cachedEPC = [];
-let _cachedPathPos = [];
-const cachedFP = (size) => _cachedFP && _cachedFP.length >= size ?
-    _cachedFP :
-    (_cachedFP = new Int32Array(size));
-const cachedPath = (size) => _cachedPath && _cachedPath.length >= size ?
-    _cachedPath :
-    (_cachedPath = new Int32Array(size));
-const simpleDiff = (state, src, key, logDir, mode) => {
-    const n = src.length;
-    const linear = state.linear;
-    state.distance = n;
-    if (mode !== 0 /* ONLY_DISTANCE */) {
-        for (let i = 0, j = 0; i < n; i++, j += 3) {
-            linear[j] = logDir;
-            linear[j + 1] = i;
-            linear[j + 2] = src[i];
-        }
-        if (mode === 2 /* FULL */) {
-            const _state = state[key];
-            for (let i = 0; i < n; i++) {
-                _state[i] = src[i];
-            }
-        }
-    }
-    return state;
-};
-/**
- * Based on "An O(NP) Sequence Comparison Algorithm""
- * by Wu, Manber, Myers and Miller
- *
- * - http://www.itu.dk/stud/speciale/bepjea/xwebtex/litt/an-onp-sequence-comparison-algorithm.pdf
- * - https://github.com/cubicdaiya/onp
- *
- * Various optimizations, fixes & refactorings.
- * By default uses `@thi.ng/equiv` for equality checks.
- *
- * @param a "old" array
- * @param b "new" array
- * @param mode result mode
- * @param equiv equality predicate function
- */
-exports.diffArray = (a, b, mode = 2 /* FULL */, equiv = equiv_1.equiv) => {
-    const state = {
-        distance: 0,
-        adds: {},
-        dels: {},
-        const: {},
-        linear: []
-    };
-    if (a === b || (a == null && b == null)) {
-        return state;
-    }
-    else if (a == null || a.length === 0) {
-        return simpleDiff(state, b, "adds", 1, mode);
-    }
-    else if (b == null || b.length === 0) {
-        return simpleDiff(state, a, "dels", -1, mode);
-    }
-    const reverse = a.length >= b.length;
-    let _a, _b, na, nb;
-    if (reverse) {
-        _a = b;
-        _b = a;
-    }
-    else {
-        _a = a;
-        _b = b;
-    }
-    na = _a.length;
-    nb = _b.length;
-    const offset = na + 1;
-    const delta = nb - na;
-    const doff = delta + offset;
-    const size = na + nb + 3;
-    const path = cachedPath(size).fill(-1, 0, size);
-    const fp = cachedFP(size).fill(-1, 0, size);
-    const epc = _cachedEPC;
-    const pathPos = _cachedPathPos;
-    epc.length = 0;
-    pathPos.length = 0;
-    const snake = (k, p, pp) => {
-        const koff = k + offset;
-        let r, y;
-        if (p > pp) {
-            r = path[koff - 1];
-            y = p;
-        }
-        else {
-            r = path[koff + 1];
-            y = pp;
-        }
-        let x = y - k;
-        while (x < na && y < nb && equiv(_a[x], _b[y])) {
-            x++;
-            y++;
-        }
-        path[koff] = pathPos.length / 3;
-        pathPos.push(x, y, r);
-        return y;
-    };
-    let p = -1, k, ko;
-    do {
-        p++;
-        for (k = -p, ko = k + offset; k < delta; k++, ko++) {
-            fp[ko] = snake(k, fp[ko - 1] + 1, fp[ko + 1]);
-        }
-        for (k = delta + p, ko = k + offset; k > delta; k--, ko--) {
-            fp[ko] = snake(k, fp[ko - 1] + 1, fp[ko + 1]);
-        }
-        fp[doff] = snake(delta, fp[doff - 1] + 1, fp[doff + 1]);
-    } while (fp[doff] !== nb);
-    state.distance = delta + 2 * p;
-    if (mode !== 0 /* ONLY_DISTANCE */) {
-        p = path[doff] * 3;
-        while (p >= 0) {
-            epc.push(p);
-            p = pathPos[p + 2] * 3;
-        }
-        if (mode === 2 /* FULL */) {
-            buildFullLog(epc, pathPos, state, _a, _b, reverse);
-        }
-        else {
-            buildLinearLog(epc, pathPos, state, _a, _b, reverse);
-        }
-    }
-    return state;
-};
-const buildFullLog = (epc, pathPos, state, a, b, reverse) => {
-    const linear = state.linear;
-    const _const = state.const;
-    let i = epc.length, px = 0, py = 0;
-    let adds, dels, aID, dID;
-    if (reverse) {
-        adds = state.dels;
-        dels = state.adds;
-        aID = -1;
-        dID = 1;
-    }
-    else {
-        adds = state.adds;
-        dels = state.dels;
-        aID = 1;
-        dID = -1;
-    }
-    for (; --i >= 0;) {
-        const e = epc[i];
-        const ppx = pathPos[e];
-        const ppy = pathPos[e + 1];
-        const d = ppy - ppx;
-        while (px < ppx || py < ppy) {
-            const dp = py - px;
-            if (d > dp) {
-                linear.push(aID, py, adds[py] = b[py]);
-                py++;
-            }
-            else if (d < dp) {
-                linear.push(dID, px, dels[px] = a[px]);
-                px++;
-            }
-            else {
-                linear.push(0, px, _const[px] = a[px]);
-                px++;
-                py++;
-            }
-        }
-    }
-};
-const buildLinearLog = (epc, pathPos, state, a, b, reverse) => {
-    const linear = state.linear;
-    const aID = reverse ? -1 : 1;
-    const dID = reverse ? 1 : -1;
-    let i = epc.length, px = 0, py = 0;
-    for (; --i >= 0;) {
-        const e = epc[i];
-        const ppx = pathPos[e];
-        const ppy = pathPos[e + 1];
-        const d = ppy - ppx;
-        while (px < ppx || py < ppy) {
-            const dp = py - px;
-            if (d > dp) {
-                linear.push(aID, py, b[py]);
-                py++;
-            }
-            else if (d < dp) {
-                linear.push(dID, px, a[px]);
-                px++;
-            }
-            else {
-                linear.push(0, px, a[px]);
-                px++;
-                py++;
-            }
-        }
-    }
-};
-
-},{"@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/diff/object.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const equiv_1 = require("@thi.ng/equiv");
-exports.diffObject = (a, b, mode = 2 /* FULL */, _equiv = equiv_1.equiv) => a === b ?
-    { distance: 0 } :
-    mode === 0 /* ONLY_DISTANCE */ ?
-        diffObjectDist(a, b, _equiv) :
-        diffObjectFull(a, b, _equiv);
-const diffObjectDist = (a, b, _equiv) => {
-    let d = 0;
-    for (let k in a) {
-        const vb = b[k];
-        (vb === undefined || !_equiv(a[k], vb)) && d++;
-    }
-    for (let k in b) {
-        !(k in a) && d++;
-    }
-    return { distance: d };
-};
-const diffObjectFull = (a, b, _equiv) => {
-    let d = 0;
-    const adds = [];
-    const dels = [];
-    const edits = [];
-    for (let k in a) {
-        const vb = b[k];
-        if (vb === undefined) {
-            dels.push(k);
-            d++;
-        }
-        else if (!_equiv(a[k], vb)) {
-            edits.push(k, vb);
-            d++;
-        }
-    }
-    for (let k in b) {
-        if (!(k in a)) {
-            adds.push(k);
-            d++;
-        }
-    }
-    return { distance: d, adds, dels, edits };
-};
-
-},{"@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/hdom/diff.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const api_1 = require("@thi.ng/api/api");
-const array_1 = require("@thi.ng/diff/array");
-const object_1 = require("@thi.ng/diff/object");
-const equiv_1 = require("@thi.ng/equiv");
-const isArray = Array.isArray;
-const max = Math.max;
-// child index tracking template buffer
-const INDEX = (() => {
-    const res = new Array(2048);
-    for (let i = 2, n = res.length; i < n; i++) {
-        res[i] = i - 2;
-    }
-    return res;
-})();
-const buildIndex = (n) => {
-    if (n <= INDEX.length) {
-        return INDEX.slice(0, n);
-    }
-    const res = new Array(n);
-    while (--n >= 2) {
-        res[n] = n - 2;
-    }
-    return res;
-};
-/**
- * See `HDOMImplementation` interface for further details.
- *
- * @param opts
- * @param impl hdom implementation
- * @param parent
- * @param prev previous tree
- * @param curr current tree
- * @param child child index
- */
-exports.diffTree = (opts, impl, parent, prev, curr, child = 0) => {
-    const attribs = curr[1];
-    if (attribs.__skip) {
-        return;
-    }
-    // always replace element if __diff = false
-    if (attribs.__diff === false) {
-        exports.releaseTree(prev);
-        impl.replaceChild(opts, parent, child, curr);
-        return;
-    }
-    // delegate to branch-local implementation
-    let _impl = attribs.__impl;
-    if (_impl && _impl !== impl) {
-        return _impl.diffTree(opts, _impl, parent, prev, curr, child);
-    }
-    const delta = array_1.diffArray(prev, curr, 1 /* ONLY_DISTANCE_LINEAR */, exports.equiv);
-    if (delta.distance === 0) {
-        return;
-    }
-    const edits = delta.linear;
-    const el = impl.getChild(parent, child);
-    let i;
-    let ii;
-    let j;
-    let idx;
-    let k;
-    let eq;
-    let status;
-    let val;
-    if (edits[0] !== 0 || prev[1].key !== attribs.key) {
-        // DEBUG && console.log("replace:", prev, curr);
-        exports.releaseTree(prev);
-        impl.replaceChild(opts, parent, child, curr);
-        return;
-    }
-    if ((val = prev.__release) && val !== curr.__release) {
-        exports.releaseTree(prev);
-    }
-    if (edits[3] !== 0) {
-        exports.diffAttributes(impl, el, prev[1], curr[1]);
-        // if attribs changed & distance == 2 then we're done here...
-        if (delta.distance === 2) {
-            return;
-        }
-    }
-    const numEdits = edits.length;
-    const prevLength = prev.length - 1;
-    const equivKeys = extractEquivElements(edits);
-    const offsets = buildIndex(prevLength + 1);
-    for (i = 2, ii = 6; ii < numEdits; i++, ii += 3) {
-        status = edits[ii];
-        if (status === -1) {
-            // element removed / edited?
-            val = edits[ii + 2];
-            if (isArray(val)) {
-                k = val[1].key;
-                if (k !== undefined && equivKeys[k][2] !== undefined) {
-                    eq = equivKeys[k];
-                    k = eq[0];
-                    // DEBUG && console.log(`diff equiv key @ ${k}:`, prev[k], curr[eq[2]]);
-                    exports.diffTree(opts, impl, el, prev[k], curr[eq[2]], offsets[k]);
-                }
-                else {
-                    idx = edits[ii + 1];
-                    // DEBUG && console.log("remove @", offsets[idx], val);
-                    exports.releaseTree(val);
-                    impl.removeChild(el, offsets[idx]);
-                    for (j = prevLength; j >= idx; j--) {
-                        offsets[j] = max(offsets[j] - 1, 0);
-                    }
-                }
-            }
-            else if (typeof val === "string") {
-                impl.setContent(el, "");
-            }
-        }
-        else if (status === 1) {
-            // element added/inserted?
-            val = edits[ii + 2];
-            if (typeof val === "string") {
-                impl.setContent(el, val);
-            }
-            else if (isArray(val)) {
-                k = val[1].key;
-                if (k === undefined || equivKeys[k][0] === undefined) {
-                    idx = edits[ii + 1];
-                    // DEBUG && console.log("insert @", offsets[idx], val);
-                    impl.createTree(opts, el, val, offsets[idx]);
-                    for (j = prevLength; j >= idx; j--) {
-                        offsets[j]++;
-                    }
-                }
-            }
-        }
-    }
-    // call __init after all children have been added/updated
-    if ((val = curr.__init) && val != prev.__init) {
-        val.apply(curr, [el, ...(curr.__args)]);
-    }
-};
-/**
- * Helper function for `diffTree()` to compute & apply the difference
- * between a node's `prev` and `curr` attributes.
- *
- * @param impl
- * @param el
- * @param prev
- * @param curr
- */
-exports.diffAttributes = (impl, el, prev, curr) => {
-    const delta = object_1.diffObject(prev, curr, 2 /* FULL */, equiv_1.equiv);
-    impl.removeAttribs(el, delta.dels, prev);
-    let val = api_1.SEMAPHORE;
-    let i, e, edits;
-    for (edits = delta.edits, i = edits.length; (i -= 2) >= 0;) {
-        const a = edits[i];
-        if (a.indexOf("on") === 0) {
-            impl.removeAttribs(el, [a], prev);
-        }
-        if (a !== "value") {
-            impl.setAttrib(el, a, edits[i + 1], curr);
-        }
-        else {
-            val = edits[i + 1];
-        }
-    }
-    for (edits = delta.adds, i = edits.length; --i >= 0;) {
-        e = edits[i];
-        if (e !== "value") {
-            impl.setAttrib(el, e, curr[e], curr);
-        }
-        else {
-            val = curr[e];
-        }
-    }
-    if (val !== api_1.SEMAPHORE) {
-        impl.setAttrib(el, "value", val, curr);
-    }
-};
-/**
- * Recursively attempts to call the `release` lifecycle method on every
- * element in given tree (branch), using depth-first descent. Each
- * element is checked for the presence of the `__release` control
- * attribute. If (and only if) it is set to `false`, further descent
- * into that element's branch is skipped.
- *
- * @param tag
- */
-exports.releaseTree = (tag) => {
-    if (isArray(tag)) {
-        let x;
-        if ((x = tag[1]) && x.__release === false) {
-            return;
-        }
-        if (tag.__release) {
-            // DEBUG && console.log("call __release", tag);
-            tag.__release.apply(tag.__this, tag.__args);
-            delete tag.__release;
-        }
-        for (x = tag.length; --x >= 2;) {
-            exports.releaseTree(tag[x]);
-        }
-    }
-};
-const extractEquivElements = (edits) => {
-    let k;
-    let val;
-    let ek;
-    const equiv = {};
-    for (let i = edits.length; (i -= 3) >= 0;) {
-        val = edits[i + 2];
-        if (isArray(val) && (k = val[1].key) !== undefined) {
-            ek = equiv[k];
-            !ek && (equiv[k] = ek = [, ,]);
-            ek[edits[i] + 1] = edits[i + 1];
-        }
-    }
-    return equiv;
-};
-const OBJP = Object.getPrototypeOf({});
-const FN = "function";
-const STR = "string";
-/**
- * Customized version @thi.ng/equiv which takes `__diff` attributes into
- * account (at any nesting level). If an hdom element's attribute object
- * contains `__diff: false`, the object will ALWAYS be considered
- * unequal, even if all other attributes in the object are equivalent.
- *
- * @param a
- * @param b
- */
-exports.equiv = (a, b) => {
-    let proto;
-    if (a === b) {
-        return true;
-    }
-    if (a != null) {
-        if (typeof a.equiv === FN) {
-            return a.equiv(b);
-        }
-    }
-    else {
-        return a == b;
-    }
-    if (b != null) {
-        if (typeof b.equiv === FN) {
-            return b.equiv(a);
-        }
-    }
-    else {
-        return a == b;
-    }
-    if (typeof a === STR || typeof b === STR) {
-        return false;
-    }
-    if ((proto = Object.getPrototypeOf(a), proto == null || proto === OBJP) &&
-        (proto = Object.getPrototypeOf(b), proto == null || proto === OBJP)) {
-        return !(a.__diff === false || b.__diff === false) &&
-            equiv_1.equivObject(a, b, exports.equiv);
-    }
-    if (typeof a !== FN && a.length !== undefined &&
-        typeof b !== FN && b.length !== undefined) {
-        return equiv_1.equivArrayLike(a, b, exports.equiv);
-    }
-    if (a instanceof Set && b instanceof Set) {
-        return equiv_1.equivSet(a, b, exports.equiv);
-    }
-    if (a instanceof Map && b instanceof Map) {
-        return equiv_1.equivMap(a, b, exports.equiv);
-    }
-    if (a instanceof Date && b instanceof Date) {
-        return a.getTime() === b.getTime();
-    }
-    if (a instanceof RegExp && b instanceof RegExp) {
-        return a.toString() === b.toString();
-    }
-    // NaN
-    return (a !== a && b !== b);
-};
-
-},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","@thi.ng/diff/array":"../../../node_modules/@thi.ng/diff/array.js","@thi.ng/diff/object":"../../../node_modules/@thi.ng/diff/object.js","@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/checks/is-array.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.isArray = Array.isArray;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isNotStringAndIterable(x) {
-    return x != null &&
-        typeof x !== "string" &&
-        typeof x[Symbol.iterator] === "function";
-}
-exports.isNotStringAndIterable = isNotStringAndIterable;
-
-},{}],"../../../node_modules/@thi.ng/hiccup/api.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SVG_NS = "http://www.w3.org/2000/svg";
-exports.XLINK_NS = "http://www.w3.org/1999/xlink";
-exports.TAG_REGEXP = /^([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?$/;
-// tslint:disable-next-line
-exports.SVG_TAGS = "animate animateColor animateMotion animateTransform circle clipPath color-profile defs desc discard ellipse feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feDropShadow feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence filter font foreignObject g image line linearGradient marker mask metadata mpath path pattern polygon polyline radialGradient rect set stop style svg switch symbol text textPath title tref tspan use view"
-    .split(" ")
-    .reduce((acc, x) => (acc[x] = 1, acc), {});
-// tslint:disable-next-line
-exports.VOID_TAGS = "area base br circle col command ellipse embed hr img input keygen line link meta param path polygon polyline rect source stop track use wbr"
-    .split(" ")
-    .reduce((acc, x) => (acc[x] = 1, acc), {});
-exports.ENTITIES = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&apos;",
-};
-exports.COMMENT = "__COMMENT__";
-exports.NO_SPANS = {
-    button: 1,
-    option: 1,
-    text: 1,
-    textarea: 1,
-};
-exports.ENTITY_RE = new RegExp(`[${Object.keys(exports.ENTITIES)}]`, "g");
-
-},{}],"../../../node_modules/@thi.ng/checks/is-function.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isFunction(x) {
-    return typeof x === "function";
-}
-exports.isFunction = isFunction;
-
-},{}],"../../../node_modules/@thi.ng/hiccup/css.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_function_1 = require("@thi.ng/checks/is-function");
-exports.css = (rules) => {
-    let css = "", v;
-    for (let r in rules) {
-        v = rules[r];
-        if (is_function_1.isFunction(v)) {
-            v = v(rules);
-        }
-        v != null && (css += `${r}:${v};`);
-    }
-    return css;
-};
-
-},{"@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js"}],"../../../node_modules/@thi.ng/hdom/dom.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const isa = require("@thi.ng/checks/is-array");
-const isi = require("@thi.ng/checks/is-not-string-iterable");
-const api_1 = require("@thi.ng/hiccup/api");
-const css_1 = require("@thi.ng/hiccup/css");
-const isArray = isa.isArray;
-const isNotStringAndIterable = isi.isNotStringAndIterable;
-/**
- * See `HDOMImplementation` interface for further details.
- *
- * @param opts
- * @param parent
- * @param tree
- * @param insert
- */
-exports.createTree = (opts, impl, parent, tree, insert) => {
-    if (isArray(tree)) {
-        const tag = tree[0];
-        if (typeof tag === "function") {
-            return exports.createTree(opts, impl, parent, tag.apply(null, [opts.ctx, ...tree.slice(1)]), insert);
-        }
-        const attribs = tree[1];
-        if (attribs.__impl) {
-            return attribs.__impl
-                .createTree(opts, parent, tree, insert);
-        }
-        const el = impl.createElement(parent, tag, attribs, insert);
-        if (tree.length > 2) {
-            const n = tree.length;
-            for (let i = 2; i < n; i++) {
-                exports.createTree(opts, impl, el, tree[i]);
-            }
-        }
-        if (tree.__init) {
-            tree.__init.apply(tree.__this, [el, ...tree.__args]);
-        }
-        return el;
-    }
-    if (isNotStringAndIterable(tree)) {
-        const res = [];
-        for (let t of tree) {
-            res.push(exports.createTree(opts, impl, parent, t));
-        }
-        return res;
-    }
-    if (tree == null) {
-        return parent;
-    }
-    return impl.createTextElement(parent, tree);
-};
-/**
- * See `HDOMImplementation` interface for further details.
- *
- * @param opts
- * @param parent
- * @param tree
- * @param index
- */
-exports.hydrateTree = (opts, impl, parent, tree, index = 0) => {
-    if (isArray(tree)) {
-        const el = impl.getChild(parent, index);
-        if (typeof tree[0] === "function") {
-            exports.hydrateTree(opts, impl, parent, tree[0].apply(null, [opts.ctx, ...tree.slice(1)]), index);
-        }
-        const attribs = tree[1];
-        if (attribs.__impl) {
-            return attribs.__impl
-                .hydrateTree(opts, parent, tree, index);
-        }
-        if (tree.__init) {
-            tree.__init.apply(tree.__this, [el, ...tree.__args]);
-        }
-        for (let a in attribs) {
-            if (a.indexOf("on") === 0) {
-                impl.setAttrib(el, a, attribs[a]);
-            }
-        }
-        for (let n = tree.length, i = 2; i < n; i++) {
-            exports.hydrateTree(opts, impl, el, tree[i], i - 2);
-        }
-    }
-    else if (isNotStringAndIterable(tree)) {
-        for (let t of tree) {
-            exports.hydrateTree(opts, impl, parent, t, index);
-            index++;
-        }
-    }
-};
-/**
- * Creates a new DOM element of type `tag` with optional `attribs`. If
- * `parent` is not `null`, the new element will be inserted as child at
- * given `insert` index. If `insert` is missing, the element will be
- * appended to the `parent`'s list of children. Returns new DOM node.
- *
- * If `tag` is a known SVG element name, the new element will be created
- * with the proper SVG XML namespace.
- *
- * @param parent
- * @param tag
- * @param attribs
- * @param insert
- */
-exports.createElement = (parent, tag, attribs, insert) => {
-    const el = api_1.SVG_TAGS[tag] ?
-        document.createElementNS(api_1.SVG_NS, tag) :
-        document.createElement(tag);
-    if (parent) {
-        if (insert == null) {
-            parent.appendChild(el);
-        }
-        else {
-            parent.insertBefore(el, parent.children[insert]);
-        }
-    }
-    if (attribs) {
-        exports.setAttribs(el, attribs);
-    }
-    return el;
-};
-exports.createTextElement = (parent, content, insert) => {
-    const el = document.createTextNode(content);
-    if (parent) {
-        if (insert === undefined) {
-            parent.appendChild(el);
-        }
-        else {
-            parent.insertBefore(el, parent.children[insert]);
-        }
-    }
-    return el;
-};
-exports.getChild = (parent, child) => parent.children[child];
-exports.replaceChild = (opts, impl, parent, child, tree) => (impl.removeChild(parent, child),
-    impl.createTree(opts, parent, tree, child));
-exports.cloneWithNewAttribs = (el, attribs) => {
-    const res = el.cloneNode(true);
-    exports.setAttribs(res, attribs);
-    el.parentNode.replaceChild(res, el);
-    return res;
-};
-exports.setContent = (el, body) => el.textContent = body;
-exports.setAttribs = (el, attribs) => {
-    for (let k in attribs) {
-        exports.setAttrib(el, k, attribs[k], attribs);
-    }
-    return el;
-};
-/**
- * Sets a single attribute on given element. If attrib name is NOT an
- * event name (prefix: "on") and its value is a function, it is called
- * with given `attribs` object (usually the full attrib object passed to
- * `setAttribs`) and the function's return value is used as the actual
- * attrib value.
- *
- * Special rules apply for certain attributes:
- *
- * - "style": delegated to `setStyle()`
- * - "value": delegated to `updateValueAttrib()`
- * - attrib IDs starting with "on" are treated as event listeners
- *
- * If the given (or computed) attrib value is `false` or `undefined` the
- * attrib is removed from the element.
- *
- * @param el
- * @param id
- * @param val
- * @param attribs
- */
-exports.setAttrib = (el, id, val, attribs) => {
-    if (id.startsWith("__"))
-        return;
-    const isListener = id.indexOf("on") === 0;
-    if (!isListener && typeof val === "function") {
-        val = val(attribs);
-    }
-    if (val !== undefined && val !== false) {
-        switch (id) {
-            case "style":
-                exports.setStyle(el, val);
-                break;
-            case "value":
-                exports.updateValueAttrib(el, val);
-                break;
-            case "checked":
-                // TODO add more native attribs?
-                el[id] = val;
-                break;
-            default:
-                if (isListener) {
-                    el.addEventListener(id.substr(2), val);
-                }
-                else {
-                    el.setAttribute(id, val);
-                }
-        }
-    }
-    else {
-        el[id] != null ? (el[id] = null) : el.removeAttribute(id);
-    }
-    return el;
-};
-/**
- * Updates an element's `value` property. For form elements it too
- * ensures the edit cursor retains its position.
- *
- * @param el
- * @param v
- */
-exports.updateValueAttrib = (el, v) => {
-    let ev;
-    switch (el.type) {
-        case "text":
-        case "textarea":
-        case "password":
-        case "email":
-        case "url":
-        case "tel":
-        case "search":
-            if ((ev = el.value) !== undefined && typeof v === "string") {
-                const off = v.length - (ev.length - el.selectionStart);
-                el.value = v;
-                el.selectionStart = el.selectionEnd = off;
-                break;
-            }
-        default:
-            el.value = v;
-    }
-};
-exports.removeAttribs = (el, attribs, prev) => {
-    for (let i = attribs.length; --i >= 0;) {
-        const a = attribs[i];
-        if (a.indexOf("on") === 0) {
-            el.removeEventListener(a.substr(2), prev[a]);
-        }
-        else {
-            el[a] ? (el[a] = null) : el.removeAttribute(a);
-        }
-    }
-};
-exports.setStyle = (el, styles) => (el.setAttribute("style", css_1.css(styles)), el);
-exports.clearDOM = (el) => el.innerHTML = "";
-exports.removeChild = (parent, childIdx) => {
-    const n = parent.children[childIdx];
-    if (n !== undefined) {
-        n.remove();
-    }
-};
-
-},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-not-string-iterable":"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js","@thi.ng/hiccup/api":"../../../node_modules/@thi.ng/hiccup/api.js","@thi.ng/hiccup/css":"../../../node_modules/@thi.ng/hiccup/css.js"}],"../../../node_modules/@thi.ng/checks/is-plain-object.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const OBJP = Object.getPrototypeOf({});
-/**
- * Similar to `isObject()`, but also checks if prototype is that of
- * `Object` (or `null`).
- *
- * @param x
- */
-function isPlainObject(x) {
-    let proto;
-    return Object.prototype.toString.call(x) === "[object Object]" &&
-        (proto = Object.getPrototypeOf(x), proto === null || proto === OBJP);
-}
-exports.isPlainObject = isPlainObject;
-
-},{}],"../../../node_modules/@thi.ng/errors/illegal-arguments.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class IllegalArgumentError extends Error {
-    constructor(msg) {
-        super("illegal argument(s)" + (msg !== undefined ? ": " + msg : ""));
-    }
-}
-exports.IllegalArgumentError = IllegalArgumentError;
-function illegalArgs(msg) {
-    throw new IllegalArgumentError(msg);
-}
-exports.illegalArgs = illegalArgs;
-
-},{}],"../../../node_modules/@thi.ng/hdom/normalize.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const isa = require("@thi.ng/checks/is-array");
-const insi = require("@thi.ng/checks/is-not-string-iterable");
-const iso = require("@thi.ng/checks/is-plain-object");
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-const api_1 = require("@thi.ng/hiccup/api");
-const isArray = isa.isArray;
-const isNotStringAndIterable = insi.isNotStringAndIterable;
-const isPlainObject = iso.isPlainObject;
-/**
- * Expands single hiccup element/component into its canonical form:
- *
- * ```
- * [tagname, {attribs}, ...children]
- * ```
- *
- * Emmet-style ID and class names in the original tagname are moved into
- * the attribs object, e.g.:
- *
- * ```
- * ["div#foo.bar.baz"] => ["div", {id: "foo", class: "bar baz"}]
- * ```
- *
- * If both Emmet-style classes AND a `class` attrib exists, the former
- * are appended to the latter:
- *
- * ```
- * ["div.bar.baz", {class: "foo"}] => ["div", {class: "foo bar baz"}]
- * ```
- *
- * @param spec
- * @param keys
- */
-exports.normalizeElement = (spec, keys) => {
-    let tag = spec[0], hasAttribs = isPlainObject(spec[1]), match, id, clazz, attribs;
-    if (typeof tag !== "string" || !(match = api_1.TAG_REGEXP.exec(tag))) {
-        illegal_arguments_1.illegalArgs(`${tag} is not a valid tag name`);
-    }
-    // return orig if already normalized and satisfies key requirement
-    if (tag === match[1] && hasAttribs && (!keys || spec[1].key)) {
-        return spec;
-    }
-    attribs = hasAttribs ? Object.assign({}, spec[1]) : {};
-    id = match[2];
-    clazz = match[3];
-    if (id) {
-        attribs.id = id;
-    }
-    if (clazz) {
-        clazz = clazz.replace(/\./g, " ");
-        if (attribs.class) {
-            attribs.class += " " + clazz;
-        }
-        else {
-            attribs.class = clazz;
-        }
-    }
-    return [match[1], attribs, ...spec.slice(hasAttribs ? 2 : 1)];
-};
-/**
- * See `HDOMImplementation` interface for further details.
- *
- * @param opts
- * @param tree
- */
-exports.normalizeTree = (opts, tree) => _normalizeTree(tree, opts, opts.ctx, [0], opts.keys !== false, opts.span !== false);
-const _normalizeTree = (tree, opts, ctx, path, keys, span) => {
-    if (tree == null) {
-        return;
-    }
-    if (isArray(tree)) {
-        if (tree.length === 0) {
-            return;
-        }
-        let norm, nattribs = tree[1], impl;
-        // if available, use branch-local normalize implementation
-        if (nattribs && (impl = nattribs.__impl) && (impl = impl.normalizeTree)) {
-            return impl(opts, tree);
-        }
-        const tag = tree[0];
-        // use result of function call
-        // pass ctx as first arg and remaining array elements as rest args
-        if (typeof tag === "function") {
-            return _normalizeTree(tag.apply(null, [ctx, ...tree.slice(1)]), opts, ctx, path, keys, span);
-        }
-        // component object w/ life cycle methods
-        // (render() is the only required hook)
-        if (typeof tag.render === "function") {
-            const args = [ctx, ...tree.slice(1)];
-            norm = _normalizeTree(tag.render.apply(tag, args), opts, ctx, path, keys, span);
-            if (isArray(norm)) {
-                norm.__this = tag;
-                norm.__init = tag.init;
-                norm.__release = tag.release;
-                norm.__args = args;
-            }
-            return norm;
-        }
-        norm = exports.normalizeElement(tree, keys);
-        nattribs = norm[1];
-        if (nattribs.__normalize === false) {
-            return norm;
-        }
-        if (keys && nattribs.key === undefined) {
-            nattribs.key = path.join("-");
-        }
-        if (norm.length > 2) {
-            const tag = norm[0];
-            const res = [tag, nattribs];
-            span = span && !api_1.NO_SPANS[tag];
-            for (let i = 2, j = 2, k = 0, n = norm.length; i < n; i++) {
-                let el = norm[i];
-                if (el != null) {
-                    const isarray = isArray(el);
-                    if ((isarray && isArray(el[0])) || (!isarray && isNotStringAndIterable(el))) {
-                        for (let c of el) {
-                            c = _normalizeTree(c, opts, ctx, path.concat(k), keys, span);
-                            if (c !== undefined) {
-                                res[j++] = c;
-                            }
-                            k++;
-                        }
-                    }
-                    else {
-                        el = _normalizeTree(el, opts, ctx, path.concat(k), keys, span);
-                        if (el !== undefined) {
-                            res[j++] = el;
-                        }
-                        k++;
-                    }
-                }
-            }
-            return res;
-        }
-        return norm;
-    }
-    if (typeof tree === "function") {
-        return _normalizeTree(tree(ctx), opts, ctx, path, keys, span);
-    }
-    if (typeof tree.toHiccup === "function") {
-        return _normalizeTree(tree.toHiccup(opts.ctx), opts, ctx, path, keys, span);
-    }
-    if (typeof tree.deref === "function") {
-        return _normalizeTree(tree.deref(), opts, ctx, path, keys, span);
-    }
-    return span ?
-        ["span", keys ? { key: path.join("-") } : {}, tree.toString()] :
-        tree.toString();
-};
-
-},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-not-string-iterable":"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js","@thi.ng/checks/is-plain-object":"../../../node_modules/@thi.ng/checks/is-plain-object.js","@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","@thi.ng/hiccup/api":"../../../node_modules/@thi.ng/hiccup/api.js"}],"../../../node_modules/@thi.ng/hdom/default.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const diff_1 = require("./diff");
-const dom_1 = require("./dom");
-const normalize_1 = require("./normalize");
-/**
- * Default target implementation to manipulate browser DOM.
- */
-exports.DEFAULT_IMPL = {
-    createTree(opts, parent, tree, child) {
-        return dom_1.createTree(opts, this, parent, tree, child);
-    },
-    hydrateTree(opts, parent, tree, child) {
-        return dom_1.hydrateTree(opts, this, parent, tree, child);
-    },
-    diffTree(opts, parent, prev, curr, child) {
-        diff_1.diffTree(opts, this, parent, prev, curr, child);
-    },
-    normalizeTree: normalize_1.normalizeTree,
-    getElementById(id) {
-        return document.getElementById(id);
-    },
-    getChild: dom_1.getChild,
-    createElement: dom_1.createElement,
-    createTextElement: dom_1.createTextElement,
-    replaceChild(opts, parent, child, tree) {
-        dom_1.replaceChild(opts, this, parent, child, tree);
-    },
-    removeChild: dom_1.removeChild,
-    setContent: dom_1.setContent,
-    removeAttribs: dom_1.removeAttribs,
-    setAttrib: dom_1.setAttrib,
-};
-
-},{"./diff":"../../../node_modules/@thi.ng/hdom/diff.js","./dom":"../../../node_modules/@thi.ng/hdom/dom.js","./normalize":"../../../node_modules/@thi.ng/hdom/normalize.js"}],"../../../node_modules/@thi.ng/checks/implements-function.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function implementsFunction(x, fn) {
-    return x != null && typeof x[fn] === "function";
-}
-exports.implementsFunction = implementsFunction;
-
-},{}],"../../../node_modules/@thi.ng/hiccup/deref.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const implements_function_1 = require("@thi.ng/checks/implements-function");
-/**
- * Takes an arbitrary `ctx` object and array of `keys`. Attempts to call
- * `.deref()` on all given keys' values and stores result values instead
- * of original. Returns updated copy of `ctx` or original if `ctx` is
- * `null` or no keys were given.
- *
- * @param ctx
- * @param keys
- */
-exports.derefContext = (ctx, keys) => {
-    if (ctx == null || !keys || !keys.length)
-        return ctx;
-    const res = Object.assign({}, ctx);
-    for (let k of keys) {
-        const v = res[k];
-        implements_function_1.implementsFunction(v, "deref") && (res[k] = v.deref());
-    }
-    return res;
-};
-
-},{"@thi.ng/checks/implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js"}],"../../../node_modules/@thi.ng/checks/is-string.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isString(x) {
-    return typeof x === "string";
-}
-exports.isString = isString;
-
-},{}],"../../../node_modules/@thi.ng/hdom/utils.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_string_1 = require("@thi.ng/checks/is-string");
-exports.resolveRoot = (root, impl) => is_string_1.isString(root) ?
-    impl.getElementById(root) :
-    root;
-
-},{"@thi.ng/checks/is-string":"../../../node_modules/@thi.ng/checks/is-string.js"}],"../../../node_modules/@thi.ng/hdom/render-once.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const deref_1 = require("@thi.ng/hiccup/deref");
-const default_1 = require("./default");
-const utils_1 = require("./utils");
-/**
- * One-off hdom tree conversion & target DOM application. Takes same
- * options as `start()`, but performs no diffing and only creates or
- * hydrates target once. The given tree is first normalized and if
- * result is `null` or `undefined` no further action will be taken.
- *
- * @param tree
- * @param opts
- * @param impl
- */
-exports.renderOnce = (tree, opts = {}, impl = default_1.DEFAULT_IMPL) => {
-    opts = Object.assign({ root: "app" }, opts);
-    opts.ctx = deref_1.derefContext(opts.ctx, opts.autoDerefKeys);
-    const root = utils_1.resolveRoot(opts.root, impl);
-    tree = impl.normalizeTree(opts, tree);
-    if (!tree)
-        return;
-    opts.hydrate ?
-        impl.hydrateTree(opts, root, tree) :
-        impl.createTree(opts, root, tree);
-};
-
-},{"@thi.ng/hiccup/deref":"../../../node_modules/@thi.ng/hiccup/deref.js","./default":"../../../node_modules/@thi.ng/hdom/default.js","./utils":"../../../node_modules/@thi.ng/hdom/utils.js"}],"../../../node_modules/@thi.ng/hdom/start.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const deref_1 = require("@thi.ng/hiccup/deref");
-const default_1 = require("./default");
-const utils_1 = require("./utils");
-/**
- * Takes an hiccup tree (array, function or component object w/ life
- * cycle methods) and an optional object of DOM update options. Starts
- * RAF update loop, in each iteration first normalizing given tree, then
- * computing diff to previous frame's tree and applying any changes to
- * the real DOM. The `ctx` option can be used for passing arbitrary
- * config data or state down into the hiccup component tree. Any
- * embedded component function in the tree will receive this context
- * object (shallow copy) as first argument, as will life cycle methods
- * in component objects. If the `autoDerefKeys` option is given, attempts
- * to auto-expand/deref the given keys in the user supplied context
- * object (`ctx` option) prior to *each* tree normalization. All of
- * these values should implement the thi.ng/api `IDeref` interface (e.g.
- * atoms, cursors, views, rstreams etc.). This feature can be used to
- * define dynamic contexts linked to the main app state, e.g. using
- * derived views provided by thi.ng/atom.
- *
- * **Selective updates**: No updates will be applied if the given hiccup
- * tree is `undefined` or `null` or a root component function returns no
- * value. This way a given root function can do some state handling of
- * its own and implement fail-fast checks to determine no DOM updates
- * are necessary, save effort re-creating a new hiccup tree and request
- * skipping DOM updates via this function. In this case, the previous
- * DOM tree is kept around until the root function returns a tree again,
- * which then is diffed and applied against the previous tree kept as
- * usual. Any number of frames may be skipped this way.
- *
- * **Important:** Unless the `hydrate` option is enabled, the parent
- * element given is assumed to have NO children at the time when
- * `start()` is called. Since hdom does NOT track the real DOM, the
- * resulting changes will result in potentially undefined behavior if
- * the parent element wasn't empty. Likewise, if `hydrate` is enabled,
- * it is assumed that an equivalent DOM (minus listeners) already exists
- * (i.e. generated via SSR) when `start()` is called. Any other
- * discrepancies between the pre-existing DOM and the hdom trees will
- * cause undefined behavior.
- *
- * Returns a function, which when called, immediately cancels the update
- * loop.
- *
- * @param tree hiccup DOM tree
- * @param opts options
- * @param impl hdom target implementation
- */
-exports.start = (tree, opts = {}, impl = default_1.DEFAULT_IMPL) => {
-    const _opts = Object.assign({ root: "app" }, opts);
-    let prev = [];
-    let isActive = true;
-    const root = utils_1.resolveRoot(_opts.root, impl);
-    const update = () => {
-        if (isActive) {
-            _opts.ctx = deref_1.derefContext(opts.ctx, _opts.autoDerefKeys);
-            const curr = impl.normalizeTree(_opts, tree);
-            if (curr != null) {
-                if (_opts.hydrate) {
-                    impl.hydrateTree(_opts, root, curr);
-                    _opts.hydrate = false;
-                }
-                else {
-                    impl.diffTree(_opts, root, prev, curr);
-                }
-                prev = curr;
-            }
-            // check again in case one of the components called cancel
-            isActive && requestAnimationFrame(update);
-        }
-    };
-    requestAnimationFrame(update);
-    return () => (isActive = false);
-};
-
-},{"@thi.ng/hiccup/deref":"../../../node_modules/@thi.ng/hiccup/deref.js","./default":"../../../node_modules/@thi.ng/hdom/default.js","./utils":"../../../node_modules/@thi.ng/hdom/utils.js"}],"../../../node_modules/@thi.ng/hdom/index.js":[function(require,module,exports) {
-"use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./api"));
-__export(require("./default"));
-__export(require("./diff"));
-__export(require("./dom"));
-__export(require("./normalize"));
-__export(require("./render-once"));
-__export(require("./start"));
-
-},{"./api":"../../../node_modules/@thi.ng/hdom/api.js","./default":"../../../node_modules/@thi.ng/hdom/default.js","./diff":"../../../node_modules/@thi.ng/hdom/diff.js","./dom":"../../../node_modules/@thi.ng/hdom/dom.js","./normalize":"../../../node_modules/@thi.ng/hdom/normalize.js","./render-once":"../../../node_modules/@thi.ng/hdom/render-once.js","./start":"../../../node_modules/@thi.ng/hdom/start.js"}],"../../../node_modules/@thi.ng/hdom-components/canvas.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Configurable canvas component. Used as common base for `canvasWebGL`
- * and `canvas2D` wrappers.
- *
- * @param type canvas context type
- * @param handlers user handlers
- * @param opts canvas context creation options
- */
-const _canvas = (type, { init, update, release }, opts) => {
-    let el, ctx;
-    let frame = 0;
-    let time = 0;
-    return {
-        init(_el, hctx, ...args) {
-            el = _el;
-            exports.adaptDPI(el, el.width, el.height);
-            ctx = el.getContext(type, opts);
-            time = Date.now();
-            init && init(el, ctx, hctx, ...args);
-            update && update(el, ctx, hctx, time, frame++, ...args);
-        },
-        render(hctx, ...args) {
-            ctx && update && update(el, ctx, hctx, Date.now() - time, frame++, ...args);
-            return ["canvas", args[0]];
-        },
-        release(hctx, ...args) {
-            release && release(el, ctx, hctx, ...args);
-        }
-    };
-};
-/**
- * Higher order WebGL canvas component delegating to user provided
- * handlers.
- *
- * Note: Since this is an higher order component, if used within a
- * non-static parent component, this function itself cannot be directly
- * inlined into hdom tree and must be initialized prior/outside, however
- * the returned component can be used as normal.
- *
- * ```
- * const glcanvas = canvasWebGL({
- *   render: (canv, gl, hctx, time, frame, ...args) => {
- *     const col = 0.5 + 0.5 * Math.sin(time);
- *     gl.clearColor(col, col, col, 1);
- *   }
- * });
- * ...
- * [glcanvas, {id: "foo", width: 640, height: 480}]
- * ```
- *
- * @param handlers user provided handlers
- * @param opts canvas context creation options
- */
-exports.canvasWebGL = (handlers, opts) => _canvas("webgl", handlers, opts);
-/**
- * Same as `canvasWebGL` but targets WebGL2.
- *
- * @param handlers user provided handlers
- * @param opts canvas context creation options
- */
-exports.canvasWebGL2 = (handlers, opts) => _canvas("webgl2", handlers, opts);
-/**
- * Similar to `canvasWebGL`, but targets default 2D drawing context.
- *
- * @param handlers user provided handlers
- * @param glopts canvas context creation options
- */
-exports.canvas2D = (handlers, opts) => _canvas("2d", handlers, opts);
-/**
- * Sets the canvas size to given `width` & `height` and adjusts style to
- * compensate for HDPI devices. Note: For 2D canvases, this will
- * automatically clear any prior canvas content.
- *
- * @param canvas
- * @param width uncompensated pixel width
- * @param height uncompensated pixel height
- */
-exports.adaptDPI = (canvas, width, height) => {
-    const dpr = window.devicePixelRatio || 1;
-    if (dpr != 1) {
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
-    }
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    return dpr;
-};
-
-},{}],"../../../node_modules/@thi.ng/checks/exists-not-null.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function existsAndNotNull(x) {
-    return x != null;
-}
-exports.existsAndNotNull = existsAndNotNull;
-
-},{}],"../../../node_modules/@thi.ng/checks/exists.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function exists(x) {
-    return x !== undefined;
-}
-exports.exists = exists;
-
-},{}],"../../../node_modules/@thi.ng/checks/has-crypto.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function hasCrypto() {
-    return typeof window !== "undefined" && window["crypto"] !== undefined;
-}
-exports.hasCrypto = hasCrypto;
-
-},{}],"../../../node_modules/@thi.ng/checks/has-max-length.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function hasMaxLength(len, x) {
-    return x != null && x.length <= len;
-}
-exports.hasMaxLength = hasMaxLength;
-
-},{}],"../../../node_modules/@thi.ng/checks/has-min-length.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function hasMinLength(len, x) {
-    return x != null && x.length >= len;
-}
-exports.hasMinLength = hasMinLength;
-
-},{}],"../../../node_modules/@thi.ng/checks/has-performance.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_function_1 = require("./is-function");
-function hasPerformance() {
-    return typeof performance !== 'undefined' && is_function_1.isFunction(performance.now);
-}
-exports.hasPerformance = hasPerformance;
-
-},{"./is-function":"../../../node_modules/@thi.ng/checks/is-function.js"}],"../../../node_modules/@thi.ng/checks/has-wasm.js":[function(require,module,exports) {
-var global = arguments[3];
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function hasWASM() {
-    return (typeof window !== "undefined" && typeof window["WebAssembly"] !== "undefined") ||
-        (typeof global !== "undefined" && typeof global["WebAssembly"] !== "undefined");
-}
-exports.hasWASM = hasWASM;
-
-},{}],"../../../node_modules/@thi.ng/checks/has-webgl.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function hasWebGL() {
-    try {
-        document.createElement("canvas").getContext("webgl");
-        return true;
-    }
-    catch (e) {
-        return false;
-    }
-}
-exports.hasWebGL = hasWebGL;
-
-},{}],"../../../node_modules/@thi.ng/checks/has-websocket.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function hasWebSocket() {
-    return typeof WebSocket !== "undefined";
-}
-exports.hasWebSocket = hasWebSocket;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-arraylike.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isArrayLike(x) {
-    return (x != null && typeof x !== "function" && x.length !== undefined);
-}
-exports.isArrayLike = isArrayLike;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-blob.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isBlob(x) {
-    return x instanceof Blob;
-}
-exports.isBlob = isBlob;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-boolean.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isBoolean(x) {
-    return typeof x === "boolean";
-}
-exports.isBoolean = isBoolean;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-chrome.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isChrome() {
-    return typeof window !== "undefined" && !!window["chrome"];
-}
-exports.isChrome = isChrome;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-date.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isDate(x) {
-    return x instanceof Date;
-}
-exports.isDate = isDate;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-even.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isEven(x) {
-    return (x % 2) === 0;
-}
-exports.isEven = isEven;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-false.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isFalse(x) {
-    return x === false;
-}
-exports.isFalse = isFalse;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-file.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isFile(x) {
-    return x instanceof File;
-}
-exports.isFile = isFile;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-firefox.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isFirefox() {
-    return typeof window !== "undefined" && !!window["InstallTrigger"];
-}
-exports.isFirefox = isFirefox;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-ie.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isIE() {
-    return typeof document !== "undefined" &&
-        (typeof document["documentMode"] !== "undefined" ||
-            navigator.userAgent.indexOf("MSIE") > 0);
-}
-exports.isIE = isIE;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-in-range.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isInRange(min, max, x) {
-    return x >= min && x <= max;
-}
-exports.isInRange = isInRange;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-int32.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isInt32(x) {
-    return typeof x === "number" && (x | 0) === x;
-}
-exports.isInt32 = isInt32;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-iterable.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isIterable(x) {
-    return x != null && typeof x[Symbol.iterator] === "function";
-}
-exports.isIterable = isIterable;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-map.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isMap(x) {
-    return x instanceof Map;
-}
-exports.isMap = isMap;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-mobile.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isMobile() {
-    return typeof navigator !== "undefined" &&
-        /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent) &&
-        !/crios/i.test(navigator.userAgent);
-}
-exports.isMobile = isMobile;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-nan.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isNaN(x) {
-    return x !== x;
-}
-exports.isNaN = isNaN;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-negative.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isNegative(x) {
-    return typeof x === "number" && x < 0;
-}
-exports.isNegative = isNegative;
-
-},{}],"../../../node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
-
-},{}],"../../../node_modules/@thi.ng/checks/is-node.js":[function(require,module,exports) {
-var process = require("process");
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isNode() {
-    if (typeof process === "object") {
-        if (typeof process.versions === "object") {
-            if (typeof process.versions.node !== "undefined") {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-exports.isNode = isNode;
-
-},{"process":"../../../node_modules/parcel-bundler/src/builtins/_empty.js"}],"../../../node_modules/@thi.ng/checks/is-null.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isNull(x) {
-    return x === null;
-}
-exports.isNull = isNull;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-number.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isNumber(x) {
-    return typeof x === "number";
-}
-exports.isNumber = isNumber;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-object.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isObject(x) {
-    return x !== null && typeof x === "object";
-}
-exports.isObject = isObject;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-odd.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isOdd(x) {
-    return (x % 2) !== 0;
-}
-exports.isOdd = isOdd;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-positive.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isPosititve(x) {
-    return typeof x === "number" && x > 0;
-}
-exports.isPosititve = isPosititve;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-promise.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isPromise(x) {
-    return x instanceof Promise;
-}
-exports.isPromise = isPromise;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-promiselike.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const implements_function_1 = require("./implements-function");
-function isPromiseLike(x) {
-    return x instanceof Promise ||
-        (implements_function_1.implementsFunction(x, "then") && implements_function_1.implementsFunction(x, "catch"));
-}
-exports.isPromiseLike = isPromiseLike;
-
-},{"./implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js"}],"../../../node_modules/@thi.ng/checks/is-regexp.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isRegExp(x) {
-    return x instanceof RegExp;
-}
-exports.isRegExp = isRegExp;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-safari.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_chrome_1 = require("./is-chrome");
-function isSafari() {
-    return typeof navigator !== "undefined" && /Safari/.test(navigator.userAgent) && !is_chrome_1.isChrome();
-}
-exports.isSafari = isSafari;
-
-},{"./is-chrome":"../../../node_modules/@thi.ng/checks/is-chrome.js"}],"../../../node_modules/@thi.ng/checks/is-set.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isSet(x) {
-    return x instanceof Set;
-}
-exports.isSet = isSet;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-symbol.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isSymbol(x) {
-    return typeof x === "symbol";
-}
-exports.isSymbol = isSymbol;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-transferable.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isTransferable(x) {
-    return x instanceof ArrayBuffer ||
-        (typeof SharedArrayBuffer !== "undefined" && x instanceof SharedArrayBuffer) ||
-        (typeof MessagePort !== "undefined" && x instanceof MessagePort);
-}
-exports.isTransferable = isTransferable;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-true.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isTrue(x) {
-    return x === true;
-}
-exports.isTrue = isTrue;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-typedarray.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isTypedArray(x) {
-    return x && (x.constructor === Float32Array ||
-        x.constructor === Uint32Array ||
-        x.constructor === Uint8Array ||
-        x.constructor === Uint8ClampedArray ||
-        x.constructor === Int8Array ||
-        x.constructor === Uint16Array ||
-        x.constructor === Int16Array ||
-        x.constructor === Int32Array ||
-        x.constructor === Float64Array);
-}
-exports.isTypedArray = isTypedArray;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-uint32.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isUint32(x) {
-    return typeof x === "number" && (x >>> 0) === x;
-}
-exports.isUint32 = isUint32;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-undefined.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isUndefined(x) {
-    return x === undefined;
-}
-exports.isUndefined = isUndefined;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-uuid.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isUUID(x) {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
-}
-exports.isUUID = isUUID;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-uuid4.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isUUIDv4(x) {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
-}
-exports.isUUIDv4 = isUUIDv4;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-zero.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isZero(x) {
-    return x === 0;
-}
-exports.isZero = isZero;
-
-},{}],"../../../node_modules/@thi.ng/checks/index.js":[function(require,module,exports) {
-"use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./exists-not-null"));
-__export(require("./exists"));
-__export(require("./has-crypto"));
-__export(require("./has-max-length"));
-__export(require("./has-min-length"));
-__export(require("./has-performance"));
-__export(require("./has-wasm"));
-__export(require("./has-webgl"));
-__export(require("./has-websocket"));
-__export(require("./implements-function"));
-__export(require("./is-array"));
-__export(require("./is-arraylike"));
-__export(require("./is-blob"));
-__export(require("./is-boolean"));
-__export(require("./is-chrome"));
-__export(require("./is-date"));
-__export(require("./is-even"));
-__export(require("./is-false"));
-__export(require("./is-file"));
-__export(require("./is-firefox"));
-__export(require("./is-function"));
-__export(require("./is-ie"));
-__export(require("./is-in-range"));
-__export(require("./is-int32"));
-__export(require("./is-iterable"));
-__export(require("./is-map"));
-__export(require("./is-mobile"));
-__export(require("./is-nan"));
-__export(require("./is-negative"));
-__export(require("./is-node"));
-__export(require("./is-not-string-iterable"));
-__export(require("./is-null"));
-__export(require("./is-number"));
-__export(require("./is-object"));
-__export(require("./is-odd"));
-__export(require("./is-plain-object"));
-__export(require("./is-positive"));
-__export(require("./is-promise"));
-__export(require("./is-promiselike"));
-__export(require("./is-regexp"));
-__export(require("./is-safari"));
-__export(require("./is-set"));
-__export(require("./is-string"));
-__export(require("./is-symbol"));
-__export(require("./is-transferable"));
-__export(require("./is-true"));
-__export(require("./is-typedarray"));
-__export(require("./is-uint32"));
-__export(require("./is-undefined"));
-__export(require("./is-uuid"));
-__export(require("./is-uuid4"));
-__export(require("./is-zero"));
-
-},{"./exists-not-null":"../../../node_modules/@thi.ng/checks/exists-not-null.js","./exists":"../../../node_modules/@thi.ng/checks/exists.js","./has-crypto":"../../../node_modules/@thi.ng/checks/has-crypto.js","./has-max-length":"../../../node_modules/@thi.ng/checks/has-max-length.js","./has-min-length":"../../../node_modules/@thi.ng/checks/has-min-length.js","./has-performance":"../../../node_modules/@thi.ng/checks/has-performance.js","./has-wasm":"../../../node_modules/@thi.ng/checks/has-wasm.js","./has-webgl":"../../../node_modules/@thi.ng/checks/has-webgl.js","./has-websocket":"../../../node_modules/@thi.ng/checks/has-websocket.js","./implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js","./is-array":"../../../node_modules/@thi.ng/checks/is-array.js","./is-arraylike":"../../../node_modules/@thi.ng/checks/is-arraylike.js","./is-blob":"../../../node_modules/@thi.ng/checks/is-blob.js","./is-boolean":"../../../node_modules/@thi.ng/checks/is-boolean.js","./is-chrome":"../../../node_modules/@thi.ng/checks/is-chrome.js","./is-date":"../../../node_modules/@thi.ng/checks/is-date.js","./is-even":"../../../node_modules/@thi.ng/checks/is-even.js","./is-false":"../../../node_modules/@thi.ng/checks/is-false.js","./is-file":"../../../node_modules/@thi.ng/checks/is-file.js","./is-firefox":"../../../node_modules/@thi.ng/checks/is-firefox.js","./is-function":"../../../node_modules/@thi.ng/checks/is-function.js","./is-ie":"../../../node_modules/@thi.ng/checks/is-ie.js","./is-in-range":"../../../node_modules/@thi.ng/checks/is-in-range.js","./is-int32":"../../../node_modules/@thi.ng/checks/is-int32.js","./is-iterable":"../../../node_modules/@thi.ng/checks/is-iterable.js","./is-map":"../../../node_modules/@thi.ng/checks/is-map.js","./is-mobile":"../../../node_modules/@thi.ng/checks/is-mobile.js","./is-nan":"../../../node_modules/@thi.ng/checks/is-nan.js","./is-negative":"../../../node_modules/@thi.ng/checks/is-negative.js","./is-node":"../../../node_modules/@thi.ng/checks/is-node.js","./is-not-string-iterable":"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js","./is-null":"../../../node_modules/@thi.ng/checks/is-null.js","./is-number":"../../../node_modules/@thi.ng/checks/is-number.js","./is-object":"../../../node_modules/@thi.ng/checks/is-object.js","./is-odd":"../../../node_modules/@thi.ng/checks/is-odd.js","./is-plain-object":"../../../node_modules/@thi.ng/checks/is-plain-object.js","./is-positive":"../../../node_modules/@thi.ng/checks/is-positive.js","./is-promise":"../../../node_modules/@thi.ng/checks/is-promise.js","./is-promiselike":"../../../node_modules/@thi.ng/checks/is-promiselike.js","./is-regexp":"../../../node_modules/@thi.ng/checks/is-regexp.js","./is-safari":"../../../node_modules/@thi.ng/checks/is-safari.js","./is-set":"../../../node_modules/@thi.ng/checks/is-set.js","./is-string":"../../../node_modules/@thi.ng/checks/is-string.js","./is-symbol":"../../../node_modules/@thi.ng/checks/is-symbol.js","./is-transferable":"../../../node_modules/@thi.ng/checks/is-transferable.js","./is-true":"../../../node_modules/@thi.ng/checks/is-true.js","./is-typedarray":"../../../node_modules/@thi.ng/checks/is-typedarray.js","./is-uint32":"../../../node_modules/@thi.ng/checks/is-uint32.js","./is-undefined":"../../../node_modules/@thi.ng/checks/is-undefined.js","./is-uuid":"../../../node_modules/@thi.ng/checks/is-uuid.js","./is-uuid4":"../../../node_modules/@thi.ng/checks/is-uuid4.js","./is-zero":"../../../node_modules/@thi.ng/checks/is-zero.js"}],"../../../node_modules/@tstackgl/regl-draw/dist/frameCatch.js":[function(require,module,exports) {
+},{}],"../../../node_modules/@tstackgl/regl-draw/dist/frameCatch.js":[function(require,module,exports) {
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -15304,326 +19132,7 @@ earcut.flatten = function (data) {
     return result;
 };
 
-},{}],"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-function ensureIterable(x) {
-    if (!(x != null && x[Symbol.iterator])) {
-        illegal_arguments_1.illegalArgs(`value is not iterable: ${x}`);
-    }
-    return x;
-}
-exports.ensureIterable = ensureIterable;
-
-},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js"}],"../../../node_modules/@thi.ng/transducers/func/ensure-array.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_array_1 = require("@thi.ng/checks/is-array");
-const is_arraylike_1 = require("@thi.ng/checks/is-arraylike");
-const ensure_iterable_1 = require("./ensure-iterable");
-/**
- * Helper function to avoid unnecessary copying if `x` is already an
- * array. First checks if `x` is an array and if so returns it. Else
- * attempts to obtain an iterator from `x` and if successful collects it
- * as array and returns it. Throws error if `x` isn't iterable.
- *
- * @param x
- */
-function ensureArray(x) {
-    return is_array_1.isArray(x) ? x : [...ensure_iterable_1.ensureIterable(x)];
-}
-exports.ensureArray = ensureArray;
-function ensureArrayLike(x) {
-    return is_arraylike_1.isArrayLike(x) ? x : [...ensure_iterable_1.ensureIterable(x)];
-}
-exports.ensureArrayLike = ensureArrayLike;
-
-},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-arraylike":"../../../node_modules/@thi.ng/checks/is-arraylike.js","./ensure-iterable":"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js"}],"../../../node_modules/@thi.ng/transducers/iter/wrap.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-const ensure_array_1 = require("../func/ensure-array");
-/**
- * Yields iterator of `src` with the last `n` values of `src` prepended
- * at the beginning (if `left` is truthy) and/or the first `n` values
- * appended at the end (if `right` is truthy). Wraps both sides by
- * default and throws error if `n` < 0 or larger than `src.length`.
- *
- * @param src
- * @param n
- * @param left
- * @param right
- */
-function* wrap(src, n = 1, left = true, right = true) {
-    const _src = ensure_array_1.ensureArray(src);
-    (n < 0 || n > _src.length) && illegal_arguments_1.illegalArgs(`wrong number of wrap items: got ${n}, but max: ${_src.length}`);
-    if (left) {
-        for (let m = _src.length, i = m - n; i < m; i++) {
-            yield _src[i];
-        }
-    }
-    yield* _src;
-    if (right) {
-        for (let i = 0; i < n; i++) {
-            yield _src[i];
-        }
-    }
-}
-exports.wrap = wrap;
-
-},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js"}],"../../../node_modules/@thi.ng/transducers/reduced.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class Reduced {
-    constructor(val) {
-        this.value = val;
-    }
-    deref() {
-        return this.value;
-    }
-}
-exports.Reduced = Reduced;
-function reduced(x) {
-    return new Reduced(x);
-}
-exports.reduced = reduced;
-function isReduced(x) {
-    return x instanceof Reduced;
-}
-exports.isReduced = isReduced;
-function ensureReduced(x) {
-    return x instanceof Reduced ? x : new Reduced(x);
-}
-exports.ensureReduced = ensureReduced;
-function unreduced(x) {
-    return x instanceof Reduced ? x.deref() : x;
-}
-exports.unreduced = unreduced;
-
-},{}],"../../../node_modules/@thi.ng/errors/illegal-arity.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class IllegalArityError extends Error {
-    constructor(n) {
-        super(`illegal arity: ${n}`);
-    }
-}
-exports.IllegalArityError = IllegalArityError;
-function illegalArity(n) {
-    throw new IllegalArityError(n);
-}
-exports.illegalArity = illegalArity;
-
-},{}],"../../../node_modules/@thi.ng/transducers/reduce.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const implements_function_1 = require("@thi.ng/checks/implements-function");
-const is_arraylike_1 = require("@thi.ng/checks/is-arraylike");
-const is_iterable_1 = require("@thi.ng/checks/is-iterable");
-const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
-const reduced_1 = require("./reduced");
-function reduce(...args) {
-    let acc, xs;
-    switch (args.length) {
-        case 3:
-            xs = args[2];
-            acc = args[1];
-            break;
-        case 2:
-            xs = args[1];
-            break;
-        default:
-            illegal_arity_1.illegalArity(args.length);
-    }
-    const rfn = args[0];
-    const init = rfn[0];
-    const complete = rfn[1];
-    const reduce = rfn[2];
-    acc = acc == null ? init() : acc;
-    if (implements_function_1.implementsFunction(xs, "$reduce")) {
-        acc = xs.$reduce(reduce, acc);
-    }
-    else if (is_arraylike_1.isArrayLike(xs)) {
-        for (let i = 0, n = xs.length; i < n; i++) {
-            acc = reduce(acc, xs[i]);
-            if (reduced_1.isReduced(acc)) {
-                acc = acc.deref();
-                break;
-            }
-        }
-    }
-    else {
-        for (let x of xs) {
-            acc = reduce(acc, x);
-            if (reduced_1.isReduced(acc)) {
-                acc = acc.deref();
-                break;
-            }
-        }
-    }
-    return reduced_1.unreduced(complete(acc));
-}
-exports.reduce = reduce;
-/**
- * Convenience helper for building a full `Reducer` using the identity
- * function (i.e. `(x) => x`) as completion step (true for 90% of all
- * bundled transducers).
- *
- * @param init init step of reducer
- * @param rfn reduction step of reducer
- */
-function reducer(init, rfn) {
-    return [init, (acc) => acc, rfn];
-}
-exports.reducer = reducer;
-exports.$$reduce = (rfn, args) => {
-    const n = args.length - 1;
-    return is_iterable_1.isIterable(args[n]) ?
-        args.length > 1 ?
-            reduce(rfn.apply(null, args.slice(0, n)), args[n]) :
-            reduce(rfn(), args[0]) :
-        undefined;
-};
-
-},{"@thi.ng/checks/implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js","@thi.ng/checks/is-arraylike":"../../../node_modules/@thi.ng/checks/is-arraylike.js","@thi.ng/checks/is-iterable":"../../../node_modules/@thi.ng/checks/is-iterable.js","@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/push.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function push(xs) {
-    return xs ?
-        [...xs] :
-        reduce_1.reducer(() => [], (acc, x) => (acc.push(x), acc));
-}
-exports.push = push;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/iterator.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const api_1 = require("@thi.ng/api/api");
-const is_iterable_1 = require("@thi.ng/checks/is-iterable");
-const reduced_1 = require("./reduced");
-const push_1 = require("./rfn/push");
-/**
- * Takes a transducer and input iterable. Returns iterator of
- * transformed results.
- *
- * @param xform
- * @param xs
- */
-function* iterator(xform, xs) {
-    const rfn = xform(push_1.push());
-    const complete = rfn[1];
-    const reduce = rfn[2];
-    for (let x of xs) {
-        const y = reduce([], x);
-        if (reduced_1.isReduced(y)) {
-            yield* reduced_1.unreduced(complete(y.deref()));
-            return;
-        }
-        if (y.length) {
-            yield* y;
-        }
-    }
-    yield* reduced_1.unreduced(complete([]));
-}
-exports.iterator = iterator;
-/**
- * Optimized version of `iterator()` for transducers which are
- * guaranteed to:
- *
- * 1) Only produce none or a single result per input
- * 2) Do not require a `completion` reduction step
- *
- * @param xform
- * @param xs
- */
-function* iterator1(xform, xs) {
-    const reduce = xform([null, null, (_, x) => x])[2];
-    for (let x of xs) {
-        let y = reduce(api_1.SEMAPHORE, x);
-        if (reduced_1.isReduced(y)) {
-            y = reduced_1.unreduced(y.deref());
-            if (y !== api_1.SEMAPHORE) {
-                yield y;
-            }
-            return;
-        }
-        if (y !== api_1.SEMAPHORE) {
-            yield y;
-        }
-    }
-}
-exports.iterator1 = iterator1;
-/**
- * Helper function used by various transducers to wrap themselves as
- * transforming iterators. Delegates to `iterator1()` by default.
- *
- * @param xform
- * @param args
- * @param impl
- */
-exports.$iter = (xform, args, impl = iterator1) => {
-    const n = args.length - 1;
-    return is_iterable_1.isIterable(args[n]) ?
-        args.length > 1 ?
-            impl(xform.apply(null, args.slice(0, n)), args[n]) :
-            impl(xform(), args[0]) :
-        undefined;
-};
-
-},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","@thi.ng/checks/is-iterable":"../../../node_modules/@thi.ng/checks/is-iterable.js","./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js","./rfn/push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-function partition(...args) {
-    const iter = iterator_1.$iter(partition, args, iterator_1.iterator);
-    if (iter) {
-        return iter;
-    }
-    let size = args[0], all, step;
-    if (typeof args[1] == "number") {
-        step = args[1];
-        all = args[2];
-    }
-    else {
-        step = size;
-        all = args[1];
-    }
-    return ([init, complete, reduce]) => {
-        let buf = [];
-        let skip = 0;
-        return [
-            init,
-            (acc) => {
-                if (all && buf.length > 0) {
-                    acc = reduce(acc, buf);
-                    buf = [];
-                }
-                return complete(acc);
-            },
-            (acc, x) => {
-                if (skip <= 0) {
-                    if (buf.length < size) {
-                        buf.push(x);
-                    }
-                    if (buf.length === size) {
-                        acc = reduce(acc, buf);
-                        buf = step < size ? buf.slice(step) : [];
-                        skip = step - size;
-                    }
-                }
-                else {
-                    skip--;
-                }
-                return acc;
-            }
-        ];
-    };
-}
-exports.partition = partition;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@tstackgl/geometry/dist/edge.js":[function(require,module,exports) {
+},{}],"../../../node_modules/@tstackgl/geometry/dist/edge.js":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var wrap_1 = require("@thi.ng/transducers/iter/wrap");
@@ -16333,3404 +19842,7 @@ function scaleAroundCenter3(out, input, center, scale) {
 }
 exports.scaleAroundCenter3 = scaleAroundCenter3;
 
-},{"gl-vec2":"../../../node_modules/gl-vec2/index.js"}],"../../../node_modules/@thi.ng/transducers/func/compr.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Reducer composition helper. Takes existing reducer `rfn` (a 3-tuple)
- * and a reducing function `fn`. Returns a new reducer tuple of this
- * form:
- *
- * ```
- * [rfn[0], rfn[1], fn]
- * ```
- *
- * `rfn[2]` reduces values of type `B` into an accumulator of type `A`.
- * `fn` accepts values of type `C` and produces interim results of type
- * `B`, which are then (possibly) passed to the "inner" `rfn[2]`
- * function. Therefore the resulting reducer takes inputs of `C` and an
- * accumulator of type `A`.
- *
- * It is assumed that `fn` internally calls `rfn[2]` to pass its own
- * results for further processing by the nested reducer `rfn`.
- *
- * @param rfn
- * @param fn
- */
-function compR(rfn, fn) {
-    return [rfn[0], rfn[1], fn];
-}
-exports.compR = compR;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/map.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function map(fn, src) {
-    return src ?
-        iterator_1.iterator1(map(fn), src) :
-        (rfn) => {
-            const r = rfn[2];
-            return compr_1.compR(rfn, (acc, x) => r(acc, fn(x)));
-        };
-}
-exports.map = map;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/transduce.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
-const reduce_1 = require("./reduce");
-const map_1 = require("./xform/map");
-function transduce(...args) {
-    let acc, xs;
-    switch (args.length) {
-        case 4:
-            xs = args[3];
-            acc = args[2];
-            break;
-        case 3:
-            xs = args[2];
-            break;
-        case 2:
-            return map_1.map((x) => transduce(args[0], args[1], x));
-        default:
-            illegal_arity_1.illegalArity(args.length);
-    }
-    return reduce_1.reduce(args[0](args[1]), acc, xs);
-}
-exports.transduce = transduce;
-
-},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./xform/map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/run.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const transduce_1 = require("./transduce");
-const nop = () => { };
-function run(tx, ...args) {
-    if (args.length === 1) {
-        transduce_1.transduce(tx, [nop, nop, nop], args[0]);
-    }
-    else {
-        const fx = args[0];
-        transduce_1.transduce(tx, [nop, nop, (_, x) => fx(x)], args[1]);
-    }
-}
-exports.run = run;
-
-},{"./transduce":"../../../node_modules/@thi.ng/transducers/transduce.js"}],"../../../node_modules/@thi.ng/transducers/step.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduced_1 = require("./reduced");
-const push_1 = require("./rfn/push");
-/**
- * Single-step transducer execution wrapper.
- * Returns array if transducer produces multiple results
- * and undefined if there was no output. Else returns single
- * result value.
- *
- * Likewise, once a transducer has produced a final / reduced
- * value, all further invocations of the stepper function will
- * return undefined.
- *
- * ```
- * // single result
- * step(map(x => x * 10))(1);
- * // 10
- *
- * // multiple results
- * step(mapcat(x => [x, x + 1, x + 2]))(1)
- * // [ 1, 2, 3 ]
- *
- * // no result
- * f = step(filter(even))
- * f(1); // undefined
- * f(2); // 2
- *
- * // reduced value termination
- * f = step(take(2));
- * f(1); // 1
- * f(1); // 1
- * f(1); // undefined
- * f(1); // undefined
- * ```
- *
- * @param tx
- */
-function step(tx) {
-    const [_, complete, reduce] = tx(push_1.push());
-    _;
-    let done = false;
-    return (x) => {
-        if (!done) {
-            let acc = reduce([], x);
-            done = reduced_1.isReduced(acc);
-            if (done) {
-                acc = complete(acc.deref());
-            }
-            return acc.length === 1 ?
-                acc[0] :
-                acc.length > 0 ?
-                    acc :
-                    undefined;
-        }
-    };
-}
-exports.step = step;
-
-},{"./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js","./rfn/push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/add.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function add(...args) {
-    const res = reduce_1.$$reduce(add, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const init = args[0] || 0;
-    return reduce_1.reducer(() => init, (acc, x) => acc + x);
-}
-exports.add = add;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/assoc-map.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function assocMap(xs) {
-    return xs ?
-        reduce_1.reduce(assocMap(), xs) :
-        reduce_1.reducer(() => new Map(), (acc, [k, v]) => acc.set(k, v));
-}
-exports.assocMap = assocMap;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/assoc-obj.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function assocObj(xs) {
-    return xs ?
-        reduce_1.reduce(assocObj(), xs) :
-        reduce_1.reducer(() => new Object(), (acc, [k, v]) => (acc[k] = v, acc));
-}
-exports.assocObj = assocObj;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/conj.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function conj(xs) {
-    return xs ?
-        reduce_1.reduce(conj(), xs) :
-        reduce_1.reducer(() => new Set(), (acc, x) => acc.add(x));
-}
-exports.conj = conj;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/count.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function count(...args) {
-    const res = reduce_1.$$reduce(count, args);
-    if (res !== undefined) {
-        return res;
-    }
-    let offset = args[0] || 0;
-    let step = args[1] || 1;
-    return reduce_1.reducer(() => offset, (acc, _) => acc + step);
-}
-exports.count = count;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/div.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function div(init, xs) {
-    return xs ?
-        reduce_1.reduce(div(init), xs) :
-        reduce_1.reducer(() => init, (acc, x) => acc / x);
-}
-exports.div = div;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/every.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-const reduced_1 = require("../reduced");
-function every(...args) {
-    const res = reduce_1.$$reduce(every, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const pred = args[0];
-    return reduce_1.reducer(() => true, pred ?
-        (acc, x) => (pred(x) ? acc : reduced_1.reduced(false)) :
-        (acc, x) => (x ? acc : reduced_1.reduced(false)));
-}
-exports.every = every;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/fill.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function fill(...args) {
-    const res = reduce_1.$$reduce(fill, args);
-    if (res !== undefined) {
-        return res;
-    }
-    let start = args[0] || 0;
-    return reduce_1.reducer(() => [], (acc, x) => (acc[start++] = x, acc));
-}
-exports.fill = fill;
-function fillN(...args) {
-    return fill(...args);
-}
-exports.fillN = fillN;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/func/identity.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function identity(x) { return x; }
-exports.identity = identity;
-
-},{}],"../../../node_modules/@thi.ng/transducers/rfn/group-by-map.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const identity_1 = require("../func/identity");
-const reduce_1 = require("../reduce");
-const push_1 = require("./push");
-function groupByMap(...args) {
-    const res = reduce_1.$$reduce(groupByMap, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const opts = Object.assign({ key: identity_1.identity, group: push_1.push() }, args[0]);
-    const [init, _, reduce] = opts.group;
-    _;
-    return reduce_1.reducer(() => new Map(), (acc, x) => {
-        const k = opts.key(x);
-        return acc.set(k, acc.has(k) ?
-            reduce(acc.get(k), x) :
-            reduce(init(), x));
-    });
-}
-exports.groupByMap = groupByMap;
-
-},{"../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/frequencies.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const identity_1 = require("../func/identity");
-const reduce_1 = require("../reduce");
-const count_1 = require("./count");
-const group_by_map_1 = require("./group-by-map");
-function frequencies(...args) {
-    return reduce_1.$$reduce(frequencies, args) ||
-        group_by_map_1.groupByMap({ key: args[0] || identity_1.identity, group: count_1.count() });
-}
-exports.frequencies = frequencies;
-
-},{"../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./count":"../../../node_modules/@thi.ng/transducers/rfn/count.js","./group-by-map":"../../../node_modules/@thi.ng/transducers/rfn/group-by-map.js"}],"../../../node_modules/@thi.ng/transducers/rfn/group-by-obj.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const identity_1 = require("../func/identity");
-const reduce_1 = require("../reduce");
-const push_1 = require("./push");
-function groupByObj(...args) {
-    const res = reduce_1.$$reduce(groupByObj, args);
-    if (res) {
-        return res;
-    }
-    const _opts = Object.assign({ key: identity_1.identity, group: push_1.push() }, args[0]);
-    const [_init, _, _reduce] = _opts.group;
-    _;
-    return reduce_1.reducer(() => ({}), (acc, x) => {
-        const k = _opts.key(x);
-        acc[k] = acc[k] ?
-            _reduce(acc[k], x) :
-            _reduce(_init(), x);
-        return acc;
-    });
-}
-exports.groupByObj = groupByObj;
-
-},{"../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/group-binary.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const group_by_obj_1 = require("./group-by-obj");
-const push_1 = require("./push");
-function branchPred(key, b, l, r) {
-    return (x) => key(x) & b ? r : l;
-}
-/**
- * Creates a bottom-up, unbalanced binary tree of desired depth and
- * choice of data structures. Any value can be indexed, as long as a
- * numeric representation (key) can be obtained. This numeric key is
- * produced by the supplied `key` function. IMPORTANT: the returned
- * values MUST be unsigned and less than the provided bit length (i.e.
- * `0 .. (2^bits) - 1` range).
- *
- * By default the tree is constructed using plain objects for branches,
- * with left branches stored as "l" and right ones as "r". The original
- * values are stored at the lowest tree level using a customizable
- * nested reducer. By default leaves are collected in arrays (using the
- * `push()` reducer), but any suitable reducer can be used (e.g.
- * `conj()` to collect values into sets).
- *
- * Index by lowest 4-bits of ID value:
- *
- * ```
- * tree = reduce(
- *   groupBinary(4, x => x.id & 0xf),
- *   [{id: 3}, {id: 8}, {id: 15}, {id: 0}]
- * )
- *
- * tree.l.l.l.l
- * // [ { id: 0 } ]
- * tree.r.r.r.r
- * // [ { id: 15 } ]
- * tree.l.l.r.r
- * // [ { id: 3 } ]
- * ```
- *
- * Collecting as array:
- *
- * ```
- * tree = reduce(
- *   groupBinary(4, identity, ()=>[], push(), 0, 1),
- *   [1,2,3,4,5,6,7]
- * )
- *
- * tree[0][1][0][1] // 0101 == 5 in binary
- * // [ 5 ]
- *
- * tree[0][1][1]    // 011* == branch
- * // [ [ 6 ], [ 7 ] ]
- * ```
- *
- * Using `frequencies` as leaf reducer:
- *
- * ```
- * tree = reduce(
- *   groupBinary(3, (x: string) => x.length, null, frequencies()),
- *   "aa bbb dddd ccccc bbb eeee fff".split(" ")
- * )
- * // [ [ undefined,
- * //     [ Map { 'aa' => 1 },
- * //       Map { 'bbb' => 2, 'fff' => 1 } ] ],
- * //   [ [ Map { 'dddd' => 1, 'eeee' => 1 },
- * //       Map { 'ccccc' => 1 } ] ] ]
- *
- * tree[0][1][1]
- * // Map { 'bbb' => 2, 'fff' => 1 }
- * ```
- *
- * @param bits index range (always from 0)
- * @param key key function
- * @param branch function to create a new branch container (object or
- * array)
- * @param leaf reducer for leaf collection
- * @param left key for storing left branches (e.g. `0` for arrays)
- * @param right key for storing right branches (e.g. `1` for arrays)
- */
-function groupBinary(bits, key, branch, leaf, left = "l", right = "r") {
-    const init = branch || (() => ({}));
-    let rfn = group_by_obj_1.groupByObj({
-        key: branchPred(key, 1, left, right),
-        group: leaf || push_1.push(),
-    });
-    for (let i = 2, maxIndex = 1 << bits; i < maxIndex; i <<= 1) {
-        rfn = group_by_obj_1.groupByObj({ key: branchPred(key, i, left, right), group: [init, rfn[1], rfn[2]] });
-    }
-    return [init, rfn[1], rfn[2]];
-}
-exports.groupBinary = groupBinary;
-
-},{"./group-by-obj":"../../../node_modules/@thi.ng/transducers/rfn/group-by-obj.js","./push":"../../../node_modules/@thi.ng/transducers/rfn/push.js"}],"../../../node_modules/@thi.ng/transducers/rfn/last.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function last(xs) {
-    return xs ?
-        reduce_1.reduce(last(), xs) :
-        reduce_1.reducer(() => undefined, (_, x) => x);
-}
-exports.last = last;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/compare/index.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function compare(a, b) {
-    if (a === b) {
-        return 0;
-    }
-    if (a == null) {
-        return b == null ? 0 : -1;
-    }
-    if (b == null) {
-        return a == null ? 0 : 1;
-    }
-    if (typeof a.compare === "function") {
-        return a.compare(b);
-    }
-    if (typeof b.compare === "function") {
-        return -b.compare(a);
-    }
-    return a < b ? -1 : a > b ? 1 : 0;
-}
-exports.compare = compare;
-
-},{}],"../../../node_modules/@thi.ng/transducers/rfn/max-compare.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compare_1 = require("@thi.ng/compare");
-const reduce_1 = require("../reduce");
-function maxCompare(...args) {
-    const res = reduce_1.$$reduce(maxCompare, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const init = args[0];
-    const cmp = args[1] || compare_1.compare;
-    return reduce_1.reducer(init, (acc, x) => cmp(acc, x) >= 0 ? acc : x);
-}
-exports.maxCompare = maxCompare;
-
-},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/max.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function max(xs) {
-    return xs ?
-        reduce_1.reduce(max(), xs) :
-        reduce_1.reducer(() => -Infinity, (acc, x) => Math.max(acc, x));
-}
-exports.max = max;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/mean.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function mean(xs) {
-    let n = 0;
-    return xs ?
-        reduce_1.reduce(mean(), xs) :
-        [
-            () => 0,
-            (acc) => acc / n,
-            (acc, x) => (n++, acc + x),
-        ];
-}
-exports.mean = mean;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/min-compare.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compare_1 = require("@thi.ng/compare");
-const reduce_1 = require("../reduce");
-function minCompare(...args) {
-    const res = reduce_1.$$reduce(minCompare, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const init = args[0];
-    const cmp = args[1] || compare_1.compare;
-    return reduce_1.reducer(init, (acc, x) => cmp(acc, x) <= 0 ? acc : x);
-}
-exports.minCompare = minCompare;
-
-},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/min.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function min(xs) {
-    return xs ?
-        reduce_1.reduce(min(), xs) :
-        reduce_1.reducer(() => Infinity, (acc, x) => Math.min(acc, x));
-}
-exports.min = min;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/mul.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function mul(...args) {
-    const res = reduce_1.$$reduce(mul, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const init = args[0] || 1;
-    return reduce_1.reducer(() => init, (acc, x) => acc * x);
-}
-exports.mul = mul;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/push-copy.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function pushCopy() {
-    return reduce_1.reducer(() => [], (acc, x) => ((acc = acc.slice()).push(x), acc));
-}
-exports.pushCopy = pushCopy;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/reductions.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-const reduced_1 = require("../reduced");
-function reductions(rfn, xs) {
-    const [init, complete, _reduce] = rfn;
-    return xs ?
-        reduce_1.reduce(reductions(rfn), xs) :
-        [
-            () => [init()],
-            (acc) => (acc[acc.length - 1] = complete(acc[acc.length - 1]), acc),
-            (acc, x) => {
-                const res = _reduce(acc[acc.length - 1], x);
-                if (reduced_1.isReduced(res)) {
-                    acc.push(res.deref());
-                    return reduced_1.reduced(acc);
-                }
-                acc.push(res);
-                return acc;
-            }
-        ];
-}
-exports.reductions = reductions;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/some.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-const reduced_1 = require("../reduced");
-function some(...args) {
-    const res = reduce_1.$$reduce(some, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const pred = args[0];
-    return reduce_1.reducer(() => false, pred ?
-        (acc, x) => (pred(x) ? reduced_1.reduced(true) : acc) :
-        (acc, x) => (x ? reduced_1.reduced(true) : acc));
-}
-exports.some = some;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/rfn/str.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function str(sep, xs) {
-    sep = sep || "";
-    let first = true;
-    return xs ?
-        [...xs].join(sep) :
-        reduce_1.reducer(() => "", (acc, x) => (acc = first ? acc + x : acc + sep + x, first = false, acc));
-}
-exports.str = str;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/rfn/sub.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduce_1 = require("../reduce");
-function sub(...args) {
-    const res = reduce_1.$$reduce(sub, args);
-    if (res !== undefined) {
-        return res;
-    }
-    const init = args[0] || 0;
-    return reduce_1.reducer(() => init, (acc, x) => acc - x);
-}
-exports.sub = sub;
-
-},{"../reduce":"../../../node_modules/@thi.ng/transducers/reduce.js"}],"../../../node_modules/@thi.ng/transducers/xform/base64.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-const B64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const B64_SAFE = B64_CHARS.substr(0, 62) + "-_";
-function base64Decode(src) {
-    return src ?
-        iterator_1.iterator1(base64Decode(), src) :
-        (rfn) => {
-            const r = rfn[2];
-            let bc = 0, bs = 0;
-            return compr_1.compR(rfn, (acc, x) => {
-                switch (x) {
-                    case "-":
-                        x = "+";
-                        break;
-                    case "_":
-                        x = "/";
-                        break;
-                    case "=":
-                        return reduced_1.reduced(acc);
-                    default:
-                }
-                let y = B64_CHARS.indexOf(x);
-                bs = bc & 3 ? (bs << 6) + y : y;
-                if (bc++ & 3) {
-                    acc = r(acc, 255 & bs >> (-2 * bc & 6));
-                }
-                return acc;
-            });
-        };
-}
-exports.base64Decode = base64Decode;
-function base64Encode(...args) {
-    const iter = iterator_1.$iter(base64Encode, args, iterator_1.iterator);
-    if (iter) {
-        return [...iter].join("");
-    }
-    return (([init, complete, reduce]) => {
-        let state = 0;
-        let b;
-        const opts = Object.assign({ safe: false, buffer: 1024 }, args[0]);
-        const chars = opts.safe ? B64_SAFE : B64_CHARS;
-        const buf = [];
-        return [
-            init,
-            (acc) => {
-                switch (state) {
-                    case 1:
-                        buf.push(chars[b >> 18 & 0x3f], chars[b >> 12 & 0x3f], "=", "=");
-                        break;
-                    case 2:
-                        buf.push(chars[b >> 18 & 0x3f], chars[b >> 12 & 0x3f], chars[b >> 6 & 0x3f], "=");
-                        break;
-                    default:
-                }
-                while (buf.length && !reduced_1.isReduced(acc)) {
-                    acc = reduce(acc, buf.shift());
-                }
-                return complete(acc);
-            },
-            (acc, x) => {
-                switch (state) {
-                    case 0:
-                        state = 1;
-                        b = x << 16;
-                        break;
-                    case 1:
-                        state = 2;
-                        b += x << 8;
-                        break;
-                    default:
-                        state = 0;
-                        b += x;
-                        buf.push(chars[b >> 18 & 0x3f], chars[b >> 12 & 0x3f], chars[b >> 6 & 0x3f], chars[b & 0x3f]);
-                        if (buf.length >= opts.buffer) {
-                            for (let i = 0, n = buf.length; i < n && !reduced_1.isReduced(acc); i++) {
-                                acc = reduce(acc, buf[i]);
-                            }
-                            buf.length = 0;
-                        }
-                }
-                return acc;
-            }
-        ];
-    });
-}
-exports.base64Encode = base64Encode;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/benchmark.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function benchmark(src) {
-    return src ?
-        iterator_1.iterator1(benchmark(), src) :
-        (rfn) => {
-            const r = rfn[2];
-            let prev = Date.now();
-            return compr_1.compR(rfn, (acc, _) => {
-                const t = Date.now();
-                const x = t - prev;
-                prev = t;
-                return r(acc, x);
-            });
-        };
-}
-exports.benchmark = benchmark;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/bits.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function bits(...args) {
-    return iterator_1.$iter(bits, args, iterator_1.iterator) ||
-        ((rfn) => {
-            const reduce = rfn[2];
-            const size = (args[0] || 8) - 1;
-            const msb = args[1] !== false;
-            return compr_1.compR(rfn, msb ?
-                (acc, x) => {
-                    for (let i = size; i >= 0 && !reduced_1.isReduced(acc); i--) {
-                        acc = reduce(acc, (x >>> i) & 1);
-                    }
-                    return acc;
-                } :
-                (acc, x) => {
-                    for (let i = 0; i <= size && !reduced_1.isReduced(acc); i++) {
-                        acc = reduce(acc, (x >>> i) & 1);
-                    }
-                    return acc;
-                });
-        });
-}
-exports.bits = bits;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/cat.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const reduced_1 = require("../reduced");
-/**
- * Transducer to concatenate iterable values.
- */
-function cat() {
-    return (rfn) => {
-        const r = rfn[2];
-        return compr_1.compR(rfn, (acc, x) => {
-            if (x) {
-                for (let y of x) {
-                    acc = r(acc, y);
-                    if (reduced_1.isReduced(acc)) {
-                        break;
-                    }
-                }
-            }
-            return acc;
-        });
-    };
-}
-exports.cat = cat;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/iter/range.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduced_1 = require("../reduced");
-function range(from, to, step) {
-    return new Range(from, to, step);
-}
-exports.range = range;
-;
-/**
- * Simple class wrapper around given range interval and implementing
- * `Iterable` and `IReducible` interfaces, the latter is used to
- * accelerate use with `reduce`.
- */
-class Range {
-    constructor(from, to, step) {
-        if (from === undefined) {
-            from = 0;
-            to = Infinity;
-        }
-        else if (to === undefined) {
-            to = from;
-            from = 0;
-        }
-        step = step === undefined ? (from < to ? 1 : -1) : step;
-        this.from = from;
-        this.to = to;
-        this.step = step;
-    }
-    *[Symbol.iterator]() {
-        const step = this.step;
-        const to = this.to;
-        let from = this.from;
-        if (step > 0) {
-            while (from < to) {
-                yield from;
-                from += step;
-            }
-        }
-        else if (step < 0) {
-            while (from > to) {
-                yield from;
-                from += step;
-            }
-        }
-    }
-    $reduce(rfn, acc) {
-        const step = this.step;
-        if (step > 0) {
-            for (let i = this.from, n = this.to; i < n && !reduced_1.isReduced(acc); i += step) {
-                acc = rfn(acc, i);
-            }
-        }
-        else {
-            for (let i = this.from, n = this.to; i > n && !reduced_1.isReduced(acc); i += step) {
-                acc = rfn(acc, i);
-            }
-        }
-        return acc;
-    }
-}
-exports.Range = Range;
-
-},{"../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/iter/range2d.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
-const range_1 = require("./range");
-function* range2d(...args) {
-    let fromX, toX, fromY, toY, stepX, stepY;
-    switch (args.length) {
-        case 6:
-            stepX = args[4];
-            stepY = args[5];
-        case 4:
-            [fromX, toX, fromY, toY] = args;
-            break;
-        case 2:
-            [toX, toY] = args;
-            fromX = fromY = 0;
-            break;
-        default:
-            illegal_arity_1.illegalArity(args.length);
-    }
-    const rx = range_1.range(fromX, toX, stepX);
-    for (let y of range_1.range(fromY, toY, stepY)) {
-        for (let x of rx) {
-            yield [x, y];
-        }
-    }
-}
-exports.range2d = range2d;
-
-},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./range":"../../../node_modules/@thi.ng/transducers/iter/range.js"}],"../../../node_modules/@thi.ng/transducers/iter/tuples.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* tuples(...src) {
-    const iters = src.map((s) => s[Symbol.iterator]());
-    while (true) {
-        const tuple = [];
-        for (let i of iters) {
-            let v = i.next();
-            if (v.done) {
-                return;
-            }
-            tuple.push(v.value);
-        }
-        yield tuple;
-    }
-}
-exports.tuples = tuples;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/convolve.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-const range2d_1 = require("../iter/range2d");
-const tuples_1 = require("../iter/tuples");
-const iterator_1 = require("../iterator");
-const add_1 = require("../rfn/add");
-const transduce_1 = require("../transduce");
-const map_1 = require("./map");
-exports.buildKernel2d = (weights, w, h) => {
-    const w2 = w >> 1;
-    const h2 = h >> 1;
-    return [...tuples_1.tuples(weights, range2d_1.range2d(-w2, w2 + 1, -h2, h2 + 1))];
-};
-const kernelLookup2d = (src, x, y, width, height, wrap, border) => wrap ?
-    ([w, [ox, oy]]) => {
-        const xx = x < -ox ? width + ox : x >= width - ox ? ox - 1 : x + ox;
-        const yy = y < -oy ? height + oy : y >= height - oy ? oy - 1 : y + oy;
-        return w * src[yy * width + xx];
-    } :
-    ([w, [ox, oy]]) => {
-        return (x < -ox || y < -oy || x >= width - ox || y >= height - oy) ?
-            border :
-            w * src[(y + oy) * width + x + ox];
-    };
-function convolve2d(opts, _src) {
-    if (_src) {
-        return iterator_1.iterator1(convolve2d(opts), _src);
-    }
-    const { src, width, height } = opts;
-    const wrap = opts.wrap !== false;
-    const border = opts.border || 0;
-    let kernel = opts.kernel;
-    if (!kernel) {
-        if (!(opts.weights && opts.kwidth && opts.kheight)) {
-            illegal_arguments_1.illegalArgs(`no kernel or kernel config`);
-        }
-        kernel = exports.buildKernel2d(opts.weights, opts.kwidth, opts.kheight);
-    }
-    return map_1.map((p) => transduce_1.transduce(map_1.map(kernelLookup2d(src, p[0], p[1], width, height, wrap, border)), add_1.add(), kernel));
-}
-exports.convolve2d = convolve2d;
-
-},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../iter/range2d":"../../../node_modules/@thi.ng/transducers/iter/range2d.js","../iter/tuples":"../../../node_modules/@thi.ng/transducers/iter/tuples.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../rfn/add":"../../../node_modules/@thi.ng/transducers/rfn/add.js","../transduce":"../../../node_modules/@thi.ng/transducers/transduce.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/dedupe.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const api_1 = require("@thi.ng/api/api");
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function dedupe(...args) {
-    return iterator_1.$iter(dedupe, args) ||
-        ((rfn) => {
-            const r = rfn[2];
-            const equiv = args[0];
-            let prev = api_1.SEMAPHORE;
-            return compr_1.compR(rfn, equiv ?
-                (acc, x) => {
-                    acc = equiv(prev, x) ? acc : r(acc, x);
-                    prev = x;
-                    return acc;
-                } :
-                (acc, x) => {
-                    acc = prev === x ? acc : r(acc, x);
-                    prev = x;
-                    return acc;
-                });
-        });
-}
-exports.dedupe = dedupe;
-
-},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/func/delay.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function delay(x, t) {
-    return new Promise((resolve) => setTimeout(() => resolve(x), t));
-}
-exports.delay = delay;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/delayed.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const delay_1 = require("../func/delay");
-const map_1 = require("./map");
-/**
- * Yields transducer which wraps incoming values in promises, which
- * resolve after specified delay time (in ms).
- *
- * **Only to be used in async contexts and NOT with `transduce`
- * directly.**
- *
- * @param t
- */
-function delayed(t) {
-    return map_1.map((x) => delay_1.delay(x, t));
-}
-exports.delayed = delayed;
-
-},{"../func/delay":"../../../node_modules/@thi.ng/transducers/func/delay.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/distinct.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function distinct(...args) {
-    return iterator_1.$iter(distinct, args) ||
-        ((rfn) => {
-            const r = rfn[2];
-            const opts = (args[0] || {});
-            const key = opts.key;
-            const seen = (opts.cache || (() => new Set()))();
-            return compr_1.compR(rfn, key ?
-                (acc, x) => {
-                    const k = key(x);
-                    return !seen.has(k) ? (seen.add(k), r(acc, x)) : acc;
-                } :
-                (acc, x) => !seen.has(x) ? (seen.add(x), r(acc, x)) : acc);
-        });
-}
-exports.distinct = distinct;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/throttle.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function throttle(pred, src) {
-    return src ?
-        iterator_1.iterator1(throttle(pred), src) :
-        (rfn) => {
-            const r = rfn[2];
-            const _pred = pred();
-            return compr_1.compR(rfn, (acc, x) => _pred(x) ? r(acc, x) : acc);
-        };
-}
-exports.throttle = throttle;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/drop-nth.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const throttle_1 = require("./throttle");
-const iterator_1 = require("../iterator");
-function dropNth(n, src) {
-    if (src) {
-        return iterator_1.iterator1(dropNth(n), src);
-    }
-    n = Math.max(0, n - 1);
-    return throttle_1.throttle(() => {
-        let skip = n;
-        return () => skip-- > 0 ? true : (skip = n, false);
-    });
-}
-exports.dropNth = dropNth;
-
-},{"./throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/drop-while.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function dropWhile(...args) {
-    return iterator_1.$iter(dropWhile, args) ||
-        ((rfn) => {
-            const r = rfn[2];
-            const pred = args[0];
-            let ok = true;
-            return compr_1.compR(rfn, (acc, x) => (ok = ok && pred(x)) ? acc : r(acc, x));
-        });
-}
-exports.dropWhile = dropWhile;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/drop.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function drop(n, src) {
-    return src ?
-        iterator_1.iterator1(drop(n), src) :
-        (rfn) => {
-            const r = rfn[2];
-            let m = n;
-            return compr_1.compR(rfn, (acc, x) => m > 0 ? (m--, acc) : r(acc, x));
-        };
-}
-exports.drop = drop;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/duplicate.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function duplicate(n = 1, src) {
-    return src ?
-        iterator_1.iterator(duplicate(n), src) :
-        (rfn) => {
-            const r = rfn[2];
-            return compr_1.compR(rfn, (acc, x) => {
-                for (let i = n; i >= 0 && !reduced_1.isReduced(acc); i--) {
-                    acc = r(acc, x);
-                }
-                return acc;
-            });
-        };
-}
-exports.duplicate = duplicate;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/filter.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const compr_1 = require("../func/compr");
-function filter(pred, src) {
-    return src ?
-        iterator_1.iterator1(filter(pred), src) :
-        (rfn) => {
-            const r = rfn[2];
-            return compr_1.compR(rfn, (acc, x) => pred(x) ? r(acc, x) : acc);
-        };
-}
-exports.filter = filter;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js"}],"../../../node_modules/@thi.ng/transducers/func/fuzzy-match.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const equiv_1 = require("@thi.ng/equiv");
-/**
- * Performs a fuzzy search of `query` in `domain` and returns `true` if
- * successful. The optional `eq` predicate can be used to customize item
- * equality checking. Uses @thi.ng/equiv by default.
- *
- * Related transducer: `filterFuzzy()` (/xform/filter-fuzzy.ts)
- *
- * Adapted and generalized from:
- * https://github.com/bevacqua/fufuzzyzzysearch (MIT)
- *
- * @param domain
- * @param query
- * @param eq
- */
-function fuzzyMatch(domain, query, eq = equiv_1.equiv) {
-    const nd = domain.length;
-    const nq = query.length;
-    if (nq > nd) {
-        return false;
-    }
-    if (nq === nd) {
-        return eq(query, domain);
-    }
-    next: for (let i = 0, j = 0; i < nq; i++) {
-        const q = query[i];
-        while (j < nd) {
-            if (eq(domain[j++], q)) {
-                continue next;
-            }
-        }
-        return false;
-    }
-    return true;
-}
-exports.fuzzyMatch = fuzzyMatch;
-
-},{"@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js"}],"../../../node_modules/@thi.ng/transducers/xform/filter-fuzzy.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const fuzzy_match_1 = require("../func/fuzzy-match");
-const iterator_1 = require("../iterator");
-const filter_1 = require("./filter");
-function filterFuzzy(...args) {
-    const iter = args.length > 1 && iterator_1.$iter(filterFuzzy, args);
-    if (iter) {
-        return iter;
-    }
-    const query = args[0];
-    const { key, equiv } = (args[1] || {});
-    return filter_1.filter((x) => fuzzy_match_1.fuzzyMatch(key != null ? key(x) : x, query, equiv));
-}
-exports.filterFuzzy = filterFuzzy;
-
-},{"../func/fuzzy-match":"../../../node_modules/@thi.ng/transducers/func/fuzzy-match.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js"}],"../../../node_modules/@thi.ng/transducers/xform/flatten-with.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function flattenWith(fn, src) {
-    return src ?
-        iterator_1.iterator(flattenWith(fn), src) :
-        (rfn) => {
-            const reduce = rfn[2];
-            const flatten = (acc, x) => {
-                const xx = fn(x);
-                if (xx) {
-                    for (let y of xx) {
-                        acc = flatten(acc, y);
-                        if (reduced_1.isReduced(acc)) {
-                            break;
-                        }
-                    }
-                    return acc;
-                }
-                return reduce(acc, x);
-            };
-            return compr_1.compR(rfn, flatten);
-        };
-}
-exports.flattenWith = flattenWith;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/flatten.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const flatten_with_1 = require("./flatten-with");
-function flatten(src) {
-    return flatten_with_1.flattenWith((x) => x != null && x[Symbol.iterator] && typeof x !== "string" ? x : undefined, src);
-}
-exports.flatten = flatten;
-
-},{"./flatten-with":"../../../node_modules/@thi.ng/transducers/xform/flatten-with.js"}],"../../../node_modules/@thi.ng/memoize/memoizej.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function memoizeJ(fn, cache) {
-    !cache && (cache = {});
-    return (...args) => {
-        const key = JSON.stringify(args);
-        if (key !== undefined) {
-            return key in cache ?
-                cache[key] :
-                (cache[key] = fn.apply(null, args));
-        }
-        return fn.apply(null, args);
-    };
-}
-exports.memoizeJ = memoizeJ;
-
-},{}],"../../../node_modules/@thi.ng/strings/repeat.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const memoizej_1 = require("@thi.ng/memoize/memoizej");
-/**
- * @param ch character
- * @param n repeat count
- */
-exports.repeat = memoizej_1.memoizeJ((ch, n) => ch.repeat(n));
-
-},{"@thi.ng/memoize/memoizej":"../../../node_modules/@thi.ng/memoize/memoizej.js"}],"../../../node_modules/@thi.ng/strings/radix.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const memoizej_1 = require("@thi.ng/memoize/memoizej");
-const repeat_1 = require("./repeat");
-/**
- * Returns a `Stringer` which formats given numbers to `radix`, `len`
- * and with optional prefix (not included in `len`).
- *
- * @param radix
- * @param len
- * @param prefix
- */
-exports.radix = memoizej_1.memoizeJ((radix, n, prefix = "") => {
-    const buf = repeat_1.repeat("0", n);
-    return (x) => {
-        x = (x >>> 0).toString(radix);
-        return prefix + (x.length < n ? buf.substr(x.length) + x : x);
-    };
-});
-/**
- * 8bit binary conversion preset.
- */
-exports.B8 = exports.radix(2, 8);
-/**
- * 8bit hex conversion preset.
- * Assumes unsigned inputs.
- */
-exports.U8 = exports.radix(16, 2);
-/**
- * 16bit hex conversion preset.
- * Assumes unsigned inputs.
- */
-exports.U16 = exports.radix(16, 4);
-/**
- * 24bit hex conversion preset.
- * Assumes unsigned inputs.
- */
-exports.U24 = exports.radix(16, 6);
-/**
- * 32bit hex conversion preset.
- * Assumes unsigned inputs.
- */
-exports.U32 = exports.radix(16, 8);
-/**
- * 64bit hex conversion preset (2x 32bit ints)
- * Assumes unsigned inputs.
- */
-exports.U64 = (hi, lo) => exports.U32(hi) + exports.U32(lo);
-
-},{"@thi.ng/memoize/memoizej":"../../../node_modules/@thi.ng/memoize/memoizej.js","./repeat":"../../../node_modules/@thi.ng/strings/repeat.js"}],"../../../node_modules/@thi.ng/compose/comp.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
-function comp(...fns) {
-    let [a, b, c, d, e, f, g, h, i, j] = fns;
-    switch (fns.length) {
-        case 0:
-            illegal_arity_1.illegalArity(0);
-        case 1:
-            return a;
-        case 2:
-            return (...xs) => a(b(...xs));
-        case 3:
-            return (...xs) => a(b(c(...xs)));
-        case 4:
-            return (...xs) => a(b(c(d(...xs))));
-        case 5:
-            return (...xs) => a(b(c(d(e(...xs)))));
-        case 6:
-            return (...xs) => a(b(c(d(e(f(...xs))))));
-        case 7:
-            return (...xs) => a(b(c(d(e(f(g(...xs)))))));
-        case 8:
-            return (...xs) => a(b(c(d(e(f(g(h(...xs))))))));
-        case 9:
-            return (...xs) => a(b(c(d(e(f(g(h(i(...xs)))))))));
-        case 10:
-        default:
-            const fn = (...xs) => a(b(c(d(e(f(g(h(i(j(...xs))))))))));
-            return fns.length === 10 ? fn : compI(fn, ...fns.slice(10));
-    }
-}
-exports.comp = comp;
-function compI(...fns) {
-    return comp.apply(null, fns.reverse());
-}
-exports.compI = compI;
-
-},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js"}],"../../../node_modules/@thi.ng/transducers/func/comp.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const comp_1 = require("@thi.ng/compose/comp");
-function comp(...fns) {
-    return comp_1.comp.apply(null, fns);
-}
-exports.comp = comp;
-
-},{"@thi.ng/compose/comp":"../../../node_modules/@thi.ng/compose/comp.js"}],"../../../node_modules/@thi.ng/compose/juxt.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function juxt(...fns) {
-    const [a, b, c, d, e, f, g, h] = fns;
-    switch (fns.length) {
-        case 1:
-            return (x) => [a(x)];
-        case 2:
-            return (x) => [a(x), b(x)];
-        case 3:
-            return (x) => [a(x), b(x), c(x)];
-        case 4:
-            return (x) => [a(x), b(x), c(x), d(x)];
-        case 5:
-            return (x) => [a(x), b(x), c(x), d(x), e(x)];
-        case 6:
-            return (x) => [a(x), b(x), c(x), d(x), e(x), f(x)];
-        case 7:
-            return (x) => [a(x), b(x), c(x), d(x), e(x), f(x), g(x)];
-        case 8:
-            return (x) => [a(x), b(x), c(x), d(x), e(x), f(x), g(x), h(x)];
-        default:
-            return (x) => {
-                let res = new Array(fns.length);
-                for (let i = fns.length - 1; i >= 0; i--) {
-                    res[i] = fns[i](x);
-                }
-                return res;
-            };
-    }
-}
-exports.juxt = juxt;
-
-},{}],"../../../node_modules/@thi.ng/transducers/func/juxt.js":[function(require,module,exports) {
-"use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("@thi.ng/compose/juxt"));
-
-},{"@thi.ng/compose/juxt":"../../../node_modules/@thi.ng/compose/juxt.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function mapIndexed(...args) {
-    return iterator_1.$iter(mapIndexed, args) ||
-        ((rfn) => {
-            const r = rfn[2];
-            const fn = args[0];
-            let i = args[1] || 0;
-            return compr_1.compR(rfn, (acc, x) => r(acc, fn(i++, x)));
-        });
-}
-exports.mapIndexed = mapIndexed;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/pad-last.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function padLast(n, fill, src) {
-    return src ?
-        iterator_1.iterator(padLast(n, fill), src) :
-        ([init, complete, reduce]) => {
-            let m = 0;
-            return [
-                init,
-                (acc) => {
-                    let rem = m % n;
-                    if (rem > 0) {
-                        while (++rem <= n && !reduced_1.isReduced(acc)) {
-                            acc = reduce(acc, fill);
-                        }
-                    }
-                    return complete(acc);
-                },
-                (acc, x) => (m++, reduce(acc, x))
-            ];
-        };
-}
-exports.padLast = padLast;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/hex-dump.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const radix_1 = require("@thi.ng/strings/radix");
-const comp_1 = require("../func/comp");
-const juxt_1 = require("../func/juxt");
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-const map_indexed_1 = require("./map-indexed");
-const pad_last_1 = require("./pad-last");
-const partition_1 = require("./partition");
-function hexDump(...args) {
-    const iter = iterator_1.$iter(hexDump, args);
-    if (iter) {
-        return iter;
-    }
-    const { cols, address } = Object.assign({ cols: 16, address: 0 }, args[0]);
-    return comp_1.comp(pad_last_1.padLast(cols, 0), map_1.map(juxt_1.juxt(radix_1.U8, (x) => x > 31 && x < 128 ? String.fromCharCode(x) : ".")), partition_1.partition(cols, true), map_1.map(juxt_1.juxt((x) => x.map((y) => y[0]).join(" "), (x) => x.map((y) => y[1]).join(""))), map_indexed_1.mapIndexed((i, [h, a]) => `${radix_1.U32(address + i * cols)} | ${h} | ${a}`));
-}
-exports.hexDump = hexDump;
-
-},{"@thi.ng/strings/radix":"../../../node_modules/@thi.ng/strings/radix.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/juxt":"../../../node_modules/@thi.ng/transducers/func/juxt.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js","./map-indexed":"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js","./pad-last":"../../../node_modules/@thi.ng/transducers/xform/pad-last.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js"}],"../../../node_modules/@thi.ng/transducers/xform/indexed.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const map_indexed_1 = require("./map-indexed");
-function indexed(...args) {
-    const iter = iterator_1.$iter(indexed, args);
-    if (iter) {
-        return iter;
-    }
-    const from = args[0] || 0;
-    return map_indexed_1.mapIndexed((i, x) => [from + i, x]);
-}
-exports.indexed = indexed;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map-indexed":"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js"}],"../../../node_modules/@thi.ng/transducers/xform/interleave.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function interleave(sep, src) {
-    return src ?
-        iterator_1.iterator(interleave(sep), src) :
-        (rfn) => {
-            const r = rfn[2];
-            const _sep = typeof sep === "function" ? sep : () => sep;
-            return compr_1.compR(rfn, (acc, x) => {
-                acc = r(acc, _sep());
-                return reduced_1.isReduced(acc) ? acc : r(acc, x);
-            });
-        };
-}
-exports.interleave = interleave;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/interpose.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function interpose(sep, src) {
-    return src ?
-        iterator_1.iterator(interpose(sep), src) :
-        (rfn) => {
-            const r = rfn[2];
-            const _sep = typeof sep === "function" ? sep : () => sep;
-            let first = true;
-            return compr_1.compR(rfn, (acc, x) => {
-                if (first) {
-                    first = false;
-                    return r(acc, x);
-                }
-                acc = r(acc, _sep());
-                return reduced_1.isReduced(acc) ? acc : r(acc, x);
-            });
-        };
-}
-exports.interpose = interpose;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/keep.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const identity_1 = require("../func/identity");
-const iterator_1 = require("../iterator");
-function keep(...args) {
-    return iterator_1.$iter(keep, args) ||
-        ((rfn) => {
-            const r = rfn[2];
-            const pred = args[0] || identity_1.identity;
-            return compr_1.compR(rfn, (acc, x) => pred(x) != null ? r(acc, x) : acc);
-        });
-}
-exports.keep = keep;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/labeled.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_function_1 = require("@thi.ng/checks/is-function");
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-function labeled(id, src) {
-    return src ?
-        iterator_1.iterator1(labeled(id), src) :
-        map_1.map(is_function_1.isFunction(id) ?
-            (x) => [id(x), x] :
-            (x) => [id, x]);
-}
-exports.labeled = labeled;
-
-},{"@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/func/deep-transform.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_function_1 = require("@thi.ng/checks/is-function");
-/**
- * Higher-order deep object transformer. Accepts a nested `spec`
- * array reflecting same key structure as the object to be mapped,
- * but with functions or sub-specs as their values.
- * Returns a new function, which when called, recursively applies
- * nested transformers in post-order traversal (child transformers
- * are run first) and returns the result of the root transformer.
- *
- * The transform specs are given as arrays in this format:
- *
- * ```
- * [tx-function, {key1: [tx-function, {...}], key2: tx-fn}]
- * ```
- *
- * If a key in the spec has no further sub maps, its transform
- * function can be given directly without having to wrap it into
- * the usual array structure.
- *
- * ```
- * // source object to be transformed
- * src = {
- *    meta: {
- *      author: { name: "Alice", email: "a@b.com" },
- *      date: 1041510896000
- *    },
- *    type: "post",
- *    title: "Hello world",
- *    body: "Ratione necessitatibus doloremque itaque."
- * };
- *
- * // deep transformation spec
- * spec = [
- *    // root transform (called last)
- *    ({type, meta, title, body}) => ["div", {class: type}, title, meta, body],
- *    // object of transform sub-specs
- *    {
- *      meta: [
- *        ({author, date}) => ["div.meta", author, `(${date})`],
- *        {
- *          author: ({email, name}) => ["a", {href: `mailto:${email}`}, name],
- *          date: (d) => new Date(d).toLocaleString()
- *        }
- *      ],
- *      title: (title) => ["h1", title]
- *    }
- * ];
- *
- * // build transformer & apply to src
- * deepTransform(spec)(src);
- *
- * // [ "div",
- * //   { class: "article" },
- * //   [ "h1", "Hello world" ],
- * //   [ "div.meta",
- * //     [ "a", { href: "mailto:a@.b.com" }, "Alice" ],
- * //     "(1/2/2003, 12:34:56 PM)" ],
- * //   "Ratione necessitatibus doloremque itaque." ]
- * ```
- *
- * @param spec transformation spec
- */
-function deepTransform(spec) {
-    if (is_function_1.isFunction(spec)) {
-        return spec;
-    }
-    const mapfns = Object.keys(spec[1] || {}).reduce((acc, k) => (acc[k] = deepTransform(spec[1][k]), acc), {});
-    return (x) => {
-        const res = Object.assign({}, x);
-        for (let k in mapfns) {
-            res[k] = mapfns[k](res[k]);
-        }
-        return spec[0](res);
-    };
-}
-exports.deepTransform = deepTransform;
-
-},{"@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-deep.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const deep_transform_1 = require("../func/deep-transform");
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-function mapDeep(spec, src) {
-    return src ?
-        iterator_1.iterator1(mapDeep(spec), src) :
-        map_1.map(deep_transform_1.deepTransform(spec));
-}
-exports.mapDeep = mapDeep;
-
-},{"../func/deep-transform":"../../../node_modules/@thi.ng/transducers/func/deep-transform.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-keys.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-function mapKeys(...args) {
-    const iter = iterator_1.$iter(mapKeys, args);
-    if (iter) {
-        return iter;
-    }
-    const keys = args[0];
-    const copy = args[1] !== false;
-    return map_1.map((x) => {
-        const res = copy ? Object.assign({}, x) : x;
-        for (let k in keys) {
-            res[k] = keys[k](x[k]);
-        }
-        return res;
-    });
-}
-exports.mapKeys = mapKeys;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-nth.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function mapNth(...args) {
-    const iter = iterator_1.$iter(mapNth, args);
-    if (iter) {
-        return iter;
-    }
-    let n = args[0] - 1, offset, fn;
-    if (typeof args[1] === "number") {
-        offset = args[1];
-        fn = args[2];
-    }
-    else {
-        fn = args[1];
-        offset = 0;
-    }
-    return (rfn) => {
-        const r = rfn[2];
-        let skip = 0, off = offset;
-        return compr_1.compR(rfn, (acc, x) => {
-            if (off === 0) {
-                if (skip === 0) {
-                    skip = n;
-                    return r(acc, fn(x));
-                }
-                skip--;
-            }
-            else {
-                off--;
-            }
-            return r(acc, x);
-        });
-    };
-}
-exports.mapNth = mapNth;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/map-vals.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-function mapVals(...args) {
-    const iter = iterator_1.$iter(mapVals, args);
-    if (iter) {
-        return iter;
-    }
-    const fn = args[0];
-    const copy = args[1] !== false;
-    return map_1.map((x) => {
-        const res = copy ? {} : x;
-        for (let k in x) {
-            res[k] = fn(x[k]);
-        }
-        return res;
-    });
-}
-exports.mapVals = mapVals;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/mapcat.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const comp_1 = require("../func/comp");
-const iterator_1 = require("../iterator");
-const cat_1 = require("./cat");
-const map_1 = require("./map");
-function mapcat(fn, src) {
-    return src ?
-        iterator_1.iterator(mapcat(fn), src) :
-        comp_1.comp(map_1.map(fn), cat_1.cat());
-}
-exports.mapcat = mapcat;
-
-},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./cat":"../../../node_modules/@thi.ng/transducers/xform/cat.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/take.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function take(n, src) {
-    return src ?
-        iterator_1.iterator(take(n), src) :
-        (rfn) => {
-            const r = rfn[2];
-            let m = n;
-            return compr_1.compR(rfn, (acc, x) => --m > 0 ? r(acc, x) :
-                m === 0 ? reduced_1.ensureReduced(r(acc, x)) :
-                    reduced_1.reduced(acc));
-        };
-}
-exports.take = take;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/match-first.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const comp_1 = require("../func/comp");
-const iterator_1 = require("../iterator");
-const filter_1 = require("./filter");
-const take_1 = require("./take");
-function matchFirst(pred, src) {
-    return src ?
-        [...iterator_1.iterator1(matchFirst(pred), src)][0] :
-        comp_1.comp(filter_1.filter(pred), take_1.take(1));
-}
-exports.matchFirst = matchFirst;
-
-},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./take":"../../../node_modules/@thi.ng/transducers/xform/take.js"}],"../../../node_modules/@thi.ng/transducers/xform/take-last.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function takeLast(n, src) {
-    return src ?
-        iterator_1.iterator(takeLast(n), src) :
-        ([init, complete, reduce]) => {
-            const buf = [];
-            return [
-                init,
-                (acc) => {
-                    while (buf.length && !reduced_1.isReduced(acc)) {
-                        acc = reduce(acc, buf.shift());
-                    }
-                    return complete(acc);
-                },
-                (acc, x) => {
-                    if (buf.length === n) {
-                        buf.shift();
-                    }
-                    buf.push(x);
-                    return acc;
-                }
-            ];
-        };
-}
-exports.takeLast = takeLast;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/match-last.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const comp_1 = require("../func/comp");
-const iterator_1 = require("../iterator");
-const filter_1 = require("./filter");
-const take_last_1 = require("./take-last");
-function matchLast(pred, src) {
-    return src ?
-        [...iterator_1.iterator(matchLast(pred), src)][0] :
-        comp_1.comp(filter_1.filter(pred), take_last_1.takeLast(1));
-}
-exports.matchLast = matchLast;
-
-},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./take-last":"../../../node_modules/@thi.ng/transducers/xform/take-last.js"}],"../../../node_modules/@thi.ng/transducers/xform/moving-average.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function movingAverage(period, src) {
-    return src ?
-        iterator_1.iterator1(movingAverage(period), src) :
-        (rfn) => {
-            period |= 0;
-            period < 2 && illegal_arguments_1.illegalArgs("period must be >= 2");
-            const reduce = rfn[2];
-            const window = [];
-            let sum = 0;
-            return compr_1.compR(rfn, (acc, x) => {
-                const n = window.push(x);
-                sum += x;
-                n > period && (sum -= window.shift());
-                return n >= period ? reduce(acc, sum / period) : acc;
-            });
-        };
-}
-exports.movingAverage = movingAverage;
-;
-
-},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/moving-median.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compare_1 = require("@thi.ng/compare");
-const comp_1 = require("../func/comp");
-const identity_1 = require("../func/identity");
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-const partition_1 = require("./partition");
-function movingMedian(...args) {
-    const iter = iterator_1.$iter(movingMedian, args);
-    if (iter) {
-        return iter;
-    }
-    const { key, compare } = Object.assign({ key: identity_1.identity, compare: compare_1.compare }, args[1]);
-    const n = args[0];
-    const m = n >> 1;
-    return comp_1.comp(partition_1.partition(n, 1, true), map_1.map((window) => window.slice().sort((a, b) => compare(key(a), key(b)))[m]));
-}
-exports.movingMedian = movingMedian;
-
-},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js"}],"../../../node_modules/@thi.ng/transducers/xform/multiplex.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const juxt_1 = require("../func/juxt");
-const step_1 = require("../step");
-const map_1 = require("./map");
-function multiplex(...args) {
-    return map_1.map(juxt_1.juxt.apply(null, args.map(step_1.step)));
-}
-exports.multiplex = multiplex;
-
-},{"../func/juxt":"../../../node_modules/@thi.ng/transducers/func/juxt.js","../step":"../../../node_modules/@thi.ng/transducers/step.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/func/renamer.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function renamer(kmap) {
-    const ks = Object.keys(kmap);
-    const [a2, b2, c2] = ks;
-    const [a1, b1, c1] = ks.map((k) => kmap[k]);
-    switch (ks.length) {
-        case 3:
-            return (x) => {
-                const res = {};
-                let v;
-                v = x[c1], v !== undefined && (res[c2] = v);
-                v = x[b1], v !== undefined && (res[b2] = v);
-                v = x[a1], v !== undefined && (res[a2] = v);
-                return res;
-            };
-        case 2:
-            return (x) => {
-                const res = {};
-                let v;
-                v = x[b1], v !== undefined && (res[b2] = v);
-                v = x[a1], v !== undefined && (res[a2] = v);
-                return res;
-            };
-        case 1:
-            return (x) => {
-                const res = {};
-                let v = x[a1];
-                v !== undefined && (res[a2] = v);
-                return res;
-            };
-        default:
-            return (x) => {
-                let k, v;
-                const res = {};
-                for (let i = ks.length - 1; i >= 0; i--) {
-                    k = ks[i], v = x[kmap[k]], v !== undefined && (res[k] = v);
-                }
-                return res;
-            };
-    }
-}
-exports.renamer = renamer;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/rename.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_array_1 = require("@thi.ng/checks/is-array");
-const comp_1 = require("../func/comp");
-const renamer_1 = require("../func/renamer");
-const iterator_1 = require("../iterator");
-const transduce_1 = require("../transduce");
-const filter_1 = require("./filter");
-const map_1 = require("./map");
-function rename(...args) {
-    const iter = args.length > 2 && iterator_1.$iter(rename, args);
-    if (iter) {
-        return iter;
-    }
-    let kmap = args[0];
-    if (is_array_1.isArray(kmap)) {
-        kmap = kmap.reduce((acc, k, i) => (acc[k] = i, acc), {});
-    }
-    if (args[1]) {
-        const ks = Object.keys(kmap);
-        return map_1.map((y) => transduce_1.transduce(comp_1.comp(map_1.map((k) => [k, y[kmap[k]]]), filter_1.filter(x => x[1] !== undefined)), args[1], ks));
-    }
-    else {
-        return map_1.map(renamer_1.renamer(kmap));
-    }
-}
-exports.rename = rename;
-
-},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/renamer":"../../../node_modules/@thi.ng/transducers/func/renamer.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../transduce":"../../../node_modules/@thi.ng/transducers/transduce.js","./filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/multiplex-obj.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const comp_1 = require("../func/comp");
-const iterator_1 = require("../iterator");
-const multiplex_1 = require("./multiplex");
-const rename_1 = require("./rename");
-function multiplexObj(...args) {
-    const iter = iterator_1.$iter(multiplexObj, args);
-    if (iter) {
-        return iter;
-    }
-    const [xforms, rfn] = args;
-    const ks = Object.keys(xforms);
-    return comp_1.comp(multiplex_1.multiplex.apply(null, ks.map((k) => xforms[k])), rename_1.rename(ks, rfn));
-}
-exports.multiplexObj = multiplexObj;
-
-},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./multiplex":"../../../node_modules/@thi.ng/transducers/xform/multiplex.js","./rename":"../../../node_modules/@thi.ng/transducers/xform/rename.js"}],"../../../node_modules/@thi.ng/transducers/xform/noop.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * No-op / pass-through transducer, essentially the same as:
- * `map(identity)`, but faster. Useful for testing and / or to keep
- * existing values in a `multiplex()` tuple lane.
- */
-function noop() {
-    return (rfn) => rfn;
-}
-exports.noop = noop;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/page.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const comp_1 = require("../func/comp");
-const iterator_1 = require("../iterator");
-const drop_1 = require("./drop");
-const take_1 = require("./take");
-function page(...args) {
-    return iterator_1.$iter(page, args) ||
-        comp_1.comp(drop_1.drop(args[0] * (args[1] || 10)), take_1.take(args[1] || 10));
-}
-exports.page = page;
-
-},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./drop":"../../../node_modules/@thi.ng/transducers/xform/drop.js","./take":"../../../node_modules/@thi.ng/transducers/xform/take.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-bits.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function partitionBits(...args) {
-    return iterator_1.$iter(partitionBits, args, iterator_1.iterator) ||
-        ((rfn) => {
-            const destSize = args[0];
-            const srcSize = args[1] || 8;
-            return destSize < srcSize ?
-                small(rfn, destSize, srcSize) :
-                destSize > srcSize ?
-                    large(rfn, destSize, srcSize) :
-                    rfn;
-        });
-}
-exports.partitionBits = partitionBits;
-const small = ([init, complete, reduce], n, wordSize) => {
-    const maxb = wordSize - n;
-    const m1 = (1 << wordSize) - 1;
-    const m2 = (1 << n) - 1;
-    let r = 0;
-    let y = 0;
-    return [
-        init,
-        (acc) => complete(r > 0 ? reduce(acc, y) : acc),
-        (acc, x) => {
-            let b = 0;
-            do {
-                acc = reduce(acc, y + ((x >>> (maxb + r)) & m2));
-                b += n - r;
-                x = (x << (n - r)) & m1;
-                y = 0;
-                r = 0;
-            } while (b <= maxb && !reduced_1.isReduced(acc));
-            r = wordSize - b;
-            y = r > 0 ? (x >>> maxb) & m2 : 0;
-            return acc;
-        }
-    ];
-};
-const large = ([init, complete, reduce], n, wordSize) => {
-    const m1 = (1 << wordSize) - 1;
-    let r = 0;
-    let y = 0;
-    return [
-        init,
-        (acc) => complete(r > 0 ? reduce(acc, y) : acc),
-        (acc, x) => {
-            if (r + wordSize <= n) {
-                y |= (x & m1) << (n - wordSize - r);
-                r += wordSize;
-                if (r === n) {
-                    acc = reduce(acc, y);
-                    y = 0;
-                    r = 0;
-                }
-            }
-            else {
-                const k = n - r;
-                r = wordSize - k;
-                acc = reduce(acc, y | ((x >>> r) & ((1 << k) - 1)));
-                y = (x & ((1 << r) - 1)) << (n - r);
-            }
-            return acc;
-        }
-    ];
-};
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-by.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const api_1 = require("@thi.ng/api/api");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function partitionBy(...args) {
-    return iterator_1.$iter(partitionBy, args, iterator_1.iterator) ||
-        (([init, complete, reduce]) => {
-            const fn = args[0];
-            const f = args[1] === true ? fn() : fn;
-            let prev = api_1.SEMAPHORE, chunk;
-            return [
-                init,
-                (acc) => {
-                    if (chunk && chunk.length) {
-                        acc = reduce(acc, chunk);
-                        chunk = null;
-                    }
-                    return complete(acc);
-                },
-                (acc, x) => {
-                    const curr = f(x);
-                    if (prev === api_1.SEMAPHORE) {
-                        prev = curr;
-                        chunk = [x];
-                    }
-                    else if (curr === prev) {
-                        chunk.push(x);
-                    }
-                    else {
-                        chunk && (acc = reduce(acc, chunk));
-                        chunk = reduced_1.isReduced(acc) ? null : [x];
-                        prev = curr;
-                    }
-                    return acc;
-                }
-            ];
-        });
-}
-exports.partitionBy = partitionBy;
-
-},{"@thi.ng/api/api":"../../../node_modules/@thi.ng/api/api.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-of.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const partition_by_1 = require("./partition-by");
-function partitionOf(sizes, src) {
-    return src ?
-        iterator_1.iterator(partitionOf(sizes), src) :
-        partition_by_1.partitionBy(() => {
-            let i = 0, j = 0;
-            return () => {
-                if (i++ === sizes[j]) {
-                    i = 1;
-                    j = (j + 1) % sizes.length;
-                }
-                return j;
-            };
-        }, true);
-}
-exports.partitionOf = partitionOf;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./partition-by":"../../../node_modules/@thi.ng/transducers/xform/partition-by.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-sort.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compare_1 = require("@thi.ng/compare");
-const comp_1 = require("../func/comp");
-const identity_1 = require("../func/identity");
-const iterator_1 = require("../iterator");
-const mapcat_1 = require("./mapcat");
-const partition_1 = require("./partition");
-function partitionSort(...args) {
-    const iter = iterator_1.$iter(partitionSort, args, iterator_1.iterator);
-    if (iter) {
-        return iter;
-    }
-    const { key, compare } = Object.assign({ key: identity_1.identity, compare: compare_1.compare }, args[1]);
-    return comp_1.comp(partition_1.partition(args[0], true), mapcat_1.mapcat((window) => window.slice().sort((a, b) => compare(key(a), key(b)))));
-}
-exports.partitionSort = partitionSort;
-
-},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./mapcat":"../../../node_modules/@thi.ng/transducers/xform/mapcat.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js"}],"../../../node_modules/@thi.ng/transducers/xform/partition-sync.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_array_1 = require("@thi.ng/checks/is-array");
-const identity_1 = require("../func/identity");
-const iterator_1 = require("../iterator");
-function partitionSync(...args) {
-    return iterator_1.$iter(partitionSync, args, iterator_1.iterator) ||
-        (([init, complete, reduce]) => {
-            let curr = {};
-            let first = true;
-            const currKeys = new Set();
-            const { key, mergeOnly, reset, all } = Object.assign({ key: identity_1.identity, mergeOnly: false, reset: true, all: true }, args[1]);
-            const ks = is_array_1.isArray(args[0]) ? new Set(args[0]) : args[0];
-            return [
-                init,
-                (acc) => {
-                    if ((reset && all && currKeys.size > 0) || (!reset && first)) {
-                        acc = reduce(acc, curr);
-                        curr = undefined;
-                        currKeys.clear();
-                        first = false;
-                    }
-                    return complete(acc);
-                },
-                (acc, x) => {
-                    const k = key(x);
-                    if (ks.has(k)) {
-                        curr[k] = x;
-                        currKeys.add(k);
-                        if (mergeOnly || currKeys.size >= ks.size) {
-                            acc = reduce(acc, curr);
-                            first = false;
-                            if (reset) {
-                                curr = {};
-                                currKeys.clear();
-                            }
-                            else {
-                                curr = Object.assign({}, curr);
-                            }
-                        }
-                    }
-                    return acc;
-                }
-            ];
-        });
-}
-exports.partitionSync = partitionSync;
-
-},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/pluck.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-function pluck(key, src) {
-    return src ?
-        iterator_1.iterator1(pluck(key), src) :
-        map_1.map((x) => x[key]);
-}
-exports.pluck = pluck;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/sample.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function sample(prob, src) {
-    return src ?
-        iterator_1.iterator1(sample(prob), src) :
-        (rfn) => {
-            const r = rfn[2];
-            return compr_1.compR(rfn, (acc, x) => Math.random() < prob ? r(acc, x) : acc);
-        };
-}
-exports.sample = sample;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/xform/scan.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function scan(...args) {
-    return (args.length > 2 && iterator_1.$iter(scan, args, iterator_1.iterator)) ||
-        (([inito, completeo, reduceo]) => {
-            const [initi, completei, reducei] = args[0];
-            let acc = args.length > 1 && args[1] != null ? args[1] : initi();
-            return [
-                inito,
-                (_acc) => {
-                    let a = completei(acc);
-                    if (a !== acc) {
-                        _acc = reduced_1.unreduced(reduceo(_acc, a));
-                    }
-                    acc = a;
-                    return completeo(_acc);
-                },
-                (_acc, x) => {
-                    acc = reducei(acc, x);
-                    if (reduced_1.isReduced(acc)) {
-                        return reduced_1.ensureReduced(reduceo(_acc, acc.deref()));
-                    }
-                    return reduceo(_acc, acc);
-                }
-            ];
-        });
-}
-exports.scan = scan;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/func/key-selector.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const renamer_1 = require("./renamer");
-function keySelector(keys) {
-    return renamer_1.renamer(keys.reduce((acc, x) => (acc[x] = x, acc), {}));
-}
-exports.keySelector = keySelector;
-
-},{"./renamer":"../../../node_modules/@thi.ng/transducers/func/renamer.js"}],"../../../node_modules/@thi.ng/transducers/xform/select-keys.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const key_selector_1 = require("../func/key-selector");
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-function selectKeys(keys, src) {
-    return src ?
-        iterator_1.iterator1(selectKeys(keys), src) :
-        map_1.map(key_selector_1.keySelector(keys));
-}
-exports.selectKeys = selectKeys;
-
-},{"../func/key-selector":"../../../node_modules/@thi.ng/transducers/func/key-selector.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/side-effect.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const map_1 = require("./map");
-/**
- * Helper transducer. Applies given `fn` to each input value, presumably
- * for side effects. Discards function's result and yields original
- * inputs.
- *
- * @param fn side effect
- */
-function sideEffect(fn) {
-    return map_1.map((x) => (fn(x), x));
-}
-exports.sideEffect = sideEffect;
-
-},{"./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/sliding-window.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-function slidingWindow(...args) {
-    const iter = iterator_1.$iter(slidingWindow, args);
-    if (iter) {
-        return iter;
-    }
-    const size = args[0];
-    const partial = args[1] !== false;
-    return (rfn) => {
-        const reduce = rfn[2];
-        let buf = [];
-        return compr_1.compR(rfn, (acc, x) => {
-            buf.push(x);
-            if (partial || buf.length === size) {
-                acc = reduce(acc, buf);
-                buf = buf.slice(buf.length === size ? 1 : 0);
-            }
-            return acc;
-        });
-    };
-}
-exports.slidingWindow = slidingWindow;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js"}],"../../../node_modules/@thi.ng/transducers/func/shuffle.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function shuffleN(buf, n) {
-    const l = buf.length;
-    n = n < l ? n : l;
-    while (--n >= 0) {
-        const a = (Math.random() * l) | 0;
-        const b = (Math.random() * l) | 0;
-        const t = buf[a];
-        buf[a] = buf[b];
-        buf[b] = t;
-    }
-}
-exports.shuffleN = shuffleN;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/stream-shuffle.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const shuffle_1 = require("../func/shuffle");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function streamShuffle(...args) {
-    return iterator_1.$iter(streamShuffle, args, iterator_1.iterator) ||
-        (([init, complete, reduce]) => {
-            const n = args[0];
-            const maxSwaps = args[1] || n;
-            const buf = [];
-            return [
-                init,
-                (acc) => {
-                    while (buf.length && !reduced_1.isReduced(acc)) {
-                        shuffle_1.shuffleN(buf, maxSwaps);
-                        acc = reduce(acc, buf.shift());
-                    }
-                    acc = complete(acc);
-                    return acc;
-                },
-                (acc, x) => {
-                    buf.push(x);
-                    shuffle_1.shuffleN(buf, maxSwaps);
-                    if (buf.length === n) {
-                        acc = reduce(acc, buf.shift());
-                    }
-                    return acc;
-                }
-            ];
-        });
-}
-exports.streamShuffle = streamShuffle;
-
-},{"../func/shuffle":"../../../node_modules/@thi.ng/transducers/func/shuffle.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/func/binary-search.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Returns the supposed index of `x` in pre-sorted array-like collection
- * `arr`. The `key` function first is used to obtain the actual sort
- * value of `x` and each array item. The `cmp` comparator is then used to
- * identify the index of `x`.
- *
- * @param arr
- * @param key
- * @param cmp
- * @param x
- * @returns index of `x`, else `-index` if item could not be found
- */
-function binarySearch(arr, key, cmp, x) {
-    const kx = key(x);
-    let low = 0;
-    let high = arr.length - 1;
-    while (low <= high) {
-        const mid = (low + high) >>> 1;
-        const c = cmp(key(arr[mid]), kx);
-        if (c < 0) {
-            low = mid + 1;
-        }
-        else if (c > 0) {
-            high = mid - 1;
-        }
-        else {
-            return mid;
-        }
-    }
-    return -low;
-}
-exports.binarySearch = binarySearch;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/stream-sort.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compare_1 = require("@thi.ng/compare");
-const binary_search_1 = require("../func/binary-search");
-const identity_1 = require("../func/identity");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function streamSort(...args) {
-    const iter = iterator_1.$iter(streamSort, args, iterator_1.iterator);
-    if (iter) {
-        return iter;
-    }
-    const { key, compare } = Object.assign({ key: identity_1.identity, compare: compare_1.compare }, args[1]);
-    const n = args[0];
-    return ([init, complete, reduce]) => {
-        const buf = [];
-        return [
-            init,
-            (acc) => {
-                while (buf.length && !reduced_1.isReduced(acc)) {
-                    acc = reduce(acc, buf.shift());
-                }
-                return complete(acc);
-            },
-            (acc, x) => {
-                const idx = binary_search_1.binarySearch(buf, key, compare, x);
-                buf.splice(Math.abs(idx), 0, x);
-                if (buf.length === n) {
-                    acc = reduce(acc, buf.shift());
-                }
-                return acc;
-            }
-        ];
-    };
-}
-exports.streamSort = streamSort;
-
-},{"@thi.ng/compare":"../../../node_modules/@thi.ng/compare/index.js","../func/binary-search":"../../../node_modules/@thi.ng/transducers/func/binary-search.js","../func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/struct.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const comp_1 = require("../func/comp");
-const iterator_1 = require("../iterator");
-const map_keys_1 = require("./map-keys");
-const partition_1 = require("./partition");
-const partition_of_1 = require("./partition-of");
-const rename_1 = require("./rename");
-function struct(fields, src) {
-    return src ?
-        iterator_1.iterator(struct(fields), src) :
-        comp_1.comp(partition_of_1.partitionOf(fields.map((f) => f[1])), partition_1.partition(fields.length), rename_1.rename(fields.map((f) => f[0])), map_keys_1.mapKeys(fields.reduce((acc, f) => (f[2] ? (acc[f[0]] = f[2], acc) : acc), {}), false));
-}
-exports.struct = struct;
-
-},{"../func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map-keys":"../../../node_modules/@thi.ng/transducers/xform/map-keys.js","./partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js","./partition-of":"../../../node_modules/@thi.ng/transducers/xform/partition-of.js","./rename":"../../../node_modules/@thi.ng/transducers/xform/rename.js"}],"../../../node_modules/@thi.ng/transducers/func/swizzler.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Returns optimized function to select, repeat, reshape and / or
- * reorder array/object values in the specified index order. The
- * returned function can be used directly or as mapping function for the
- * `map` transducer. Fast paths for up to 8 indices are provided, before
- * a loop based approach is used.
- *
- * ```
- * swizzler([0, 0, 0])([1, 2, 3, 4])    // [ 1, 1, 1 ]
- * swizzler([1, 1, 3, 3])([1, 2, 3, 4]) // [ 2, 2, 4, 4 ]
- * swizzler([2, 0])([1, 2, 3])          // [ 3, 1 ]
- * ```
- *
- * Even though, objects can be used as input to the generated function,
- * the returned values will always be in array form.
- *
- * ```
- * swizzler(["a", "c", "b"])({a: 1, b: 2, c: 3}) // [ 1, 3, 2 ]
- * ```
- *
- * @param order indices
- */
-function swizzler(order) {
-    const [a, b, c, d, e, f, g, h] = order;
-    switch (order.length) {
-        case 0:
-            return () => [];
-        case 1:
-            return (x) => [x[a]];
-        case 2:
-            return (x) => [x[a], x[b]];
-        case 3:
-            return (x) => [x[a], x[b], x[c]];
-        case 4:
-            return (x) => [x[a], x[b], x[c], x[d]];
-        case 5:
-            return (x) => [x[a], x[b], x[c], x[d], x[e]];
-        case 6:
-            return (x) => [x[a], x[b], x[c], x[d], x[e], x[f]];
-        case 7:
-            return (x) => [x[a], x[b], x[c], x[d], x[e], x[f], x[g]];
-        case 8:
-            return (x) => [x[a], x[b], x[c], x[d], x[e], x[f], x[g], x[h]];
-        default:
-            return (x) => {
-                const res = [];
-                for (let i = order.length - 1; i >= 0; i--) {
-                    res[i] = x[order[i]];
-                }
-                return res;
-            };
-    }
-}
-exports.swizzler = swizzler;
-
-},{}],"../../../node_modules/@thi.ng/transducers/xform/swizzle.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const swizzler_1 = require("../func/swizzler");
-const iterator_1 = require("../iterator");
-const map_1 = require("./map");
-function swizzle(order, src) {
-    return src ?
-        iterator_1.iterator1(swizzle(order), src) :
-        map_1.map(swizzler_1.swizzler(order));
-}
-exports.swizzle = swizzle;
-
-},{"../func/swizzler":"../../../node_modules/@thi.ng/transducers/func/swizzler.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./map":"../../../node_modules/@thi.ng/transducers/xform/map.js"}],"../../../node_modules/@thi.ng/transducers/xform/take-nth.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const throttle_1 = require("./throttle");
-function takeNth(n, src) {
-    if (src) {
-        return iterator_1.iterator1(takeNth(n), src);
-    }
-    n = Math.max(0, n - 1);
-    return throttle_1.throttle(() => {
-        let skip = 0;
-        return () => (skip === 0 ? (skip = n, true) : (skip--, false));
-    });
-}
-exports.takeNth = takeNth;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js"}],"../../../node_modules/@thi.ng/transducers/xform/take-while.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function takeWhile(...args) {
-    return iterator_1.$iter(takeWhile, args) ||
-        ((rfn) => {
-            const r = rfn[2];
-            const pred = args[0];
-            let ok = true;
-            return compr_1.compR(rfn, (acc, x) => (ok = ok && pred(x)) ? r(acc, x) : reduced_1.reduced(acc));
-        });
-}
-exports.takeWhile = takeWhile;
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/throttle-time.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const throttle_1 = require("./throttle");
-function throttleTime(delay, src) {
-    return src ?
-        iterator_1.iterator1(throttleTime(delay), src) :
-        throttle_1.throttle(() => {
-            let last = 0;
-            return () => {
-                const t = Date.now();
-                return t - last >= delay ? (last = t, true) : false;
-            };
-        });
-}
-exports.throttleTime = throttleTime;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js"}],"../../../node_modules/@thi.ng/transducers/xform/trace.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const side_effect_1 = require("./side-effect");
-function trace(prefix = "") {
-    return side_effect_1.sideEffect((x) => console.log(prefix, x));
-}
-exports.trace = trace;
-
-},{"./side-effect":"../../../node_modules/@thi.ng/transducers/xform/side-effect.js"}],"../../../node_modules/@thi.ng/transducers/xform/utf8.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const compr_1 = require("../func/compr");
-const iterator_1 = require("../iterator");
-const reduced_1 = require("../reduced");
-function utf8Decode(src) {
-    return src ?
-        [...iterator_1.iterator1(utf8Decode(), src)].join("") :
-        (rfn) => {
-            const r = rfn[2];
-            let state = 0, u0, u1, u2, u3, u4;
-            return compr_1.compR(rfn, (acc, x) => {
-                switch (state) {
-                    case 0:
-                    default:
-                        if (x < 0x80) {
-                            return r(acc, String.fromCharCode(x));
-                        }
-                        u0 = x;
-                        state = 1;
-                        break;
-                    case 1:
-                        u1 = x & 0x3f;
-                        if ((u0 & 0xe0) === 0xc0) {
-                            state = 0;
-                            return r(acc, String.fromCharCode(((u0 & 0x1f) << 6) | u1));
-                        }
-                        state = 2;
-                        break;
-                    case 2:
-                        u2 = x & 0x3f;
-                        if ((u0 & 0xf0) === 0xe0) {
-                            state = 0;
-                            return r(acc, String.fromCharCode(((u0 & 0x0f) << 12) | (u1 << 6) | u2));
-                        }
-                        state = 3;
-                        break;
-                    case 3:
-                        u3 = x & 0x3f;
-                        if ((u0 & 0xf8) === 0xf0) {
-                            state = 0;
-                            return r(acc, codePoint(((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | u3));
-                        }
-                        state = 4;
-                        break;
-                    case 4:
-                        u4 = x & 0x3f;
-                        if ((u0 & 0xfc) === 0xf8) {
-                            state = 0;
-                            return r(acc, codePoint(((u0 & 3) << 24) | (u1 << 18) | (u2 << 12) | (u3 << 6) | u4));
-                        }
-                        state = 5;
-                        break;
-                    case 5:
-                        state = 0;
-                        return r(acc, codePoint(((u0 & 1) << 30) | (u1 << 24) | (u2 << 18) | (u3 << 12) | (u4 << 6) | (x & 0x3f)));
-                }
-                return acc;
-            });
-        };
-}
-exports.utf8Decode = utf8Decode;
-function utf8Encode(src) {
-    return src != null ?
-        iterator_1.iterator(utf8Encode(), src) :
-        (rfn) => {
-            const r = rfn[2];
-            return compr_1.compR(rfn, (acc, x) => {
-                let u = x.charCodeAt(0), buf;
-                if (u >= 0xd800 && u <= 0xdfff) {
-                    u = 0x10000 + ((u & 0x3ff) << 10) | (x.charCodeAt(1) & 0x3ff);
-                }
-                if (u < 0x80) {
-                    return r(acc, u);
-                }
-                else if (u < 0x800) {
-                    buf = [
-                        0xc0 | (u >> 6),
-                        0x80 | (u & 0x3f)
-                    ];
-                }
-                else if (u < 0x10000) {
-                    buf = [
-                        0xe0 | (u >> 12),
-                        0x80 | ((u >> 6) & 0x3f),
-                        0x80 | (u & 0x3f)
-                    ];
-                }
-                else if (u < 0x200000) {
-                    buf = [
-                        0xf0 | (u >> 18),
-                        0x80 | ((u >> 12) & 0x3f),
-                        0x80 | ((u >> 6) & 0x3f),
-                        0x80 | (u & 0x3f)
-                    ];
-                }
-                else if (u < 0x4000000) {
-                    buf = [
-                        0xf8 | (u >> 24),
-                        0x80 | ((u >> 18) & 0x3f),
-                        0x80 | ((u >> 12) & 0x3f),
-                        0x80 | ((u >> 6) & 0x3f),
-                        0x80 | (u & 0x3f)
-                    ];
-                }
-                else {
-                    buf = [
-                        0xfc | (u >> 30),
-                        0x80 | ((u >> 24) & 0x3f),
-                        0x80 | ((u >> 18) & 0x3f),
-                        0x80 | ((u >> 12) & 0x3f),
-                        0x80 | ((u >> 6) & 0x3f),
-                        0x80 | (u & 0x3f)
-                    ];
-                }
-                for (let i = 0, n = buf.length; i < n; i++) {
-                    acc = r(acc, buf[i]);
-                    if (reduced_1.isReduced(acc)) {
-                        break;
-                    }
-                }
-                return acc;
-            });
-        };
-}
-exports.utf8Encode = utf8Encode;
-const codePoint = (x) => x < 0x10000 ?
-    String.fromCharCode(x) :
-    (x -= 0x10000, String.fromCharCode(0xd800 | (x >> 10), 0xdc00 | (x & 0x3ff)));
-
-},{"../func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/xform/word-wrap.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const iterator_1 = require("../iterator");
-const partition_by_1 = require("./partition-by");
-function wordWrap(...args) {
-    const iter = iterator_1.$iter(wordWrap, args, iterator_1.iterator);
-    if (iter) {
-        return iter;
-    }
-    const lineLength = args[0];
-    const { delim, always } = Object.assign({ delim: 1, always: true }, args[1]);
-    return partition_by_1.partitionBy(() => {
-        let n = 0;
-        let flag = false;
-        return (w) => {
-            n += w.length + delim;
-            if (n > lineLength + (always ? 0 : delim)) {
-                flag = !flag;
-                n = w.length + delim;
-            }
-            return flag;
-        };
-    }, true);
-}
-exports.wordWrap = wordWrap;
-
-},{"../iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./partition-by":"../../../node_modules/@thi.ng/transducers/xform/partition-by.js"}],"../../../node_modules/@thi.ng/transducers/func/constantly.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function constantly(x) {
-    return () => x;
-}
-exports.constantly = constantly;
-
-},{}],"../../../node_modules/@thi.ng/transducers/func/even.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var is_even_1 = require("@thi.ng/checks/is-even");
-exports.even = is_even_1.isEven;
-
-},{"@thi.ng/checks/is-even":"../../../node_modules/@thi.ng/checks/is-even.js"}],"../../../node_modules/@thi.ng/transducers/func/hex.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const radix_1 = require("@thi.ng/strings/radix");
-/**
- * @deprecated use thi.ng/strings `radix()` instead
- *
- * @param digits
- * @param prefix
- */
-exports.hex = (digits = 2, prefix = "") => radix_1.radix(16, digits, prefix);
-
-},{"@thi.ng/strings/radix":"../../../node_modules/@thi.ng/strings/radix.js"}],"../../../node_modules/@thi.ng/transducers/func/juxtr.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const reduced_1 = require("../reduced");
-function juxtR(...rs) {
-    let [a, b, c] = rs;
-    const n = rs.length;
-    switch (n) {
-        case 1: {
-            const r = a[2];
-            return [
-                () => [a[0]()],
-                (acc) => [a[1](acc[0])],
-                (acc, x) => {
-                    const aa1 = r(acc[0], x);
-                    if (reduced_1.isReduced(aa1)) {
-                        return reduced_1.reduced([reduced_1.unreduced(aa1)]);
-                    }
-                    return [aa1];
-                }
-            ];
-        }
-        case 2: {
-            const ra = a[2];
-            const rb = b[2];
-            return [
-                () => [a[0](), b[0]()],
-                (acc) => [a[1](acc[0]), b[1](acc[1])],
-                (acc, x) => {
-                    const aa1 = ra(acc[0], x);
-                    const aa2 = rb(acc[1], x);
-                    if (reduced_1.isReduced(aa1) || reduced_1.isReduced(aa2)) {
-                        return reduced_1.reduced([reduced_1.unreduced(aa1), reduced_1.unreduced(aa2)]);
-                    }
-                    return [aa1, aa2];
-                }
-            ];
-        }
-        case 3: {
-            const ra = a[2];
-            const rb = b[2];
-            const rc = c[2];
-            return [
-                () => [a[0](), b[0](), c[0]()],
-                (acc) => [a[1](acc[0]), b[1](acc[1]), c[1](acc[2])],
-                (acc, x) => {
-                    const aa1 = ra(acc[0], x);
-                    const aa2 = rb(acc[1], x);
-                    const aa3 = rc(acc[2], x);
-                    if (reduced_1.isReduced(aa1) || reduced_1.isReduced(aa2) || reduced_1.isReduced(aa3)) {
-                        return reduced_1.reduced([reduced_1.unreduced(aa1), reduced_1.unreduced(aa2), reduced_1.unreduced(aa3)]);
-                    }
-                    return [aa1, aa2, aa3];
-                }
-            ];
-        }
-        default:
-            return [
-                () => rs.map((r) => r[0]()),
-                (acc) => rs.map((r, i) => r[1](acc[i])),
-                (acc, x) => {
-                    let done = false;
-                    const res = [];
-                    for (let i = 0; i < n; i++) {
-                        let a = rs[i][2](acc[i], x);
-                        if (reduced_1.isReduced(a)) {
-                            done = true;
-                            a = reduced_1.unreduced(a);
-                        }
-                        res[i] = a;
-                    }
-                    return done ? reduced_1.reduced(res) : res;
-                }
-            ];
-    }
-}
-exports.juxtR = juxtR;
-
-},{"../reduced":"../../../node_modules/@thi.ng/transducers/reduced.js"}],"../../../node_modules/@thi.ng/transducers/func/lookup.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Returns function accepting a single index arg used to
- * lookup value in given array. No bounds checks are done.
- *
- * ```
- * [...map(lookup1d([10, 20, 30]), [2,0,1])]
- * // [ 30, 10, 20 ]
- * ```
- *
- * @param src source data
- */
-function lookup1d(src) {
-    return (i) => src[i];
-}
-exports.lookup1d = lookup1d;
-/**
- * Returns function accepting a single `[x, y]` index tuple,
- * used to lookup value in given array. Useful for transducers
- * processing 2D data. **Note**: The source data MUST be in
- * row major linearized format, i.e. 1D representation of 2D data
- * (pixel buffer). No bounds checks are done.
- *
- * ```
- * [...map(lookup2d([...range(9)], 3), range2d(2, -1, 0, 3))]
- * // [ 2, 1, 0, 5, 4, 3, 8, 7, 6 ]
- * ```
- *
- * @param src source data
- * @param width number of items along X (columns)
- */
-function lookup2d(src, width) {
-    return (i) => src[i[0] + i[1] * width];
-}
-exports.lookup2d = lookup2d;
-/**
- * Same as `lookup2d()`, but for 3D data. The index ordering of the
- * source data MUST be in Z, Y, X order (i.e. a stack of row major 2D slices).
- * No bounds checks are done.
- *
- * @param src source data
- * @param width number of items along X (columns)
- * @param height number of items along Y (rows)
- */
-function lookup3d(src, width, height) {
-    const stridez = width * height;
-    return (i) => src[i[0] + i[1] * width + i[2] * stridez];
-}
-exports.lookup3d = lookup3d;
-
-},{}],"../../../node_modules/@thi.ng/transducers/func/odd.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var is_odd_1 = require("@thi.ng/checks/is-odd");
-exports.odd = is_odd_1.isOdd;
-
-},{"@thi.ng/checks/is-odd":"../../../node_modules/@thi.ng/checks/is-odd.js"}],"../../../node_modules/@thi.ng/transducers/func/peek.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Returns last element of given array.
- *
- * @param x
- */
-function peek(x) {
-    return x[x.length - 1];
-}
-exports.peek = peek;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/repeat.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* repeat(x, n = Infinity) {
-    while (n-- > 0) {
-        yield x;
-    }
-}
-exports.repeat = repeat;
-
-},{}],"../../../node_modules/@thi.ng/transducers/func/weighted-random.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const repeat_1 = require("../iter/repeat");
-const tuples_1 = require("../iter/tuples");
-/**
- * If `weights` are given, it must be the same size as `choices`. If omitted,
- * each choice will have same probability.
- *
- * https://www.electricmonk.nl/log/2009/12/23/weighted-random-distribution/
- *
- * @param choices
- * @param weights
- */
-function weightedRandom(choices, weights) {
-    const n = choices.length;
-    const opts = [...tuples_1.tuples(choices, weights || repeat_1.repeat(1))].sort((a, b) => b[1] - a[1]);
-    let total = 0, i, r, sum;
-    for (i = 0; i < n; i++) {
-        total += weights[i];
-    }
-    return () => {
-        r = Math.random() * total;
-        sum = total;
-        for (i = 0; i < n; i++) {
-            sum -= opts[i][1];
-            if (sum <= r) {
-                return opts[i][0];
-            }
-        }
-    };
-}
-exports.weightedRandom = weightedRandom;
-
-},{"../iter/repeat":"../../../node_modules/@thi.ng/transducers/iter/repeat.js","../iter/tuples":"../../../node_modules/@thi.ng/transducers/iter/tuples.js"}],"../../../node_modules/@thi.ng/transducers/iter/repeatedly.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* repeatedly(fn, n = Infinity) {
-    while (n-- > 0) {
-        yield fn();
-    }
-}
-exports.repeatedly = repeatedly;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/choices.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const weighted_random_1 = require("../func/weighted-random");
-const repeatedly_1 = require("./repeatedly");
-/**
- * Returns an infinite iterator of random choices and their (optional)
- * weights. If `weights` is given, it must have at least the same size
- * as `choices`. If omitted, each choice will have same probability.
- *
- * See: `weightedRandom()`
- *
- * ```
- * transduce(take(1000), frequencies(), choices("abcd", [1, 0.5, 0.25, 0.125]))
- * // Map { 'c' => 132, 'a' => 545, 'b' => 251, 'd' => 72 }
- * ```
- *
- * @param choices
- * @param weights
- */
-function choices(choices, weights) {
-    return repeatedly_1.repeatedly(weights ?
-        weighted_random_1.weightedRandom(choices, weights) :
-        () => choices[(Math.random() * choices.length) | 0]);
-}
-exports.choices = choices;
-
-},{"../func/weighted-random":"../../../node_modules/@thi.ng/transducers/func/weighted-random.js","./repeatedly":"../../../node_modules/@thi.ng/transducers/iter/repeatedly.js"}],"../../../node_modules/@thi.ng/transducers/func/random-id.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const choices_1 = require("../iter/choices");
-const take_1 = require("../xform/take");
-/**
- * Generates and returns a random string of `len` characters (default
- * 4), plus optional given `prefix` and using only provided `syms`
- * characters (default lowercase a-z).
- *
- * ```
- * randomID()
- * "qgdt"
- *
- * randomID(8, "id-", "0123456789ABCDEF")
- * "id-94EF6E1A"
- * ```
- *
- * @param len
- * @param prefix
- * @param syms
- */
-exports.randomID = (len = 4, prefix = "", syms = "abcdefghijklmnopqrstuvwxyz") => [prefix, ...take_1.take(len, choices_1.choices(syms))].join("");
-
-},{"../iter/choices":"../../../node_modules/@thi.ng/transducers/iter/choices.js","../xform/take":"../../../node_modules/@thi.ng/transducers/xform/take.js"}],"../../../node_modules/@thi.ng/transducers/iter/as-iterable.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Helper function to (re)provide given iterable in iterator form.
- *
- * @param src
- */
-function* asIterable(src) {
-    yield* src;
-}
-exports.asIterable = asIterable;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/concat.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const ensure_iterable_1 = require("../func/ensure-iterable");
-/**
- * Yields iterator producing concatenation of given iterables.
- * Undefined & null inputs are silently ignored, however any
- * such values produced or contained in an input will remain.
- *
- * ```
- * [...concat([1, 2, 3], null, [4, 5])]
- * // [ 1, 2, 3, 4, 5 ]
- *
- * [...concat([1, 2, 3, undefined], null, [4, 5])]
- * // [ 1, 2, 3, undefined, 4, 5 ]
- * ```
- *
- * @param xs
- */
-function* concat(...xs) {
-    for (let x of xs) {
-        x != null && (yield* ensure_iterable_1.ensureIterable(x));
-    }
-}
-exports.concat = concat;
-
-},{"../func/ensure-iterable":"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js"}],"../../../node_modules/@thi.ng/transducers/iter/cycle.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* cycle(input) {
-    let cache = [];
-    for (let i of input) {
-        cache.push(i);
-        yield i;
-    }
-    if (cache.length > 0) {
-        while (true) {
-            yield* cache;
-        }
-    }
-}
-exports.cycle = cycle;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/iterate.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* iterate(fn, seed) {
-    while (true) {
-        yield seed;
-        seed = fn(seed);
-    }
-}
-exports.iterate = iterate;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/keys.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* keys(x) {
-    for (let k in x) {
-        if (x.hasOwnProperty(k)) {
-            yield k;
-        }
-    }
-}
-exports.keys = keys;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/norm-range.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Yields sequence of `n+1` monotonically increasing numbers in the
- * closed interval (0.0 .. 1.0). If `n <= 0`, yields nothing.
- *
- * ```
- * [...normRange(4)]
- * // [0, 0.25, 0.5, 0.75, 1.0]
- * ```
- *
- * @param n number of steps
- * @param inclLast include last value (i.e. `1.0`)
- */
-function* normRange(n, inclLast = true) {
-    if (n > 0) {
-        for (let i = 0, m = inclLast ? n + 1 : n; i < m; i++) {
-            yield i / n;
-        }
-    }
-}
-exports.normRange = normRange;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/pairs.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* pairs(x) {
-    for (let k in x) {
-        if (x.hasOwnProperty(k)) {
-            yield [k, x[k]];
-        }
-    }
-}
-exports.pairs = pairs;
-
-},{}],"../../../node_modules/@thi.ng/transducers/iter/permutations.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-const ensure_array_1 = require("../func/ensure-array");
-const range_1 = require("./range");
-function* permutations(...src) {
-    const n = src.length - 1;
-    if (n < 0) {
-        return;
-    }
-    const step = new Array(n + 1).fill(0);
-    const realized = src.map(ensure_array_1.ensureArrayLike);
-    const total = realized.reduce((acc, x) => acc * x.length, 1);
-    for (let i = 0; i < total; i++) {
-        const tuple = [];
-        for (let j = n; j >= 0; j--) {
-            const r = realized[j];
-            let s = step[j];
-            if (s === r.length) {
-                step[j] = s = 0;
-                j > 0 && (step[j - 1]++);
-            }
-            tuple[j] = r[s];
-        }
-        step[n]++;
-        yield tuple;
-    }
-}
-exports.permutations = permutations;
-/**
- * Iterator yielding the Cartesian Product for `n` items of `m` values
- * each. If `m` is not given, defaults to value of `n`. The range of `m`
- * is `0..m-1`. The optional `offsets` array can be used to define start
- * values for each dimension.
- *
- * ```
- * [...permutationsN(2)]
- * // [ [0, 0], [0, 1], [1, 0], [1, 1] ]
- *
- * [...permutationsN(2, 3)]
- * // [ [0, 0], [0, 1], [0, 2],
- * //   [1, 0], [1, 1], [1, 2],
- * //   [2, 0], [2, 1], [2, 2] ]
- *
- * [...permutationsN(2, 3, [10, 20])]
- * // [ [ 10, 20 ], [ 10, 21 ], [ 11, 20 ], [ 11, 21 ] ]
- * ```
- *
- * @param n
- * @param m
- * @param offsets
- */
-function permutationsN(n, m = n, offsets) {
-    if (offsets && offsets.length < n) {
-        illegal_arguments_1.illegalArgs(`insufficient offsets, got ${offsets.length}, needed ${n}`);
-    }
-    const seqs = [];
-    while (--n >= 0) {
-        const o = offsets ? offsets[n] : 0;
-        seqs[n] = range_1.range(o, o + m);
-    }
-    return permutations.apply(null, seqs);
-}
-exports.permutationsN = permutationsN;
-
-},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js","./range":"../../../node_modules/@thi.ng/transducers/iter/range.js"}],"../../../node_modules/@thi.ng/transducers/iter/range3d.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
-const range_1 = require("./range");
-function* range3d(...args) {
-    let fromX, toX, fromY, toY, fromZ, toZ, stepX, stepY, stepZ;
-    switch (args.length) {
-        case 9:
-            stepX = args[6];
-            stepY = args[7];
-            stepZ = args[8];
-        case 6:
-            [fromX, toX, fromY, toY, fromZ, toZ] = args;
-            break;
-        case 3:
-            [toX, toY, toZ] = args;
-            fromX = fromY = fromZ = 0;
-            break;
-        default:
-            illegal_arity_1.illegalArity(args.length);
-    }
-    const rx = range_1.range(fromX, toX, stepX);
-    const ry = range_1.range(fromY, toY, stepY);
-    for (let z of range_1.range(fromZ, toZ, stepZ)) {
-        for (let y of ry) {
-            for (let x of rx) {
-                yield [x, y, z];
-            }
-        }
-    }
-}
-exports.range3d = range3d;
-
-},{"@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","./range":"../../../node_modules/@thi.ng/transducers/iter/range.js"}],"../../../node_modules/@thi.ng/transducers/iter/reverse.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const ensure_array_1 = require("../func/ensure-array");
-/**
- * Yields iterator which consumes input and yield its values in reverse
- * order. Important: Input MUST be finite.
- *
- * ```
- * [...tx.reverse("hello world")]
- * // [ "d", "l", "r", "o", "w", " ", "o", "l", "l", "e", "h" ]
- * ```
- *
- * @param input
- */
-function* reverse(input) {
-    const _input = ensure_array_1.ensureArray(input);
-    let n = _input.length;
-    while (--n >= 0) {
-        yield _input[n];
-    }
-}
-exports.reverse = reverse;
-
-},{"../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js"}],"../../../node_modules/@thi.ng/transducers/iter/vals.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function* vals(x) {
-    for (let k in x) {
-        if (x.hasOwnProperty(k)) {
-            yield x[k];
-        }
-    }
-}
-exports.vals = vals;
-
-},{}],"../../../node_modules/@thi.ng/transducers/index.js":[function(require,module,exports) {
-"use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./iterator"));
-__export(require("./reduce"));
-__export(require("./reduced"));
-__export(require("./run"));
-__export(require("./step"));
-__export(require("./transduce"));
-__export(require("./rfn/add"));
-__export(require("./rfn/assoc-map"));
-__export(require("./rfn/assoc-obj"));
-__export(require("./rfn/conj"));
-__export(require("./rfn/count"));
-__export(require("./rfn/div"));
-__export(require("./rfn/every"));
-__export(require("./rfn/fill"));
-__export(require("./rfn/frequencies"));
-__export(require("./rfn/group-binary"));
-__export(require("./rfn/group-by-map"));
-__export(require("./rfn/group-by-obj"));
-__export(require("./rfn/last"));
-__export(require("./rfn/max-compare"));
-__export(require("./rfn/max"));
-__export(require("./rfn/mean"));
-__export(require("./rfn/min-compare"));
-__export(require("./rfn/min"));
-__export(require("./rfn/mul"));
-__export(require("./rfn/push-copy"));
-__export(require("./rfn/push"));
-__export(require("./rfn/reductions"));
-__export(require("./rfn/some"));
-__export(require("./rfn/str"));
-__export(require("./rfn/sub"));
-__export(require("./xform/base64"));
-__export(require("./xform/benchmark"));
-__export(require("./xform/bits"));
-__export(require("./xform/cat"));
-__export(require("./xform/convolve"));
-__export(require("./xform/dedupe"));
-__export(require("./xform/delayed"));
-__export(require("./xform/distinct"));
-__export(require("./xform/drop-nth"));
-__export(require("./xform/drop-while"));
-__export(require("./xform/drop"));
-__export(require("./xform/duplicate"));
-__export(require("./xform/filter"));
-__export(require("./xform/filter-fuzzy"));
-__export(require("./xform/flatten-with"));
-__export(require("./xform/flatten"));
-__export(require("./xform/hex-dump"));
-__export(require("./xform/indexed"));
-__export(require("./xform/interleave"));
-__export(require("./xform/interpose"));
-__export(require("./xform/keep"));
-__export(require("./xform/labeled"));
-__export(require("./xform/map-deep"));
-__export(require("./xform/map-indexed"));
-__export(require("./xform/map-keys"));
-__export(require("./xform/map-nth"));
-__export(require("./xform/map-vals"));
-__export(require("./xform/map"));
-__export(require("./xform/mapcat"));
-__export(require("./xform/match-first"));
-__export(require("./xform/match-last"));
-__export(require("./xform/moving-average"));
-__export(require("./xform/moving-median"));
-__export(require("./xform/multiplex"));
-__export(require("./xform/multiplex-obj"));
-__export(require("./xform/noop"));
-__export(require("./xform/pad-last"));
-__export(require("./xform/page"));
-__export(require("./xform/partition-bits"));
-__export(require("./xform/partition-by"));
-__export(require("./xform/partition-of"));
-__export(require("./xform/partition-sort"));
-__export(require("./xform/partition-sync"));
-__export(require("./xform/partition"));
-__export(require("./xform/pluck"));
-__export(require("./xform/rename"));
-__export(require("./xform/sample"));
-__export(require("./xform/scan"));
-__export(require("./xform/select-keys"));
-__export(require("./xform/side-effect"));
-__export(require("./xform/sliding-window"));
-__export(require("./xform/stream-shuffle"));
-__export(require("./xform/stream-sort"));
-__export(require("./xform/struct"));
-__export(require("./xform/swizzle"));
-__export(require("./xform/take-nth"));
-__export(require("./xform/take-last"));
-__export(require("./xform/take-while"));
-__export(require("./xform/take"));
-__export(require("./xform/throttle"));
-__export(require("./xform/throttle-time"));
-__export(require("./xform/trace"));
-__export(require("./xform/utf8"));
-__export(require("./xform/word-wrap"));
-__export(require("./func/binary-search"));
-__export(require("./func/comp"));
-__export(require("./func/compr"));
-__export(require("./func/constantly"));
-__export(require("./func/deep-transform"));
-__export(require("./func/delay"));
-__export(require("./func/ensure-array"));
-__export(require("./func/ensure-iterable"));
-__export(require("./func/even"));
-__export(require("./func/fuzzy-match"));
-__export(require("./func/hex"));
-__export(require("./func/identity"));
-__export(require("./func/juxt"));
-__export(require("./func/juxtr"));
-__export(require("./func/key-selector"));
-__export(require("./func/lookup"));
-__export(require("./func/odd"));
-__export(require("./func/peek"));
-__export(require("./func/random-id"));
-__export(require("./func/renamer"));
-__export(require("./func/swizzler"));
-__export(require("./func/weighted-random"));
-__export(require("./iter/as-iterable"));
-__export(require("./iter/choices"));
-__export(require("./iter/concat"));
-__export(require("./iter/cycle"));
-__export(require("./iter/iterate"));
-__export(require("./iter/keys"));
-__export(require("./iter/norm-range"));
-__export(require("./iter/pairs"));
-__export(require("./iter/permutations"));
-__export(require("./iter/range"));
-__export(require("./iter/range2d"));
-__export(require("./iter/range3d"));
-__export(require("./iter/repeat"));
-__export(require("./iter/repeatedly"));
-__export(require("./iter/reverse"));
-__export(require("./iter/tuples"));
-__export(require("./iter/vals"));
-__export(require("./iter/wrap"));
-
-},{"./iterator":"../../../node_modules/@thi.ng/transducers/iterator.js","./reduce":"../../../node_modules/@thi.ng/transducers/reduce.js","./reduced":"../../../node_modules/@thi.ng/transducers/reduced.js","./run":"../../../node_modules/@thi.ng/transducers/run.js","./step":"../../../node_modules/@thi.ng/transducers/step.js","./transduce":"../../../node_modules/@thi.ng/transducers/transduce.js","./rfn/add":"../../../node_modules/@thi.ng/transducers/rfn/add.js","./rfn/assoc-map":"../../../node_modules/@thi.ng/transducers/rfn/assoc-map.js","./rfn/assoc-obj":"../../../node_modules/@thi.ng/transducers/rfn/assoc-obj.js","./rfn/conj":"../../../node_modules/@thi.ng/transducers/rfn/conj.js","./rfn/count":"../../../node_modules/@thi.ng/transducers/rfn/count.js","./rfn/div":"../../../node_modules/@thi.ng/transducers/rfn/div.js","./rfn/every":"../../../node_modules/@thi.ng/transducers/rfn/every.js","./rfn/fill":"../../../node_modules/@thi.ng/transducers/rfn/fill.js","./rfn/frequencies":"../../../node_modules/@thi.ng/transducers/rfn/frequencies.js","./rfn/group-binary":"../../../node_modules/@thi.ng/transducers/rfn/group-binary.js","./rfn/group-by-map":"../../../node_modules/@thi.ng/transducers/rfn/group-by-map.js","./rfn/group-by-obj":"../../../node_modules/@thi.ng/transducers/rfn/group-by-obj.js","./rfn/last":"../../../node_modules/@thi.ng/transducers/rfn/last.js","./rfn/max-compare":"../../../node_modules/@thi.ng/transducers/rfn/max-compare.js","./rfn/max":"../../../node_modules/@thi.ng/transducers/rfn/max.js","./rfn/mean":"../../../node_modules/@thi.ng/transducers/rfn/mean.js","./rfn/min-compare":"../../../node_modules/@thi.ng/transducers/rfn/min-compare.js","./rfn/min":"../../../node_modules/@thi.ng/transducers/rfn/min.js","./rfn/mul":"../../../node_modules/@thi.ng/transducers/rfn/mul.js","./rfn/push-copy":"../../../node_modules/@thi.ng/transducers/rfn/push-copy.js","./rfn/push":"../../../node_modules/@thi.ng/transducers/rfn/push.js","./rfn/reductions":"../../../node_modules/@thi.ng/transducers/rfn/reductions.js","./rfn/some":"../../../node_modules/@thi.ng/transducers/rfn/some.js","./rfn/str":"../../../node_modules/@thi.ng/transducers/rfn/str.js","./rfn/sub":"../../../node_modules/@thi.ng/transducers/rfn/sub.js","./xform/base64":"../../../node_modules/@thi.ng/transducers/xform/base64.js","./xform/benchmark":"../../../node_modules/@thi.ng/transducers/xform/benchmark.js","./xform/bits":"../../../node_modules/@thi.ng/transducers/xform/bits.js","./xform/cat":"../../../node_modules/@thi.ng/transducers/xform/cat.js","./xform/convolve":"../../../node_modules/@thi.ng/transducers/xform/convolve.js","./xform/dedupe":"../../../node_modules/@thi.ng/transducers/xform/dedupe.js","./xform/delayed":"../../../node_modules/@thi.ng/transducers/xform/delayed.js","./xform/distinct":"../../../node_modules/@thi.ng/transducers/xform/distinct.js","./xform/drop-nth":"../../../node_modules/@thi.ng/transducers/xform/drop-nth.js","./xform/drop-while":"../../../node_modules/@thi.ng/transducers/xform/drop-while.js","./xform/drop":"../../../node_modules/@thi.ng/transducers/xform/drop.js","./xform/duplicate":"../../../node_modules/@thi.ng/transducers/xform/duplicate.js","./xform/filter":"../../../node_modules/@thi.ng/transducers/xform/filter.js","./xform/filter-fuzzy":"../../../node_modules/@thi.ng/transducers/xform/filter-fuzzy.js","./xform/flatten-with":"../../../node_modules/@thi.ng/transducers/xform/flatten-with.js","./xform/flatten":"../../../node_modules/@thi.ng/transducers/xform/flatten.js","./xform/hex-dump":"../../../node_modules/@thi.ng/transducers/xform/hex-dump.js","./xform/indexed":"../../../node_modules/@thi.ng/transducers/xform/indexed.js","./xform/interleave":"../../../node_modules/@thi.ng/transducers/xform/interleave.js","./xform/interpose":"../../../node_modules/@thi.ng/transducers/xform/interpose.js","./xform/keep":"../../../node_modules/@thi.ng/transducers/xform/keep.js","./xform/labeled":"../../../node_modules/@thi.ng/transducers/xform/labeled.js","./xform/map-deep":"../../../node_modules/@thi.ng/transducers/xform/map-deep.js","./xform/map-indexed":"../../../node_modules/@thi.ng/transducers/xform/map-indexed.js","./xform/map-keys":"../../../node_modules/@thi.ng/transducers/xform/map-keys.js","./xform/map-nth":"../../../node_modules/@thi.ng/transducers/xform/map-nth.js","./xform/map-vals":"../../../node_modules/@thi.ng/transducers/xform/map-vals.js","./xform/map":"../../../node_modules/@thi.ng/transducers/xform/map.js","./xform/mapcat":"../../../node_modules/@thi.ng/transducers/xform/mapcat.js","./xform/match-first":"../../../node_modules/@thi.ng/transducers/xform/match-first.js","./xform/match-last":"../../../node_modules/@thi.ng/transducers/xform/match-last.js","./xform/moving-average":"../../../node_modules/@thi.ng/transducers/xform/moving-average.js","./xform/moving-median":"../../../node_modules/@thi.ng/transducers/xform/moving-median.js","./xform/multiplex":"../../../node_modules/@thi.ng/transducers/xform/multiplex.js","./xform/multiplex-obj":"../../../node_modules/@thi.ng/transducers/xform/multiplex-obj.js","./xform/noop":"../../../node_modules/@thi.ng/transducers/xform/noop.js","./xform/pad-last":"../../../node_modules/@thi.ng/transducers/xform/pad-last.js","./xform/page":"../../../node_modules/@thi.ng/transducers/xform/page.js","./xform/partition-bits":"../../../node_modules/@thi.ng/transducers/xform/partition-bits.js","./xform/partition-by":"../../../node_modules/@thi.ng/transducers/xform/partition-by.js","./xform/partition-of":"../../../node_modules/@thi.ng/transducers/xform/partition-of.js","./xform/partition-sort":"../../../node_modules/@thi.ng/transducers/xform/partition-sort.js","./xform/partition-sync":"../../../node_modules/@thi.ng/transducers/xform/partition-sync.js","./xform/partition":"../../../node_modules/@thi.ng/transducers/xform/partition.js","./xform/pluck":"../../../node_modules/@thi.ng/transducers/xform/pluck.js","./xform/rename":"../../../node_modules/@thi.ng/transducers/xform/rename.js","./xform/sample":"../../../node_modules/@thi.ng/transducers/xform/sample.js","./xform/scan":"../../../node_modules/@thi.ng/transducers/xform/scan.js","./xform/select-keys":"../../../node_modules/@thi.ng/transducers/xform/select-keys.js","./xform/side-effect":"../../../node_modules/@thi.ng/transducers/xform/side-effect.js","./xform/sliding-window":"../../../node_modules/@thi.ng/transducers/xform/sliding-window.js","./xform/stream-shuffle":"../../../node_modules/@thi.ng/transducers/xform/stream-shuffle.js","./xform/stream-sort":"../../../node_modules/@thi.ng/transducers/xform/stream-sort.js","./xform/struct":"../../../node_modules/@thi.ng/transducers/xform/struct.js","./xform/swizzle":"../../../node_modules/@thi.ng/transducers/xform/swizzle.js","./xform/take-nth":"../../../node_modules/@thi.ng/transducers/xform/take-nth.js","./xform/take-last":"../../../node_modules/@thi.ng/transducers/xform/take-last.js","./xform/take-while":"../../../node_modules/@thi.ng/transducers/xform/take-while.js","./xform/take":"../../../node_modules/@thi.ng/transducers/xform/take.js","./xform/throttle":"../../../node_modules/@thi.ng/transducers/xform/throttle.js","./xform/throttle-time":"../../../node_modules/@thi.ng/transducers/xform/throttle-time.js","./xform/trace":"../../../node_modules/@thi.ng/transducers/xform/trace.js","./xform/utf8":"../../../node_modules/@thi.ng/transducers/xform/utf8.js","./xform/word-wrap":"../../../node_modules/@thi.ng/transducers/xform/word-wrap.js","./func/binary-search":"../../../node_modules/@thi.ng/transducers/func/binary-search.js","./func/comp":"../../../node_modules/@thi.ng/transducers/func/comp.js","./func/compr":"../../../node_modules/@thi.ng/transducers/func/compr.js","./func/constantly":"../../../node_modules/@thi.ng/transducers/func/constantly.js","./func/deep-transform":"../../../node_modules/@thi.ng/transducers/func/deep-transform.js","./func/delay":"../../../node_modules/@thi.ng/transducers/func/delay.js","./func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js","./func/ensure-iterable":"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js","./func/even":"../../../node_modules/@thi.ng/transducers/func/even.js","./func/fuzzy-match":"../../../node_modules/@thi.ng/transducers/func/fuzzy-match.js","./func/hex":"../../../node_modules/@thi.ng/transducers/func/hex.js","./func/identity":"../../../node_modules/@thi.ng/transducers/func/identity.js","./func/juxt":"../../../node_modules/@thi.ng/transducers/func/juxt.js","./func/juxtr":"../../../node_modules/@thi.ng/transducers/func/juxtr.js","./func/key-selector":"../../../node_modules/@thi.ng/transducers/func/key-selector.js","./func/lookup":"../../../node_modules/@thi.ng/transducers/func/lookup.js","./func/odd":"../../../node_modules/@thi.ng/transducers/func/odd.js","./func/peek":"../../../node_modules/@thi.ng/transducers/func/peek.js","./func/random-id":"../../../node_modules/@thi.ng/transducers/func/random-id.js","./func/renamer":"../../../node_modules/@thi.ng/transducers/func/renamer.js","./func/swizzler":"../../../node_modules/@thi.ng/transducers/func/swizzler.js","./func/weighted-random":"../../../node_modules/@thi.ng/transducers/func/weighted-random.js","./iter/as-iterable":"../../../node_modules/@thi.ng/transducers/iter/as-iterable.js","./iter/choices":"../../../node_modules/@thi.ng/transducers/iter/choices.js","./iter/concat":"../../../node_modules/@thi.ng/transducers/iter/concat.js","./iter/cycle":"../../../node_modules/@thi.ng/transducers/iter/cycle.js","./iter/iterate":"../../../node_modules/@thi.ng/transducers/iter/iterate.js","./iter/keys":"../../../node_modules/@thi.ng/transducers/iter/keys.js","./iter/norm-range":"../../../node_modules/@thi.ng/transducers/iter/norm-range.js","./iter/pairs":"../../../node_modules/@thi.ng/transducers/iter/pairs.js","./iter/permutations":"../../../node_modules/@thi.ng/transducers/iter/permutations.js","./iter/range":"../../../node_modules/@thi.ng/transducers/iter/range.js","./iter/range2d":"../../../node_modules/@thi.ng/transducers/iter/range2d.js","./iter/range3d":"../../../node_modules/@thi.ng/transducers/iter/range3d.js","./iter/repeat":"../../../node_modules/@thi.ng/transducers/iter/repeat.js","./iter/repeatedly":"../../../node_modules/@thi.ng/transducers/iter/repeatedly.js","./iter/reverse":"../../../node_modules/@thi.ng/transducers/iter/reverse.js","./iter/tuples":"../../../node_modules/@thi.ng/transducers/iter/tuples.js","./iter/vals":"../../../node_modules/@thi.ng/transducers/iter/vals.js","./iter/wrap":"../../../node_modules/@thi.ng/transducers/iter/wrap.js"}],"../../../node_modules/@tstackgl/geometry/dist/calc/extrude/extrude.js":[function(require,module,exports) {
+},{"gl-vec2":"../../../node_modules/gl-vec2/index.js"}],"../../../node_modules/@tstackgl/geometry/dist/calc/extrude/extrude.js":[function(require,module,exports) {
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -20681,87 +20793,7 @@ function createCamera (regl, props_) {
   return setupCamera
 }
 
-},{"mouse-change":"../../../node_modules/mouse-change/mouse-listen.js","mouse-wheel":"../../../node_modules/mouse-wheel/wheel.js","gl-mat4/identity":"../../../node_modules/gl-mat4/identity.js","gl-mat4/perspective":"../../../node_modules/gl-mat4/perspective.js","gl-mat4/lookAt":"../../../node_modules/gl-mat4/lookAt.js"}],"draw-mesh-wireframe.ts":[function(require,module,exports) {
-"use strict";
-
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
-
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
-  }
-
-  return ar;
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var transducers_1 = require("@thi.ng/transducers");
-
-var vert = "\nprecision mediump float;\nuniform mat4 projection, view;\nattribute vec3 position;\nvoid main () {\n  vec4 mpos = projection * view * vec4(position, 1.0);\n  gl_Position = mpos;\n}";
-var frag = "\nprecision mediump float;\nuniform vec3 color, fogColor;\nuniform float fogDensity;\n\nfloat fogFactorExp(\n  const float dist,\n  const float density\n) {\n  return 1.0 - clamp(exp(-density * dist), 0.0, 1.0);\n}\n\nvoid main () {\n  float fogDistance = gl_FragCoord.z / gl_FragCoord.w;\n  float fogAmount = fogFactorExp(fogDistance, fogDensity);\n\n  gl_FragColor = vec4(mix(color, fogColor, fogAmount), 1);\n}";
-
-exports.triangleToSegments = function (face) {
-  return __spread(transducers_1.partition(2, 1, transducers_1.wrap(face, 1, false, true)));
-};
-
-exports.cellsToWireframeEdge = function (cells) {
-  return transducers_1.mapcat(function (x) {
-    return x;
-  }, transducers_1.map(exports.triangleToSegments, cells));
-}; // const input: Vec3[] = [[1, 0, 3], [3, 2, 1], [5, 4, 7]]
-// const expected = [[1, 0], [0, 3], [3, 1], [3, 2], [2, 1], [1, 3], [5, 4], [4, 7], [7, 5]]
-
-
-function createDrawMeshWireframe(regl, mesh) {
-  var wireframeCells = __spread(exports.cellsToWireframeEdge(mesh.cells));
-
-  var draw = regl({
-    frag: frag,
-    vert: vert,
-    attributes: {
-      position: function () {
-        return mesh.positions;
-      }
-    },
-    uniforms: {
-      color: regl.prop('color'),
-      fogColor: regl.prop('fogColor'),
-      fogDensity: regl.prop('fogDensity')
-    },
-    elements: wireframeCells,
-    primitive: 'lines'
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createDrawMeshWireframe = createDrawMeshWireframe;
-},{"@thi.ng/transducers":"../../../node_modules/@thi.ng/transducers/index.js"}],"primitive-cylinder.ts":[function(require,module,exports) {
+},{"mouse-change":"../../../node_modules/mouse-change/mouse-listen.js","mouse-wheel":"../../../node_modules/mouse-wheel/wheel.js","gl-mat4/identity":"../../../node_modules/gl-mat4/identity.js","gl-mat4/perspective":"../../../node_modules/gl-mat4/perspective.js","gl-mat4/lookAt":"../../../node_modules/gl-mat4/lookAt.js"}],"primitive-cylinder.ts":[function(require,module,exports) {
 "use strict";
 
 var __read = this && this.__read || function (o, n) {
@@ -20881,41 +20913,7 @@ function createCylinder(radiusTop, radiusBottom, height, radialSegments) {
 }
 
 exports.createCylinder = createCylinder;
-},{"@thi.ng/transducers":"../../../node_modules/@thi.ng/transducers/index.js","@tstackgl/geometry":"../../../node_modules/@tstackgl/geometry/dist/index.js"}],"draw-basic-mesh.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var vert = "\nprecision mediump float;\n\nuniform mat4 projection, view;\nuniform mat4 rotationMat;\nuniform vec3 direction;\nuniform vec3 translate, scale;\nattribute vec3 position, normal;\nvarying vec3 vViewPos;\n\nvoid main () {\n  \n  vec3 positionScaled = (position * scale);\n  vec3 positionRotated = vec3(rotationMat * vec4(positionScaled, 0.0));\n  vec3 modelPosition = positionRotated + translate;\n\n  vec4 mpos = projection * view * vec4(modelPosition, 1.0);\n\n  vViewPos = -(projection * view * vec4(modelPosition, 1.0)).xyz;\n  gl_Position = mpos;\n}\n";
-var frag = "\nprecision mediump float;\n#extension GL_OES_standard_derivatives: enable\n\nuniform vec3 diffuseColor, ambientColor, lightDirection;\nvarying vec3 vViewPos;\n\nvec3 faceNormal(vec3 pos) {\n  vec3 fdx = dFdx(pos);\n  vec3 fdy = dFdy(pos);\n  return normalize(cross(fdx, fdy));\n}\n\nvoid main () {\n  vec3 normal = faceNormal(vViewPos);\n\n  float brightness = max(\n    dot(\n      normalize(lightDirection),\n      normalize(normal)\n    ), 0.4);\n  vec3 lightColor = ambientColor + diffuseColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-
-function createBasicMesh(regl, mesh) {
-  var draw = regl({
-    vert: vert,
-    frag: frag,
-    attributes: {
-      position: mesh.positions
-    },
-    uniforms: {
-      translate: regl.prop('translate'),
-      scale: regl.prop('scale'),
-      rotationMat: regl.prop('rotationMat'),
-      diffuseColor: regl.prop('diffuseColor'),
-      ambientColor: regl.prop('ambientColor'),
-      lightDirection: regl.prop('lightDirection')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createBasicMesh = createBasicMesh;
-},{}],"../../../node_modules/gl-vec4/add.js":[function(require,module,exports) {
+},{"@thi.ng/transducers":"../../../node_modules/@thi.ng/transducers/index.js","@tstackgl/geometry":"../../../node_modules/@tstackgl/geometry/dist/index.js"}],"../../../node_modules/gl-vec4/add.js":[function(require,module,exports) {
 module.exports = add
 
 /**
@@ -21742,7 +21740,7 @@ module.exports = {
   squaredLength: require('./squaredLength')
 }
 
-},{"./add":"../../../node_modules/gl-quat/add.js","./calculateW":"../../../node_modules/gl-quat/calculateW.js","./clone":"../../../node_modules/gl-quat/clone.js","./conjugate":"../../../node_modules/gl-quat/conjugate.js","./copy":"../../../node_modules/gl-quat/copy.js","./create":"../../../node_modules/gl-quat/create.js","./dot":"../../../node_modules/gl-quat/dot.js","./fromMat3":"../../../node_modules/gl-quat/fromMat3.js","./fromValues":"../../../node_modules/gl-quat/fromValues.js","./identity":"../../../node_modules/gl-quat/identity.js","./invert":"../../../node_modules/gl-quat/invert.js","./length":"../../../node_modules/gl-quat/length.js","./lerp":"../../../node_modules/gl-quat/lerp.js","./multiply":"../../../node_modules/gl-quat/multiply.js","./normalize":"../../../node_modules/gl-quat/normalize.js","./rotateX":"../../../node_modules/gl-quat/rotateX.js","./rotateY":"../../../node_modules/gl-quat/rotateY.js","./rotateZ":"../../../node_modules/gl-quat/rotateZ.js","./rotationTo":"../../../node_modules/gl-quat/rotationTo.js","./scale":"../../../node_modules/gl-quat/scale.js","./set":"../../../node_modules/gl-quat/set.js","./setAxes":"../../../node_modules/gl-quat/setAxes.js","./setAxisAngle":"../../../node_modules/gl-quat/setAxisAngle.js","./slerp":"../../../node_modules/gl-quat/slerp.js","./sqlerp":"../../../node_modules/gl-quat/sqlerp.js","./squaredLength":"../../../node_modules/gl-quat/squaredLength.js"}],"pointTowards.ts":[function(require,module,exports) {
+},{"./add":"../../../node_modules/gl-quat/add.js","./calculateW":"../../../node_modules/gl-quat/calculateW.js","./clone":"../../../node_modules/gl-quat/clone.js","./conjugate":"../../../node_modules/gl-quat/conjugate.js","./copy":"../../../node_modules/gl-quat/copy.js","./create":"../../../node_modules/gl-quat/create.js","./dot":"../../../node_modules/gl-quat/dot.js","./fromMat3":"../../../node_modules/gl-quat/fromMat3.js","./fromValues":"../../../node_modules/gl-quat/fromValues.js","./identity":"../../../node_modules/gl-quat/identity.js","./invert":"../../../node_modules/gl-quat/invert.js","./length":"../../../node_modules/gl-quat/length.js","./lerp":"../../../node_modules/gl-quat/lerp.js","./multiply":"../../../node_modules/gl-quat/multiply.js","./normalize":"../../../node_modules/gl-quat/normalize.js","./rotateX":"../../../node_modules/gl-quat/rotateX.js","./rotateY":"../../../node_modules/gl-quat/rotateY.js","./rotateZ":"../../../node_modules/gl-quat/rotateZ.js","./rotationTo":"../../../node_modules/gl-quat/rotationTo.js","./scale":"../../../node_modules/gl-quat/scale.js","./set":"../../../node_modules/gl-quat/set.js","./setAxes":"../../../node_modules/gl-quat/setAxes.js","./setAxisAngle":"../../../node_modules/gl-quat/setAxisAngle.js","./slerp":"../../../node_modules/gl-quat/slerp.js","./sqlerp":"../../../node_modules/gl-quat/sqlerp.js","./squaredLength":"../../../node_modules/gl-quat/squaredLength.js"}],"draw-normal-line.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -21754,161 +21752,41 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var gl_mat4_1 = __importDefault(require("gl-mat4"));
 
 var gl_vec3_1 = __importDefault(require("gl-vec3"));
 
-var gl_quat_1 = __importDefault(require("gl-quat"));
+var vert = "\nprecision mediump float;\nuniform mat4 projection, view;\nattribute vec3 position;\nvoid main () {\n  vec4 mpos = projection * view * vec4(position, 1.0);\n  gl_Position = mpos;\n}";
+var frag = "\nprecision mediump float;\nuniform vec3 color;\nvoid main () {\n  gl_FragColor = vec4(color, 1.0);\n}";
 
-function getAlignmentQuat(dir, forward) {
-  var target = gl_vec3_1.default.normalize(gl_vec3_1.default.create(), dir);
-  var axis = gl_vec3_1.default.cross(gl_vec3_1.default.create(), forward, target);
-  var length = gl_vec3_1.default.length(axis) + 0.0001;
-  var angle = Math.atan2(length, gl_vec3_1.default.dot(forward, target));
-  return createFromAxisAngle(axis, angle);
-}
-
-exports.getAlignmentQuat = getAlignmentQuat;
-
-function createFromAxisAngle(axis, angle) {
-  // https://github.com/stackgl/gl-quat/blob/master/setAxisAngle.js
-  angle *= 0.5;
-  var sin = Math.sin(angle);
-  var cos = Math.cos(angle);
-  var q = gl_quat_1.default.create();
-  var axisNorm = normalizeTo(gl_vec3_1.default.create(), axis, sin);
-  q[0] = axisNorm[0];
-  q[1] = axisNorm[1];
-  q[2] = axisNorm[2];
-  q[3] = cos;
-  return q;
-}
-
-exports.createFromAxisAngle = createFromAxisAngle;
-
-function normalizeTo(out, a, len) {
-  var mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
-
-  if (mag > 0) {
-    mag = len / mag;
-    out[0] = a[0] * mag;
-    out[1] = a[1] * mag;
-    out[2] = a[2] * mag;
+function createDrawMeshNormalLine(regl, point, normal, len) {
+  if (len === void 0) {
+    len = 1;
   }
 
-  return out;
+  var p2 = gl_vec3_1.default.create();
+  gl_vec3_1.default.scale(p2, normal, len);
+  gl_vec3_1.default.add(p2, point, p2);
+  var positions = [point, p2];
+  var cells = [0, 1];
+  var draw = regl({
+    frag: frag,
+    vert: vert,
+    attributes: {
+      position: positions
+    },
+    uniforms: {
+      color: regl.prop('color')
+    },
+    elements: cells,
+    primitive: 'line loop'
+  });
+  return {
+    draw: draw
+  };
 }
 
-exports.normalizeTo = normalizeTo;
-
-function pointTowardsMat(dir) {
-  var q = getAlignmentQuat(dir, [0, 0, 1]); // return mat4.fromQuat(mat4.create(), q)
-
-  return quatToMatrix4x4(gl_mat4_1.default.create(), q); // this is like mat4.fromQuat but transposed
-}
-
-exports.pointTowardsMat = pointTowardsMat;
-
-function quatToMatrix4x4(out, q) {
-  // Converts this quaternion to a rotation matrix.
-  //
-  // | 1 - 2(y^2 + z^2) 2(xy + wz) 2(xz - wy) 0 |
-  // | 2(xy - wz) 1 - 2(x^2 + z^2) 2(yz + wx) 0 |
-  // | 2(xz + wy) 2(yz - wx) 1 - 2(x^2 + y^2) 0 |
-  // | 0 0 0 1 |
-  var x = q[0];
-  var y = q[1];
-  var z = q[2];
-  var w = q[3];
-  var x2 = x + x;
-  var y2 = y + y;
-  var z2 = z + z;
-  var xx = x * x2;
-  var xy = x * y2;
-  var xz = x * z2;
-  var yy = y * y2;
-  var yz = y * z2;
-  var zz = z * z2;
-  var wx = w * x2;
-  var wy = w * y2;
-  var wz = w * z2;
-  out[0] = 1 - (yy + zz);
-  out[1] = xy - wz;
-  out[2] = xz + wy;
-  out[3] = 0;
-  out[4] = xy + wz;
-  out[5] = 1 - (xx + zz);
-  out[6] = yz - wx;
-  out[7] = 0;
-  out[8] = xz - wy;
-  out[9] = yz + wx;
-  out[10] = 1 - (xx + yy);
-  out[11] = 0;
-  out[12] = 0;
-  out[13] = 0;
-  out[14] = 0;
-  out[15] = 1;
-  return out;
-}
-/*
-
-TOXICLIBS point toward
-
-WETMesh pointTowards(ReadonlyVec3D dir) {
-  mesh.transform(
-    Quaternion.getAlignmentQuat(dir, Vec3D.Z_AXIS).toMatrix4x4(matrix),
-    true
-  );
-}
-
-public static Quaternion getAlignmentQuat(
-  ReadonlyVec3D dir,
-  ReadonlyVec3D forward)
-{
-  Vec3D target = dir.getNormalized();
-  ReadonlyVec3D axis = forward.cross(target);
-  float length = axis.magnitude() + 0.0001f;
-  float angle = (float) Math.atan2(length, forward.dot(target));
-  return createFromAxisAngle(axis, angle);
-}
-
-public static Quaternion createFromAxisAngle(ReadonlyVec3D axis, float angle) {
-  angle *= 0.5;
-  float sin = MathUtils.sin(angle);
-  float cos = MathUtils.cos(angle);
-  Quaternion q = new Quaternion(cos, axis.getNormalizedTo(sin));
-  return q;
-}
-
-public Matrix4x4 toMatrix4x4(Matrix4x4 result) {
-    // Converts this quaternion to a rotation matrix.
-    //
-    // | 1 - 2(y^2 + z^2) 2(xy + wz) 2(xz - wy) 0 |
-    // | 2(xy - wz) 1 - 2(x^2 + z^2) 2(yz + wx) 0 |
-    // | 2(xz + wy) 2(yz - wx) 1 - 2(x^2 + y^2) 0 |
-    // | 0 0 0 1 |
-
-    float x2 = x + x;
-    float y2 = y + y;
-    float z2 = z + z;
-    float xx = x * x2;
-    float xy = x * y2;
-    float xz = x * z2;
-    float yy = y * y2;
-    float yz = y * z2;
-    float zz = z * z2;
-    float wx = w * x2;
-    float wy = w * y2;
-    float wz = w * z2;
-
-    return result.set(1 - (yy + zz), xy - wz, xz + wy, 0, xy + wz,
-            1 - (xx + zz), yz - wx, 0, xz - wy, yz + wx, 1 - (xx + yy), 0,
-            0, 0, 0, 1);
-}
-
-*/
-},{"gl-mat4":"../../../node_modules/gl-mat4/index.js","gl-vec3":"../../../node_modules/gl-vec3/index.js","gl-quat":"../../../node_modules/gl-quat/index.js"}],"index.ts":[function(require,module,exports) {
+exports.createDrawMeshNormalLine = createDrawMeshNormalLine;
+},{"gl-vec3":"../../../node_modules/gl-vec3/index.js"}],"scene1.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -21921,13 +21799,13 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var regl_1 = __importDefault(require("regl"));
+var draw_mesh_wireframe_1 = require("./draw-mesh-wireframe");
 
-var hdom_1 = require("@thi.ng/hdom");
+var draw_basic_mesh_1 = require("./draw-basic-mesh");
 
 var canvas_1 = require("@thi.ng/hdom-components/canvas");
 
-var checks_1 = require("@thi.ng/checks");
+var regl_1 = __importDefault(require("regl"));
 
 var regl_draw_1 = require("@tstackgl/regl-draw");
 
@@ -21935,25 +21813,28 @@ var regl_camera_1 = __importDefault(require("regl-camera"));
 
 var primitive_icosphere_1 = __importDefault(require("primitive-icosphere"));
 
-var draw_mesh_wireframe_1 = require("./draw-mesh-wireframe");
+var primitive_cylinder_1 = require("./primitive-cylinder");
 
 var geometry_1 = require("@tstackgl/geometry");
 
-var primitive_cylinder_1 = require("./primitive-cylinder");
-
-var draw_basic_mesh_1 = require("./draw-basic-mesh");
-
 var gl_vec3_1 = __importDefault(require("gl-vec3"));
 
-var pointTowards_1 = require("./pointTowards");
+var gl_mat4_1 = __importDefault(require("gl-mat4"));
+
+var gl_quat_1 = __importDefault(require("gl-quat"));
+
+var draw_normal_line_1 = require("./draw-normal-line");
 
 var loop = {
   cancel: function () {}
 };
+var cylinderHeight = 100;
 
-function createReglScene() {
-  // canvas init hook
+function createReglScene1() {
   var init = function (canvas, __) {
+    /*
+      ------------------------------------------ init scene
+    */
     var width = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerHeight;
     var height = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight;
     canvas_1.adaptDPI(canvas, width, height);
@@ -21965,36 +21846,47 @@ function createReglScene() {
     var camera = regl_camera_1.default(regl, {
       distance: 400,
       phi: 0.4,
-      theta: 0
+      theta: 0.4
     });
     var axis = regl_draw_1.createXYZ(regl, 150);
     var icosphere = primitive_icosphere_1.default(100, {
       subdivisions: 1
     });
-    var cylinder = primitive_cylinder_1.createCylinder(20, 20, 200, 3);
+    var cylinder = primitive_cylinder_1.createCylinder(20, 20, cylinderHeight, 3);
     var drawIcosphere = draw_mesh_wireframe_1.createDrawMeshWireframe(regl, icosphere);
     var drawCylinder = draw_basic_mesh_1.createBasicMesh(regl, cylinder);
     var drawDebug = regl_draw_1.createDrawPointDebug(regl, 5);
     var triangle = icosphere.cells[23].map(function (index) {
       return icosphere.positions[index];
     });
-    var centerTriangle = geometry_1.getCentroidTriangle3(triangle);
-    var center = gl_vec3_1.default.set(gl_vec3_1.default.create(), centerTriangle[0], centerTriangle[1] + 100, centerTriangle[2]); // const dir = vec3.create()
+    var center = geometry_1.getCentroidTriangle3(triangle);
+    /*
+      ------------------------------------------ calculate model matrix
+    */
 
     var dir = gl_vec3_1.default.normalize(gl_vec3_1.default.create(), center);
-    console.log({
-      dir: dir
-    });
-    var rotationMat = pointTowards_1.pointTowardsMat(dir); // mat4.transpose(rotationMat, rotationMat)
-
+    var delta = gl_vec3_1.default.dist([0, 0, 0], center);
+    var mat = gl_mat4_1.default.create();
+    var q = gl_quat_1.default.rotationTo(gl_quat_1.default.create(), [0, 1, 0], dir);
+    var rotationMat = gl_mat4_1.default.fromQuat(gl_mat4_1.default.create(), q);
+    var translate = gl_mat4_1.default.fromTranslation(gl_mat4_1.default.create(), [0, cylinderHeight / 2 + delta, 0]);
+    var scale = gl_mat4_1.default.fromScaling(gl_mat4_1.default.create(), [1.7, 1, 1.7]);
+    var rotation = gl_mat4_1.default.fromRotation(gl_mat4_1.default.create(), 0.65, [0, 1, 0]);
+    gl_mat4_1.default.multiply(mat, mat, rotationMat);
+    gl_mat4_1.default.multiply(mat, mat, translate);
+    gl_mat4_1.default.multiply(mat, mat, scale);
+    gl_mat4_1.default.multiply(mat, mat, rotation);
+    var drawNormal = draw_normal_line_1.createDrawMeshNormalLine(regl, center, dir, 50);
     var props = {
-      translate: [0, 0, 0],
-      scale: [1, 1, 1],
-      rotationMat: rotationMat,
+      model: mat,
       diffuseColor: [1, 0.2, 0.2],
       ambientColor: [0.1, 0.1, 0.1],
       lightDirection: [100, 0, 0]
     };
+    /*
+      ------------------------------------------ draw loop
+    */
+
     loop = frameCatch(function (_a) {
       camera(function (cameraState) {
         if (!cameraState.dirty) {
@@ -22013,7 +21905,10 @@ function createReglScene() {
         drawCylinder.draw(props);
         drawDebug.draw({
           color: [0, 0, 0],
-          translate: centerTriangle
+          translate: center
+        });
+        drawNormal.draw({
+          color: [0, 0, 0]
         });
       });
     });
@@ -22027,18 +21922,7 @@ function createReglScene() {
   };
 }
 
-var app = function () {
-  console.log('app');
-
-  if (!checks_1.hasWebGL()) {
-    return ['p', 'Your browser does not support WebGL :- ('];
-  }
-
-  var canvas = canvas_1.canvasWebGL(createReglScene());
-  return ['div.h-100.flex.flex-column', ['p.ma0.pa2.code', 'TRS - translate rotate scale'], ['div.h-100', [canvas, 200, 0.025]]];
-};
-
-hdom_1.start(app());
+exports.createReglScene1 = createReglScene1;
 
 if (module.hot) {
   ;
@@ -22046,7 +21930,34 @@ if (module.hot) {
     loop.cancel();
   });
 }
-},{"regl":"../../../node_modules/regl/dist/regl.js","@thi.ng/hdom":"../../../node_modules/@thi.ng/hdom/index.js","@thi.ng/hdom-components/canvas":"../../../node_modules/@thi.ng/hdom-components/canvas.js","@thi.ng/checks":"../../../node_modules/@thi.ng/checks/index.js","@tstackgl/regl-draw":"../../../node_modules/@tstackgl/regl-draw/dist/index.js","regl-camera":"../../../node_modules/regl-camera/regl-camera.js","primitive-icosphere":"../../../node_modules/primitive-icosphere/index.js","./draw-mesh-wireframe":"draw-mesh-wireframe.ts","@tstackgl/geometry":"../../../node_modules/@tstackgl/geometry/dist/index.js","./primitive-cylinder":"primitive-cylinder.ts","./draw-basic-mesh":"draw-basic-mesh.ts","gl-vec3":"../../../node_modules/gl-vec3/index.js","./pointTowards":"pointTowards.ts"}],"../../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./draw-mesh-wireframe":"draw-mesh-wireframe.ts","./draw-basic-mesh":"draw-basic-mesh.ts","@thi.ng/hdom-components/canvas":"../../../node_modules/@thi.ng/hdom-components/canvas.js","regl":"../../../node_modules/regl/dist/regl.js","@tstackgl/regl-draw":"../../../node_modules/@tstackgl/regl-draw/dist/index.js","regl-camera":"../../../node_modules/regl-camera/regl-camera.js","primitive-icosphere":"../../../node_modules/primitive-icosphere/index.js","./primitive-cylinder":"primitive-cylinder.ts","@tstackgl/geometry":"../../../node_modules/@tstackgl/geometry/dist/index.js","gl-vec3":"../../../node_modules/gl-vec3/index.js","gl-mat4":"../../../node_modules/gl-mat4/index.js","gl-quat":"../../../node_modules/gl-quat/index.js","./draw-normal-line":"draw-normal-line.ts"}],"index.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var hdom_1 = require("@thi.ng/hdom");
+
+var canvas_1 = require("@thi.ng/hdom-components/canvas");
+
+var checks_1 = require("@thi.ng/checks");
+
+var scene1_1 = require("./scene1");
+
+var app = function () {
+  console.log('app');
+
+  if (!checks_1.hasWebGL()) {
+    return ['p', 'Your browser does not support WebGL :- ('];
+  }
+
+  var canvas = canvas_1.canvasWebGL(scene1_1.createReglScene1());
+  return ['div.h-100.flex.flex-column', ['p.ma0.pa2.code', 'TRS - translate rotate scale'], ['div.h-100', [canvas, 200, 0.025]]];
+};
+
+hdom_1.start(app());
+},{"@thi.ng/hdom":"../../../node_modules/@thi.ng/hdom/index.js","@thi.ng/hdom-components/canvas":"../../../node_modules/@thi.ng/hdom-components/canvas.js","@thi.ng/checks":"../../../node_modules/@thi.ng/checks/index.js","./scene1":"scene1.ts"}],"../../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -22073,7 +21984,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63833" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58522" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
