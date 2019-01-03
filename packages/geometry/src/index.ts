@@ -1,3 +1,5 @@
 export * from './calc/get-centroid'
 export * from './calc/extrude/extrude'
 export * from './shape/circle'
+export * from './edge'
+export * from './calc/angle-between'

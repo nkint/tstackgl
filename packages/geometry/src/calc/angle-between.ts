@@ -12,3 +12,7 @@ export function angleBetweenSegments(v1: [Vec2, Vec2], v2: [Vec2, Vec2]) {
 export function angleBetween(dir1: Vec2, dir2: Vec2) {
   return Math.acos(vec2.dot(dir1, dir2))
 }
+
+export function angleBetweenPoints(p1: Vec2, p2: Vec2) {
+  return Math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+}
