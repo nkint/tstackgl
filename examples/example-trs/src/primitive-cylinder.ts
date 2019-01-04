@@ -15,6 +15,8 @@ export function createCylinder(
   radiusBottom: number,
   height: number,
   radialSegments: number,
+  top: boolean = true,
+  bottom: boolean = true,
 ): QuadMesh {
   const circle3 = (radius: number, y: number, shape: number) =>
     tx.map(([x, z]) => [x, y, z] as Vec3, circleShape(radius, [0, 0], shape))
@@ -27,6 +29,14 @@ export function createCylinder(
   // TODO: refactor with transducers
   const offset = positions.length / 2
   const cells: Array<Vec3> = []
+
+  if (top) {
+    cells.push([0, 1, 2])
+  }
+  if (bottom) {
+    cells.push([5, 4, 3])
+  }
+
   const quadCells: Array<Vec4> = []
   for (let i = 1; i < offset; ++i) {
     const segment1: Vec2 = [i, i - 1]
