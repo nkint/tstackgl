@@ -3,21 +3,14 @@ import { createDrawMeshWireframe } from './draw-mesh-wireframe'
 import { createBasicMesh, PropsBasicMaterial } from './draw-basic-mesh'
 import { adaptDPI } from '@thi.ng/hdom-components/canvas'
 import createRegl from 'regl'
-import {
-  createFrameCatch,
-  createDrawPointDebug,
-  createXYZ,
-  createDrawMeshUnicolor,
-} from '@tstackgl/regl-draw'
+import { createFrameCatch, createDrawPointDebug, createXYZ } from '@tstackgl/regl-draw'
 import createCamera from 'regl-camera'
-import createIcosphere from 'primitive-icosphere'
 import { createCylinder } from './primitive-cylinder'
-import { Mesh, Vec3, Vec2 } from '@tstackgl/types'
+import { Mesh, Vec3 } from '@tstackgl/types'
 import { getCentroidTriangle3, createIcosahedron } from '@tstackgl/geometry'
 import vec3 from 'gl-vec3'
 import mat4 from 'gl-mat4'
 import quat from 'gl-quat'
-import { createDrawMeshNormalLine } from './draw-normal-line'
 import { Quat } from '@tstackgl/types'
 import { polygonToCells } from './polygonToCells'
 
@@ -52,11 +45,6 @@ const angles = [
 function computeMatrixToAlignCylinder(triangle: Triangle3, index: number) {
   const center = getCentroidTriangle3(triangle)
   const dir = vec3.normalize(vec3.create(), center)
-
-  const triangleFacingYMatrix = mat4.fromQuat(
-    mat4.create(),
-    quat.rotationTo(quat.create(), dir, [0, 1, 0]),
-  )
 
   // const triangleFa`cingY2 = triangle.map(([x, y, z]) => [x, z] as Vec2)
   // const p1 = triangleFacingY2[1]
@@ -100,8 +88,6 @@ export function createReglScene1() {
     const icosahedron: Mesh = createIcosahedron(100) //createIcosphere(100, { subdivisions: 1 })
     const cylinder: Mesh = createCylinder(10, 20, cylinderHeight, 3)
 
-    console.log({ icosahedron })
-
     /* 
     ------------------------------------------ calculate model matrix
     */
@@ -109,12 +95,15 @@ export function createReglScene1() {
     const xform = tx.comp(
       tx.map((cell: Vec3) => cell.map(index => icosahedron.positions[index]) as Triangle3),
       tx.mapIndexed((i: number, triangle: Triangle3) => computeMatrixToAlignCylinder(triangle, i)),
-      tx.map(({ mat, dir }) => ({
-        model: mat,
-        diffuseColor: vec3.normalize(vec3.create(), dir),
-        ambientColor: [0.1, 0.1, 0.1] as Vec3,
-        lightDirection: [100, 0, 0] as Vec3,
-      })),
+      tx.map(
+        ({ mat, dir }) =>
+          ({
+            model: mat,
+            diffuseColor: vec3.normalize(vec3.create(), dir),
+            ambientColor: [0.1, 0.1, 0.1] as Vec3,
+            lightDirection: [100, 0, 0] as Vec3,
+          } as PropsBasicMaterial),
+      ),
     )
     const props = tx.transduce(xform, tx.push(), icosahedron.cells)
 
@@ -154,13 +143,6 @@ export function createReglScene1() {
           //   translate: center,
           // },
         ])
-        // drawNormal.draw({
-        //   color: [0, 0, 0],
-        // })
-
-        // drawTriangleFacingY.draw({
-        //   color: [1, 0, 0.5, 1],
-        // })
       })
     })
   }
