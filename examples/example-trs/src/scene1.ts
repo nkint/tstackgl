@@ -13,14 +13,13 @@ import createCamera from 'regl-camera'
 import createIcosphere from 'primitive-icosphere'
 import { createCylinder } from './primitive-cylinder'
 import { Mesh, Vec3, Vec2 } from '@tstackgl/types'
-import { getCentroidTriangle3 } from '@tstackgl/geometry'
+import { getCentroidTriangle3, createIcosahedron } from '@tstackgl/geometry'
 import vec3 from 'gl-vec3'
 import mat4 from 'gl-mat4'
 import quat from 'gl-quat'
 import { createDrawMeshNormalLine } from './draw-normal-line'
 import { Quat } from '@tstackgl/types'
 import { polygonToCells } from './polygonToCells'
-import { createIcosahedron } from './primitive-icosahedron'
 
 const cylinderHeight = 100
 let loop = { cancel: function() {} }
