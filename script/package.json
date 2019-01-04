@@ -1,0 +1,17 @@
+{
+  "name": "tstackgl-script",
+  "version": "0.0.0",
+  "description": "script for tstackgl build and distributions",
+  "main": "index.js",
+  "scripts": {
+    "build-packages": "ts-node build-packages.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^10.12.18",
+    "@types/shelljs": "^0.8.1",
+    "shelljs": "^0.8.3"
+  }
+}
