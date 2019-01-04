@@ -13,8 +13,9 @@ import mat4 from 'gl-mat4'
 import quat from 'gl-quat'
 import { Quat } from '@tstackgl/types'
 import { polygonToCells } from './polygonToCells'
+import { Vec2 } from '@tstackgl/types/src'
 
-const cylinderHeight = 100
+const cylinderHeight = 40
 let loop = { cancel: function() {} }
 
 type Triangle3 = [Vec3, Vec3, Vec3]
@@ -46,10 +47,20 @@ function computeMatrixToAlignCylinder(triangle: Triangle3, index: number) {
   const center = getCentroidTriangle3(triangle)
   const dir = vec3.normalize(vec3.create(), center)
 
-  // const triangleFa`cingY2 = triangle.map(([x, y, z]) => [x, z] as Vec2)
-  // const p1 = triangleFacingY2[1]
-  // const p2 = triangleFacingY2[2]
-  // const a = Math.abs(Math.atan2(p2[1] - p1[1], p2[0] - p1[0]))
+  //---------------- try to find the inclination around Y axis of the triangle
+  const triangleFacingYMatrix = mat4.fromQuat(
+    mat4.create(),
+    quat.rotationTo(quat.create(), dir, [0, 1, 0]),
+  )
+  const triangleFacingY = triangle.map(point =>
+    vec3.transformMat4(vec3.create(), point, triangleFacingYMatrix),
+  )
+  const triangleFacingY2 = triangleFacingY.map(([x, y, z]) => [x, z] as Vec2)
+  const p1 = triangleFacingY2[1]
+  const p2 = triangleFacingY2[2]
+  const a = Math.abs(Math.atan2(p2[1] - p1[1], p2[0] - p1[0]))
+  //---------------- not working :-(
+
   const angleTriangle = angles[index]
   const delta = vec3.dist([0, 0, 0], center)
   const mat = mat4.create()

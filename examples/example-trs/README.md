@@ -1,6 +1,6 @@
-# example-regl
+# example-trs
 
-List of 3d mesh primitives or well-known asset for 3d rendering like the teapot or the standford bunny.
+Study of translation rotation and scale drawing a cylinder that is translated-rotated-scaled to point towards the each face of an icosahedron
 
 ## Authors
 
