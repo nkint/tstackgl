@@ -27,7 +27,7 @@ const examples = fs
         }
         var result = data.replace(
           '<script type="text/javascript" src="',
-          '<script type="text/javascript" src=".',
+          '<script type="text/javascript" src="./',
         )
 
         fs.writeFile(indexPath, result, 'utf8', function(err) {
