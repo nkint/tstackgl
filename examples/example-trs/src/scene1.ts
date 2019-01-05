@@ -15,35 +15,12 @@ import { Quat } from '@tstackgl/types'
 import { polygonToCells } from './polygonToCells'
 import { Vec2 } from '@tstackgl/types/src'
 
-const cylinderHeight = 40
+const cylinderHeight = 30
 let loop = { cancel: function() {} }
 
 type Triangle3 = [Vec3, Vec3, Vec3]
 
-const angles = [
-  Math.PI / 2,
-  0.52,
-  0.68,
-  0.36,
-  -0.36,
-  -0.68,
-  -0.52,
-  0.52,
-  0,
-  -Math.PI / 3,
-  -Math.PI / 3,
-  0,
-  -0.65,
-  -0.39,
-  0.66,
-  0.38,
-  0.91,
-  0.13,
-  -0.92,
-  -0.13,
-]
-
-function computeMatrixToAlignCylinder(triangle: Triangle3, index: number) {
+function computeMatrixToAlignCylinder(triangle: Triangle3) {
   const center = getCentroidTriangle3(triangle)
   const dir = vec3.normalize(vec3.create(), center)
 
@@ -58,10 +35,10 @@ function computeMatrixToAlignCylinder(triangle: Triangle3, index: number) {
   const triangleFacingY2 = triangleFacingY.map(([x, y, z]) => [x, z] as Vec2)
   const p1 = triangleFacingY2[1]
   const p2 = triangleFacingY2[2]
-  const a = Math.abs(Math.atan2(p2[1] - p1[1], p2[0] - p1[0]))
-  //---------------- not working :-(
+  const a = Math.atan2(p2[1] - p1[1], p2[0] - p1[0])
 
-  const angleTriangle = angles[index]
+  //---------------- compute the matrix
+  const angleTriangle = Math.PI / 2 - a
   const delta = vec3.dist([0, 0, 0], center)
   const mat = mat4.create()
   const q: Quat = quat.rotationTo(quat.create(), [0, 1, 0], dir)
@@ -74,7 +51,7 @@ function computeMatrixToAlignCylinder(triangle: Triangle3, index: number) {
   mat4.multiply(mat, mat, scale)
   mat4.multiply(mat, mat, rotation)
 
-  return { mat, dir }
+  return { mat, dir, center }
 }
 
 export function createReglScene1() {
@@ -89,7 +66,7 @@ export function createReglScene1() {
 
     const regl = createRegl({ canvas, extensions: ['OES_standard_derivatives'] })
     const frameCatch = createFrameCatch(regl)
-    const camera = createCamera(regl, { distance: 600, phi: 100 + 0.4, theta: 0.4 })
+    const camera = createCamera(regl, { distance: 600, phi: 0.4, theta: 0.4 })
     const axis = createXYZ(regl, 150)
 
     /* 
@@ -97,7 +74,7 @@ export function createReglScene1() {
     */
 
     const icosahedron: Mesh = createIcosahedron(100) //createIcosphere(100, { subdivisions: 1 })
-    const cylinder: Mesh = createCylinder(10, 20, cylinderHeight, 3)
+    const cylinder: Mesh = createCylinder(15, 20, cylinderHeight, 3)
 
     /* 
     ------------------------------------------ calculate model matrix
@@ -105,12 +82,16 @@ export function createReglScene1() {
 
     const xform = tx.comp(
       tx.map((cell: Vec3) => cell.map(index => icosahedron.positions[index]) as Triangle3),
-      tx.mapIndexed((i: number, triangle: Triangle3) => computeMatrixToAlignCylinder(triangle, i)),
+      tx.map((triangle: Triangle3) => computeMatrixToAlignCylinder(triangle)),
       tx.map(
-        ({ mat, dir }) =>
+        ({ mat, dir, center }) =>
           ({
             model: mat,
-            diffuseColor: vec3.normalize(vec3.create(), dir),
+            diffuseColor: vec3.add(
+              vec3.create(),
+              [1, 0, 0],
+              vec3.scale(vec3.create(), dir, 0.5),
+            ) as Vec3,
             ambientColor: [0.1, 0.1, 0.1] as Vec3,
             lightDirection: [100, 0, 0] as Vec3,
           } as PropsBasicMaterial),
@@ -130,6 +111,11 @@ export function createReglScene1() {
       ------------------------------------------ draw loop
     */
 
+    const icosahedronDebugProps = icosahedron.positions.map(point => ({
+      color: [0, 0, 0] as Vec3,
+      translate: point,
+    }))
+
     loop = frameCatch(function({}) {
       camera((cameraState: any) => {
         if (!cameraState.dirty) {
@@ -142,17 +128,8 @@ export function createReglScene1() {
         drawIcosphere.draw({ color: [0, 0, 0], fogColor: [1, 1, 1], fogDensity: 0.006 })
         drawCylinder.draw(props)
 
-        const icosahedronDebugProps = icosahedron.positions.map(point => ({
-          color: [0, 0, 0] as Vec3,
-          translate: point,
-        }))
-
         drawDebug.draw([
           // ...icosahedronDebugProps,
-          // {
-          //   color: [0, 0, 0],
-          //   translate: center,
-          // },
         ])
       })
     })
