@@ -1,18 +1,17 @@
 import createRegl from 'regl'
 import { Vec3, Mesh } from '@tstackgl/types'
+import { Mat4 } from '@tstackgl/types/src'
 
 const vert = `
 precision mediump float;
 
-uniform mat4 projection, view;
-uniform vec3 translate, scale;
+uniform mat4 projection, view, model;
 attribute vec3 position, normal;
 varying vec3 vViewPos;
 
 void main () {
-  vec3 pos = (position * scale) + translate;
-  vec4 mpos = projection * view * vec4(pos, 1.0);
-  vViewPos = -(projection * view * vec4(pos, 1.0)).xyz;
+  vec4 mpos = projection * view * model * vec4(position, 1.0);
+  vViewPos = -(projection * view * model * vec4(position, 1.0)).xyz;
   gl_Position = mpos;
 }
 `
@@ -44,8 +43,7 @@ void main () {
 `
 
 interface PropsGeometry {
-  translate: Vec3
-  scale: Vec3
+  model: Mat4
 }
 
 interface PropsLight {
@@ -71,8 +69,7 @@ export function createBasicMesh(regl: createRegl.Regl, mesh: Mesh) {
     },
 
     uniforms: {
-      translate: regl.prop<PropsGeometry, 'translate'>('translate'),
-      scale: regl.prop<PropsGeometry, 'scale'>('scale'),
+      model: regl.prop<PropsGeometry, 'model'>('model'),
 
       diffuseColor: regl.prop<PropsLight, 'diffuseColor'>('diffuseColor'),
       ambientColor: regl.prop<PropsLight, 'ambientColor'>('ambientColor'),

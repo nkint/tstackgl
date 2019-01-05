@@ -1,9 +1,14 @@
 import * as tx from '@thi.ng/transducers'
 import { createDrawMeshWireframe } from './draw-mesh-wireframe'
-import { createBasicMesh, PropsBasicMaterial } from './draw-basic-mesh'
 import { adaptDPI } from '@thi.ng/hdom-components/canvas'
 import createRegl from 'regl'
-import { createFrameCatch, createDrawPointDebug, createXYZ } from '@tstackgl/regl-draw'
+import {
+  createFrameCatch,
+  createDrawPointDebug,
+  createXYZ,
+  createBasicMesh,
+  PropsBasicMaterial,
+} from '@tstackgl/regl-draw'
 import createCamera from 'regl-camera'
 import { createCylinder } from './primitive-cylinder'
 import { Mesh, Vec3 } from '@tstackgl/types'
