@@ -31,7 +31,7 @@ interface Attributes {
   color: Array<Vec3>
 }
 
-export function createDrawMeshNormalLines(regl: createRegl.Regl, mesh: Mesh, len: number = 1) {
+export function createFaceNormalLines(regl: createRegl.Regl, mesh: Mesh, len: number = 1) {
   const faceNormalsArray = faceNormals(mesh.cells, mesh.positions)
 
   const colors = [
