@@ -1,6 +1,9 @@
 import { QuadMesh } from '@tstackgl/types'
 
-export function createCylinderMesh(
+// from https://github.com/ataber/primitive-cylinder/blob/master/index.js
+// but also with lateral quad
+
+export function createCylinder(
   radiusTop: number,
   radiusBottom: number,
   height: number,
@@ -61,6 +64,58 @@ export function createCylinderMesh(
       cells[indexOffset] = [i2, i3, i4]
       indexOffset++
     }
+  }
+
+  function generateCap(top: boolean) {
+    const vertex = new Array(3).fill(0)
+
+    const radius = top === true ? radiusTop : radiusBottom
+    const sign = top === true ? 1 : -1
+
+    const centerIndexStart = index
+
+    for (let x = 1; x <= radialSegments; x++) {
+      vertices[index] = [0, (height * sign) / 2, 0]
+      normals[index] = [0, sign, 0]
+      uvs[index] = [0.5, 0.5]
+      index++
+    }
+
+    const centerIndexEnd = index
+
+    for (let x = 0; x <= radialSegments; x++) {
+      const u = x / radialSegments
+      const theta = u * thetaLength
+      const cosTheta = Math.cos(theta)
+      const sinTheta = Math.sin(theta)
+      vertices[index] = [radius * sinTheta, (height * sign) / 2, radius * cosTheta]
+      normals[index] = [0, sign, 0]
+      uvs[index] = [cosTheta * 0.5 + 0.5, sinTheta * 0.5 * sign + 0.5]
+      index++
+    }
+
+    for (let x = 0; x < radialSegments; x++) {
+      const c = centerIndexStart + x
+      const i = centerIndexEnd + x
+
+      if (top === true) {
+        // face top
+        cells[indexOffset] = [i, i + 1, c]
+        indexOffset++
+      } else {
+        // face bottom
+        cells[indexOffset] = [i + 1, i, c]
+        indexOffset++
+      }
+    }
+  }
+
+  if (radiusTop > 0) {
+    generateCap(true)
+  }
+
+  if (radiusBottom > 0) {
+    generateCap(false)
   }
 
   return {
