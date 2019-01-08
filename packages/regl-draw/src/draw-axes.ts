@@ -3,7 +3,7 @@ import { combine } from '@tstackgl/geometry/src/mesh-combine-normals'
 import createRegl from 'regl'
 import mat4 from 'gl-mat4'
 import vec3 from 'gl-vec3'
-import { default as pyramid } from '@tstackgl/geometry/src/shape/primitive-pyramid'
+import { createCylinder } from '@tstackgl/geometry'
 
 const vert = `
   precision mediump float;
@@ -48,28 +48,21 @@ function createAxesLines(regl: createRegl.Regl, scale: number) {
 // ----------------------------------------------------------------- arrows
 
 function createAxes(regl: createRegl.Regl, scale: number) {
-  const arrowPyramidOpts = { scale: 0.1, height: 0.22 }
-
-  function transformAxies(dir: Vec3, axis: Vec3) {
-    let out = mat4.create()
-    out = mat4.translate(out, out, dir)
-    mat4.rotate(out, out, Math.PI / 2, axis)
-    return out
-  }
-
   function getAxis(translationVec: Vec3, colorVec: Vec3, rotationVec: Vec3) {
-    const arrow: Mesh = pyramid(arrowPyramidOpts)
+    const arrow: Mesh = createCylinder(0, 0.1, 0.22, 4, 1)
     arrow.positions = arrow.positions.map(position => {
-      const mat = transformAxies(translationVec, rotationVec)
+      const mat = mat4.create()
+      mat4.translate(mat, mat, translationVec)
+      mat4.rotate(mat, mat, Math.PI / 2, rotationVec)
       return vec3.transformMat4(vec3.create(), position, mat)
     })
     arrow.colors = arrow.positions.map(p => colorVec)
     return arrow
   }
 
-  const xArrow = getAxis([scale, 0, 0], [1, 0, 0], [0, 1, 0])
-  const yArrow = getAxis([0, scale, 0], [0, 1, 0], [-1, 0, 0])
-  const zArrow = getAxis([0, 0, scale], [0, 0, 2], [0, 0, 1])
+  const xArrow = getAxis([scale, 0, 0], [1, 0, 0], [0, 0, -1])
+  const yArrow = getAxis([0, scale, 0], [0, 1, 0], [0, 1, 0])
+  const zArrow = getAxis([0, 0, scale], [0, 0, 1], [1, 0, 0])
 
   const meshes = [xArrow, yArrow, zArrow]
   const mesh: Mesh = combine(meshes)
