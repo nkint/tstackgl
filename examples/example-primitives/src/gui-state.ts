@@ -1,7 +1,7 @@
 export type DrawMode = 'normals' | 'wireframes' | 'lights'
 
 export const guiState: { drawMode: DrawMode; dirty: boolean } = {
-  drawMode: 'normals',
+  drawMode: 'lights',
   dirty: true,
 }
 

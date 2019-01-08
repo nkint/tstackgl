@@ -1,4 +1,4 @@
-# example-regl
+# example-primitives
 
 List of 3d mesh primitives or well-known asset for 3d rendering like the teapot or the standford bunny.
 

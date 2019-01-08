@@ -1,12 +1,12 @@
 import createRegl from 'regl'
-import { start } from '@thi.ng/hdom'
-import { canvasWebGL, adaptDPI } from '@thi.ng/hdom-components/canvas'
-import { hasWebGL } from '@thi.ng/checks'
+import { adaptDPI } from '@thi.ng/hdom-components/canvas'
 import {
   createFrameCatch,
-  createBasicMesh,
   PropsBasicMaterial,
+  createBasicMesh,
   createDrawMeshWireframe,
+  createNormalMesh,
+  createXYZ,
 } from '@tstackgl/regl-draw'
 import { Mesh, Vec3 } from '@tstackgl/types'
 import createCamera from 'regl-camera' // TODO: remove dependency
@@ -22,13 +22,11 @@ import dragon from 'stanford-dragon/4'
 import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'
 import { createIcosahedron, createCylinder, createOctahedron } from '@tstackgl/geometry'
-import { createNormalMesh } from '@tstackgl/regl-draw/src/draw-normal-mesh'
-import { guiState, DrawMode, guiActions } from './gui-state'
+import { guiState } from './gui-state'
 
 let loop = { cancel: function() {} }
 
 export function createReglScene() {
-  // canvas init hook
   const init = (canvas: HTMLCanvasElement, __: WebGLRenderingContext) => {
     const width = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerHeight
     const height = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight
@@ -38,6 +36,7 @@ export function createReglScene() {
     const regl = createRegl({ canvas, extensions: ['OES_standard_derivatives'] })
     const frameCatch = createFrameCatch(regl)
     const camera = createCamera(regl, { distance: 65, phi: 0.4, theta: 1.2 })
+    const axes = createXYZ(regl, 10)
 
     const meshes: Array<{ mesh: Mesh; scale: Vec3 }> = [
       { scale: [1, 1, 1], mesh: createQuad(2) },
@@ -64,7 +63,7 @@ export function createReglScene() {
         const translating = mat4.fromTranslation(mat4.create(), [
           15 - Math.floor(i / numRow) * 10,
           0,
-          (i % numRow) * 10,
+          10 - (i % numRow) * 10,
         ])
         const scaling = mat4.fromScaling(mat4.create(), scale)
 
@@ -80,7 +79,7 @@ export function createReglScene() {
         return {
           model,
           diffuseColor: [0.4, 0.4, 0.4] as Vec3,
-          ambientColor: [0.1, 0.1, 0.1] as Vec3,
+          ambientColor: [0.08, 0.08, 0.08] as Vec3,
           lightDirection: [-1.0 / Math.sqrt(3), 1.0 / Math.sqrt(3), 1.0 / Math.sqrt(3)] as Vec3,
         } as PropsBasicMaterial
       }),
@@ -101,6 +100,7 @@ export function createReglScene() {
 
         regl.clear({ color: [0.1, 0.1, 0.1, 1] })
 
+        axes.draw()
         switch (guiState.drawMode) {
           case 'normals':
             drawNormals.forEach((drawCommand, i) => {
