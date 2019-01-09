@@ -7,21 +7,11 @@ import createTorus from 'primitive-torus'
 import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
-import vec3 from 'gl-vec3'
-
-import { createDrawUnicolor as createUnicolor } from './draw-unicolor'
-import { createNormalMesh as createNormal } from './draw-normal'
+import { lightPosition, color } from './state'
 import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
-import { createDiffuseLambert, PropsDiffuseLambert } from './draw-diffuse-lambert'
-import { createDiffuseOrenNayar, PropsDiffuseOrenNayar } from './draw-diffuse-oren-nayar'
-import { PropsSpecularPhong, createSpecularPhong } from './draw-specular-phong'
-import { createSpecularBlinnPhong } from './draw-specular-blinn-phong'
-import { createAttenuation, PropsAttenuation } from './draw-attenuation'
+import { createCommandAndProps } from './materials'
 
 let loop = { cancel: function() {} }
-
-const lightPosition: Vec3 = [5, 5, 15]
-const color: Vec3 = [1, 0.4, 0.0]
 
 export function createReglScene() {
   const init = (canvas: HTMLCanvasElement, __: WebGLRenderingContext) => {
@@ -38,104 +28,16 @@ export function createReglScene() {
 
     const mesh: Mesh = createTorus()
 
-    type CreateCommand<T> = (
-      regl: createRegl.Regl,
-      mesh: Mesh,
-    ) => { draw: createRegl.DrawCommand<createRegl.DefaultContext, T> }
-
-    const attenuation: PropsAttenuation = {
-      radius: 25,
-      falloff: 0.5,
-      lightPosition: lightPosition,
-      color,
-      model: mat4.create(),
-    }
-
-    const lambertProps: PropsDiffuseLambert = {
-      diffuseColor: color,
-      ambientColor: [0.08, 0.08, 0.08],
-      lightPosition: lightPosition,
-      model: mat4.create(),
-      normalMatrix: mat3.create(),
-    }
-
-    const orenNayar: PropsDiffuseOrenNayar = {
-      diffuseColor: color,
-      ambientColor: [0.08, 0.08, 0.08],
-      lightPosition: lightPosition,
-
-      roughness: 0.3,
-      albedo: 0.9,
-      eyePosition: vec3.create(),
-      model: mat4.create(),
-      normalMatrix: mat3.create(),
-    }
-
-    const orenNayar2: PropsDiffuseOrenNayar = {
-      diffuseColor: color,
-      ambientColor: [0.08, 0.08, 0.08],
-      lightPosition: lightPosition,
-
-      roughness: 0.9,
-      albedo: 0.3,
-      eyePosition: vec3.create(),
-      model: mat4.create(),
-      normalMatrix: mat3.create(),
-    }
-
-    const specularPhong: PropsSpecularPhong = {
-      diffuseColor: color,
-      ambientColor: [0.08, 0.08, 0.08],
-      lightPosition: lightPosition,
-
-      shiness: 0.3,
-      eyePosition: vec3.create(),
-      model: mat4.create(),
-      normalMatrix: mat3.create(),
-    }
-
-    const specularBlinnPhong: PropsSpecularPhong = {
-      diffuseColor: color,
-      ambientColor: [0.08, 0.08, 0.08],
-      lightPosition: lightPosition,
-
-      shiness: 0.3,
-      eyePosition: vec3.create(),
-      model: mat4.create(),
-      normalMatrix: mat3.create(),
-    }
-
-    const createCommandAndLight: Array<{ create: CreateCommand<any>; lightProps: {} }> = [
-      { create: createUnicolor, lightProps: { color } },
-      { create: createAttenuation, lightProps: attenuation },
-      { create: createNormal, lightProps: {} },
-      {
-        create: createDiffuseLambert,
-        lightProps: lambertProps,
-      },
-      {
-        create: createDiffuseOrenNayar,
-        lightProps: orenNayar,
-      },
-      {
-        create: createDiffuseOrenNayar,
-        lightProps: orenNayar2,
-      },
-      { create: createSpecularPhong, lightProps: specularPhong },
-      { create: createSpecularBlinnPhong, lightProps: specularBlinnPhong },
-    ]
-
     const numRow = 3
     const xform = tx.comp(
-      tx.mapIndexed((i: number, { create, lightProps }) => {
+      tx.mapIndexed((i: number, { create, props }) => {
         const model = mat4.create()
         const translation: Vec3 = [5 - Math.floor(i / numRow) * 5, 0, 5 - (i % numRow) * 5]
-        console.log({ translation })
         mat4.translate(model, model, translation)
-        return { model, drawCommand: create(regl, mesh), lightProps }
+        return { model, drawCommand: create(regl, mesh), props }
       }),
     )
-    const commandsAndProps = [...tx.iterator1(xform, createCommandAndLight)]
+    const commandsAndProps = [...tx.iterator1(xform, createCommandAndProps)]
 
     const modelViewMatrix = mat4.create()
     const normalMatrix = mat3.create()
@@ -143,12 +45,11 @@ export function createReglScene() {
 
     loop = frameCatch(function({}) {
       camera((cameraState: any) => {
-        if (!cameraState.dirty) {
-          return
-        }
-        console.log('draw loop')
-
-        console.log({ cameraState })
+        // if (!cameraState.dirty) {
+        //   return
+        // }
+        // console.log('draw loop')
+        // console.log({ cameraState })
 
         regl.clear({ color: [0.1, 0.1, 0.1, 1] })
 
@@ -159,13 +60,16 @@ export function createReglScene() {
           translate: lightPosition,
         })
 
-        commandsAndProps.forEach(({ drawCommand, model, lightProps }, i) => {
+        commandsAndProps.forEach(({ drawCommand, model, props }, i) => {
           mat4.multiply(modelViewMatrix, cameraState.view, model)
           mat4.invert(inverseModelViewMatrix, modelViewMatrix)
           mat3.fromMat4(normalMatrix, inverseModelViewMatrix)
           mat3.transpose(normalMatrix, normalMatrix)
 
-          const props = { ...lightProps, model, normalMatrix, eyePosition: cameraState.eye }
+          props.model = model
+          props.normalMatrix = normalMatrix
+          props.eyePosition = cameraState.eye
+
           drawCommand.draw(props)
         })
       })

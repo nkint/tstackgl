@@ -23,6 +23,7 @@
     "@tstackgl/geometry": "^0.0.0",
     "@tstackgl/regl-draw": "^0.0.0",
     "@tstackgl/types": "^0.0.0",
+    "animejs": "^3.0.0",
     "glsl-inverse": "^1.0.0",
     "glsl-specular-blinn-phong": "^1.0.2",
     "glsl-specular-phong": "^1.0.0",
