@@ -9,15 +9,19 @@ import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import vec3 from 'gl-vec3'
 
-import { createDrawUnicolor } from './draw-unicolor'
-import { createDiffuseLambert, PropsDiffuseLambert } from './draw-diffuse-lambert'
-import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
+import { createDrawUnicolor as createUnicolor } from './draw-unicolor'
 import { createNormalMesh as createNormal } from './draw-normal'
+import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
+import { createDiffuseLambert, PropsDiffuseLambert } from './draw-diffuse-lambert'
 import { createDiffuseOrenNayar, PropsDiffuseOrenNayar } from './draw-diffuse-oren-nayar'
+import { PropsSpecularPhong, createSpecularPhong } from './draw-specular-phong'
+import { createSpecularBlinnPhong } from './draw-specular-blinn-phong'
+import { createAttenuation, PropsAttenuation } from './draw-attenuation'
 
 let loop = { cancel: function() {} }
 
-const lightPosition: Vec3 = [5, 5, 5]
+const lightPosition: Vec3 = [5, 5, 15]
+const color: Vec3 = [1, 0.4, 0.0]
 
 export function createReglScene() {
   const init = (canvas: HTMLCanvasElement, __: WebGLRenderingContext) => {
@@ -30,7 +34,7 @@ export function createReglScene() {
     const frameCatch = createFrameCatch(regl)
     const camera = createCamera(regl, { distance: 25, phi: 0.4, theta: 1.2 })
     const axes = createXYZ(regl, 10)
-    const lightDebugPoint = createDrawPointDebug(regl, 0.5)
+    const lightDebugPoint = createDrawPointDebug(regl, 0.2)
 
     const mesh: Mesh = createTorus()
 
@@ -39,8 +43,16 @@ export function createReglScene() {
       mesh: Mesh,
     ) => { draw: createRegl.DrawCommand<createRegl.DefaultContext, T> }
 
+    const attenuation: PropsAttenuation = {
+      radius: 25,
+      falloff: 0.5,
+      lightPosition: lightPosition,
+      color,
+      model: mat4.create(),
+    }
+
     const lambertProps: PropsDiffuseLambert = {
-      diffuseColor: [0.4, 0.4, 0.4],
+      diffuseColor: color,
       ambientColor: [0.08, 0.08, 0.08],
       lightPosition: lightPosition,
       model: mat4.create(),
@@ -48,7 +60,7 @@ export function createReglScene() {
     }
 
     const orenNayar: PropsDiffuseOrenNayar = {
-      diffuseColor: [0.4, 0.4, 0.4],
+      diffuseColor: color,
       ambientColor: [0.08, 0.08, 0.08],
       lightPosition: lightPosition,
 
@@ -59,18 +71,58 @@ export function createReglScene() {
       normalMatrix: mat3.create(),
     }
 
+    const orenNayar2: PropsDiffuseOrenNayar = {
+      diffuseColor: color,
+      ambientColor: [0.08, 0.08, 0.08],
+      lightPosition: lightPosition,
+
+      roughness: 0.9,
+      albedo: 0.3,
+      eyePosition: vec3.create(),
+      model: mat4.create(),
+      normalMatrix: mat3.create(),
+    }
+
+    const specularPhong: PropsSpecularPhong = {
+      diffuseColor: color,
+      ambientColor: [0.08, 0.08, 0.08],
+      lightPosition: lightPosition,
+
+      shiness: 0.3,
+      eyePosition: vec3.create(),
+      model: mat4.create(),
+      normalMatrix: mat3.create(),
+    }
+
+    const specularBlinnPhong: PropsSpecularPhong = {
+      diffuseColor: color,
+      ambientColor: [0.08, 0.08, 0.08],
+      lightPosition: lightPosition,
+
+      shiness: 0.3,
+      eyePosition: vec3.create(),
+      model: mat4.create(),
+      normalMatrix: mat3.create(),
+    }
+
     const createCommandAndLight: Array<{ create: CreateCommand<any>; lightProps: {} }> = [
-      { create: createDrawUnicolor, lightProps: { color: [1, 0.4, 0.0] } },
-      { create: createDrawWireframe, lightProps: { color: [0.8, 0.8, 0.8] } },
+      { create: createUnicolor, lightProps: { color } },
+      { create: createAttenuation, lightProps: attenuation },
       { create: createNormal, lightProps: {} },
       {
         create: createDiffuseLambert,
-        lightProps: orenNayar,
+        lightProps: lambertProps,
       },
       {
         create: createDiffuseOrenNayar,
         lightProps: orenNayar,
       },
+      {
+        create: createDiffuseOrenNayar,
+        lightProps: orenNayar2,
+      },
+      { create: createSpecularPhong, lightProps: specularPhong },
+      { create: createSpecularBlinnPhong, lightProps: specularBlinnPhong },
     ]
 
     const numRow = 3

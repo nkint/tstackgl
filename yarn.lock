@@ -3310,6 +3310,16 @@ glsl-resolve@0.0.1:
     resolve "^0.6.1"
     xtend "^2.1.2"
 
+glsl-specular-blinn-phong@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/glsl-specular-blinn-phong/-/glsl-specular-blinn-phong-1.0.2.tgz#49cd056d9a76f042efce94c1bca3f38e5e4ccd27"
+  integrity sha1-Sc0FbZp28ELvzpTBvKPzjl5MzSc=
+
+glsl-specular-phong@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/glsl-specular-phong/-/glsl-specular-phong-1.0.0.tgz#a0450808e4629ee64ccb460b7ee0425a97bf6204"
+  integrity sha1-oEUICORinuZMy0YLfuBCWpe/YgQ=
+
 glsl-token-assignments@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/glsl-token-assignments/-/glsl-token-assignments-2.0.2.tgz#a5d82ab78499c2e8a6b83cb69495e6e665ce019f"
