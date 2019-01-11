@@ -13,6 +13,13 @@ import { createSpecularBlinnPhong } from './draw-specular-blinn-phong'
 import { createAttenuation, PropsAttenuation } from './draw-attenuation'
 
 import { lightPosition, color } from './state'
+import { createSpecularWard, PropsSpecularWard } from './draw-specular-ward'
+import { createSpecularBeckmann, PropsSpecularBeckmann } from './draw-specular-beckmann'
+import { createSpecularGaussian, PropsSpecularGaussian } from './draw-specular-gaussian'
+import {
+  createSpecularCookTorrance,
+  PropsSpecularCookTorrance,
+} from './draw-specular-cook-torrance'
 
 type CreateCommand<T> = (
   regl: createRegl.Regl,
@@ -47,18 +54,6 @@ const orenNayar: PropsDiffuseOrenNayar = {
   normalMatrix: mat3.create(),
 }
 
-const orenNayar2: PropsDiffuseOrenNayar = {
-  diffuseColor: color,
-  ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
-
-  roughness: 0.9,
-  albedo: 0.3,
-  eyePosition: vec3.create(),
-  model: mat4.create(),
-  normalMatrix: mat3.create(),
-}
-
 const specularPhong: PropsSpecularPhong = {
   diffuseColor: color,
   ambientColor: [0.08, 0.08, 0.08],
@@ -74,8 +69,54 @@ const specularBlinnPhong: PropsSpecularPhong = {
   diffuseColor: color,
   ambientColor: [0.08, 0.08, 0.08],
   lightPosition: lightPosition,
-
   shiness: 0.3,
+
+  eyePosition: vec3.create(),
+  model: mat4.create(),
+  normalMatrix: mat3.create(),
+}
+
+const specularWard: PropsSpecularWard = {
+  diffuseColor: color,
+  ambientColor: [0.08, 0.08, 0.08],
+  lightPosition: lightPosition,
+  shinyPar: 0.1,
+  shinyPerp: 0.3,
+
+  eyePosition: vec3.create(),
+  model: mat4.create(),
+  normalMatrix: mat3.create(),
+}
+
+const specularBeckmann: PropsSpecularBeckmann = {
+  diffuseColor: color,
+  ambientColor: [0.08, 0.08, 0.08],
+  lightPosition: lightPosition,
+  roughness: 0.3,
+
+  eyePosition: vec3.create(),
+  model: mat4.create(),
+  normalMatrix: mat3.create(),
+}
+
+const specularGaussian: PropsSpecularGaussian = {
+  diffuseColor: color,
+  ambientColor: [0.08, 0.08, 0.08],
+  lightPosition: lightPosition,
+  shiness: 0.4,
+
+  eyePosition: vec3.create(),
+  model: mat4.create(),
+  normalMatrix: mat3.create(),
+}
+
+const specularCookTorrance: PropsSpecularCookTorrance = {
+  diffuseColor: color,
+  ambientColor: [0.08, 0.08, 0.08],
+  lightPosition: lightPosition,
+  roughness: 0.4,
+  fresnel: 1.0,
+
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
@@ -93,10 +134,10 @@ export const createCommandAndProps: Array<{ create: CreateCommand<any>; props: {
     create: createDiffuseOrenNayar,
     props: orenNayar,
   },
-  {
-    create: createDiffuseOrenNayar,
-    props: orenNayar2,
-  },
   { create: createSpecularPhong, props: specularPhong },
   { create: createSpecularBlinnPhong, props: specularBlinnPhong },
+  { create: createSpecularWard, props: specularWard },
+  { create: createSpecularBeckmann, props: specularBeckmann },
+  { create: createSpecularGaussian, props: specularGaussian },
+  { create: createSpecularCookTorrance, props: specularCookTorrance },
 ]

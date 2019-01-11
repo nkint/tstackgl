@@ -7,6 +7,7 @@ import createTorus from 'primitive-torus'
 import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
+import createPlane from 'primitive-plane'
 import { lightPosition, color } from './state'
 import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
 import { createCommandAndProps } from './materials'
@@ -32,12 +33,21 @@ export function createReglScene() {
     const xform = tx.comp(
       tx.mapIndexed((i: number, { create, props }) => {
         const model = mat4.create()
-        const translation: Vec3 = [5 - Math.floor(i / numRow) * 5, 0, 5 - (i % numRow) * 5]
+        const translation: Vec3 = [7.5 - Math.floor(i / numRow) * 5, 1.5, 5 - (i % numRow) * 5]
         mat4.translate(model, model, translation)
         return { model, drawCommand: create(regl, mesh), props }
       }),
     )
     const commandsAndProps = [...tx.iterator1(xform, createCommandAndProps)]
+
+    console.log({ commandsAndProps })
+
+    const floor = createPlane(20, 15, Math.ceil(commandsAndProps.length / 3), 3)
+    const drawFloor = createDrawWireframe(regl, floor)
+    const floorProps = {
+      color: [0.2, 0.2, 0.2] as Vec3,
+      model: mat4.fromRotation(mat4.create(), Math.PI / 2, [1, 0, 0]),
+    }
 
     const modelViewMatrix = mat4.create()
     const normalMatrix = mat3.create()
@@ -72,6 +82,8 @@ export function createReglScene() {
 
           drawCommand.draw(props)
         })
+
+        drawFloor.draw(floorProps)
       })
     })
   }
