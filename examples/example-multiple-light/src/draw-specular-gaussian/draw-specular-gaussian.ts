@@ -15,7 +15,7 @@ interface PropsLight {
   eyePosition: Vec3
   lightPosition: Vec3
 
-  diffuseColor: Vec3
+  specularColor: Vec3
   ambientColor: Vec3
 
   shiness: Number
@@ -52,7 +52,7 @@ export function createSpecularGaussian(regl: createRegl.Regl, mesh: Mesh) {
 
       eyePosition: regl.prop<PropsLight, 'eyePosition'>('eyePosition'),
       lightPosition: regl.prop<PropsLight, 'lightPosition'>('lightPosition'),
-      diffuseColor: regl.prop<PropsLight, 'diffuseColor'>('diffuseColor'),
+      specularColor: regl.prop<PropsLight, 'specularColor'>('specularColor'),
       ambientColor: regl.prop<PropsLight, 'ambientColor'>('ambientColor'),
       shiness: regl.prop<PropsLight, 'shiness'>('shiness'),
     },

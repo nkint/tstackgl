@@ -1,7 +1,7 @@
 precision mediump float;
 
 uniform vec3 eyePosition;
-uniform vec3 diffuseColor;
+uniform vec3 specularColor;
 uniform vec3 ambientColor;
 uniform float roughness;
 uniform float fresnel;
@@ -21,6 +21,6 @@ void main () {
     vNormal, 
     roughness,
     fresnel);
-  vec3 lightColor = ambientColor + diffuseColor * brightness;
+  vec3 lightColor = ambientColor + specularColor * brightness;
   gl_FragColor = vec4(lightColor, 1.0);
 }

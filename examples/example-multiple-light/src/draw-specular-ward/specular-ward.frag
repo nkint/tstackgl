@@ -1,7 +1,7 @@
 precision mediump float;
 
 uniform vec3 eyePosition;
-uniform vec3 diffuseColor;
+uniform vec3 specularColor;
 uniform vec3 ambientColor;
 
 uniform float shinyPar;
@@ -31,6 +31,6 @@ void main () {
     shinyPar,
     shinyPerp);
  
-  gl_FragColor = vec4(diffuseColor * power,1.0);
+  gl_FragColor = vec4(specularColor * power,1.0);
 
 }

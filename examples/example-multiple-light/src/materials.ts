@@ -55,7 +55,7 @@ const orenNayar: PropsDiffuseOrenNayar = {
 }
 
 const specularPhong: PropsSpecularPhong = {
-  diffuseColor: color,
+  specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
   lightPosition: lightPosition,
 
@@ -66,7 +66,7 @@ const specularPhong: PropsSpecularPhong = {
 }
 
 const specularBlinnPhong: PropsSpecularPhong = {
-  diffuseColor: color,
+  specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
   lightPosition: lightPosition,
   shiness: 0.3,
@@ -77,7 +77,7 @@ const specularBlinnPhong: PropsSpecularPhong = {
 }
 
 const specularWard: PropsSpecularWard = {
-  diffuseColor: color,
+  specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
   lightPosition: lightPosition,
   shinyPar: 0.1,
@@ -89,7 +89,7 @@ const specularWard: PropsSpecularWard = {
 }
 
 const specularBeckmann: PropsSpecularBeckmann = {
-  diffuseColor: color,
+  specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
   lightPosition: lightPosition,
   roughness: 0.3,
@@ -100,7 +100,7 @@ const specularBeckmann: PropsSpecularBeckmann = {
 }
 
 const specularGaussian: PropsSpecularGaussian = {
-  diffuseColor: color,
+  specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
   lightPosition: lightPosition,
   shiness: 0.4,
@@ -111,7 +111,7 @@ const specularGaussian: PropsSpecularGaussian = {
 }
 
 const specularCookTorrance: PropsSpecularCookTorrance = {
-  diffuseColor: color,
+  specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
   lightPosition: lightPosition,
   roughness: 0.4,
