@@ -61,7 +61,7 @@ export type Mesh = {
   positions: Array<Vec3>
   cells: Array<Vec3>
   normals?: Array<Vec3>
-  uvs?: Array<Vec3>
+  uvs?: Array<Vec2>
   colors?: Array<Vec3>
 }
 
