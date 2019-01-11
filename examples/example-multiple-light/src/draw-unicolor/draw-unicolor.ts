@@ -44,10 +44,7 @@ interface Attributes {
 
 //------------------------------------------- regl draw command
 
-export function createDrawUnicolor(
-  regl: createRegl.Regl,
-  mesh: { positions: Vec3[]; cells: Vec3[] },
-) {
+export function createUnicolor(regl: createRegl.Regl, mesh: { positions: Vec3[]; cells: Vec3[] }) {
   const draw = regl<Uniforms, Attributes, PropsUnicolor>({
     frag,
     vert,

@@ -4,7 +4,7 @@ import mat3 from 'gl-mat3'
 import mat4 from 'gl-mat4'
 import { Mesh, Vec3 } from '@tstackgl/types'
 
-import { createDrawUnicolor as createUnicolor } from './draw-unicolor'
+import { createUnicolor } from './draw-unicolor'
 import { createNormalMesh as createNormal } from './draw-normal'
 import { createDiffuseLambert, PropsDiffuseLambert } from './draw-diffuse-lambert'
 import { createDiffuseOrenNayar, PropsDiffuseOrenNayar } from './draw-diffuse-oren-nayar'
@@ -122,22 +122,28 @@ const specularCookTorrance: PropsSpecularCookTorrance = {
   normalMatrix: mat3.create(),
 }
 
-export const createCommandAndProps: Array<{ create: CreateCommand<any>; props: {} }> = [
-  { create: createUnicolor, props: { color } },
-  { create: createAttenuation, props: attenuation },
-  { create: createNormal, props: {} },
+export const createCommandAndProps: Array<{
+  create: CreateCommand<any>
+  props: {}
+  name: string
+}> = [
+  { name: 'Unicolor', create: createUnicolor, props: { color } },
+  { name: 'Light attenuation', create: createAttenuation, props: attenuation },
+  { name: 'Normals', create: createNormal, props: {} },
+  { name: 'Diffuse Lambert', create: createDiffuseLambert, props: lambertProps },
   {
-    create: createDiffuseLambert,
-    props: lambertProps,
-  },
-  {
+    name: 'Diffuse Oren Nayar',
     create: createDiffuseOrenNayar,
     props: orenNayar,
   },
-  { create: createSpecularPhong, props: specularPhong },
-  { create: createSpecularBlinnPhong, props: specularBlinnPhong },
-  { create: createSpecularWard, props: specularWard },
-  { create: createSpecularBeckmann, props: specularBeckmann },
-  { create: createSpecularGaussian, props: specularGaussian },
-  { create: createSpecularCookTorrance, props: specularCookTorrance },
+  { name: 'Specular Phong', create: createSpecularPhong, props: specularPhong },
+  { name: 'Specular Blinn Phong', create: createSpecularBlinnPhong, props: specularBlinnPhong },
+  { name: 'Specular Ward', create: createSpecularWard, props: specularWard },
+  { name: 'Specular Beckmann', create: createSpecularBeckmann, props: specularBeckmann },
+  { name: 'Specular Gaussian', create: createSpecularGaussian, props: specularGaussian },
+  {
+    name: 'Specular Cook Torrance',
+    create: createSpecularCookTorrance,
+    props: specularCookTorrance,
+  },
 ]

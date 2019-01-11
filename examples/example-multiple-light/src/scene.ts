@@ -8,7 +8,7 @@ import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import createPlane from 'primitive-plane'
-import { lightPosition, color } from './state'
+import { lightPosition } from './state'
 import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
 import { createCommandAndProps } from './materials'
 
@@ -18,6 +18,8 @@ export function createReglScene() {
   const init = (canvas: HTMLCanvasElement, __: WebGLRenderingContext) => {
     const width = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerHeight
     const height = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight
+
+    console.log({ parentElement: canvas.parentElement.clientWidth })
 
     adaptDPI(canvas, width, height)
 

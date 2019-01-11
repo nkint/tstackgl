@@ -2,18 +2,31 @@ import { start } from '@thi.ng/hdom'
 import { canvasWebGL } from '@thi.ng/hdom-components/canvas'
 import { hasWebGL } from '@thi.ng/checks'
 import { createReglScene } from './scene'
+import { createCommandAndProps } from './materials'
+import { defaultMaterialsSpec } from './opengl-material-1997'
+
+const materialPanel = () => {
+  return ['ul.list.pa0', createCommandAndProps.map(({ name }) => ['li.ma2.pointer', name])]
+}
+
+const canvas = canvasWebGL(createReglScene())
 
 const app = () => {
   if (!hasWebGL()) {
     return ['p', 'Your browser does not support WebGL :- (']
   }
 
-  const canvas = canvasWebGL(createReglScene())
-
   return [
-    'div.h-100.flex.flex-column.code',
-    ['p.ma0.pa2', 'light study'],
-    ['div.h-100', [canvas, 200, 0.025]],
+    'div.w-100.h-100',
+    ['p.ma0.pa2.code', 'light study'],
+    [
+      'div.vw-100.vh-100.flex',
+      /* */
+      ['div.w5.pa2.pt3', materialPanel],
+      /* */
+      ['div.w-100.vh-100', [canvas]],
+      /* */
+    ],
   ]
 }
 
