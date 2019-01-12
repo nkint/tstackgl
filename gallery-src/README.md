@@ -5,7 +5,7 @@ process:
 ```sh
 $ cd PATH_TO_TSTACKGL/gallery-src
 # genereate the data.json to build the navbar items
-$ ts-node ./script/extract.ts > data.json
+$ ts-node ./script/extract.ts > ./src/data.json
 # build (compile, minify, etc) the gallery website writte with the hdom library
 $ yarn build
 # exectue a script that prepares all the examples to be accessible via iframe in the github pages
