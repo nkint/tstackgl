@@ -1094,6 +1094,17 @@
   dependencies:
     "@thi.ng/errors" "^0.1.12"
 
+"@thi.ng/atom@^1.5.8":
+  version "1.5.8"
+  resolved "https://registry.yarnpkg.com/@thi.ng/atom/-/atom-1.5.8.tgz#446e881b13b82c4fbf092826a366e37b537e3a6b"
+  integrity sha512-pPEg0ZjO8y8ruEP7IeuWYzoBat+d2FCi37+LB7gkBwlVWt7Qy2bQpr5HZEivHWCEqB7ykpEdE0VgEo21YX0yXA==
+  dependencies:
+    "@thi.ng/api" "^4.2.4"
+    "@thi.ng/checks" "^1.5.14"
+    "@thi.ng/equiv" "^0.1.15"
+    "@thi.ng/errors" "^0.1.12"
+    "@thi.ng/paths" "^1.6.6"
+
 "@thi.ng/checks@^1.5.14":
   version "1.5.14"
   resolved "https://registry.yarnpkg.com/@thi.ng/checks/-/checks-1.5.14.tgz#d90b40a5549d3149e62302da30c09f5784814a38"
@@ -1165,6 +1176,11 @@
     "@thi.ng/equiv" "^0.1.15"
     "@thi.ng/hiccup" "^2.7.2"
 
+"@thi.ng/hiccup-carbon-icons@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@thi.ng/hiccup-carbon-icons/-/hiccup-carbon-icons-0.1.2.tgz#ec4d7eae099a85b6042872f3ea4c7155b063b81c"
+  integrity sha512-QfGnYy5f5YQqbxbyqb/x8ewINQnfKr+Fb22Y62yWqeD+BWxDsJai5my1rMT0PkHl38ng6/VbhGh7+VS4yUodNg==
+
 "@thi.ng/hiccup@^2.7.2":
   version "2.7.2"
   resolved "https://registry.yarnpkg.com/@thi.ng/hiccup/-/hiccup-2.7.2.tgz#ced36e993ee3615fb545cf41a36cd6e669f36795"
@@ -1172,6 +1188,17 @@
   dependencies:
     "@thi.ng/checks" "^1.5.14"
     "@thi.ng/errors" "^0.1.12"
+
+"@thi.ng/interceptors@^1.9.2":
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/@thi.ng/interceptors/-/interceptors-1.9.2.tgz#bbb028568a946ce427ced0c30f7bb54e064a089d"
+  integrity sha512-tefjEpgCxy1krzHTfZi26gXVPldVoCdVf0dtVk+fktc11/5ZE31167fMkQYA4O96C8e3bPgLY7RyktvNBORuSw==
+  dependencies:
+    "@thi.ng/api" "^4.2.4"
+    "@thi.ng/atom" "^1.5.8"
+    "@thi.ng/checks" "^1.5.14"
+    "@thi.ng/errors" "^0.1.12"
+    "@thi.ng/paths" "^1.6.6"
 
 "@thi.ng/math@^0.2.2":
   version "0.2.2"
@@ -1184,6 +1211,14 @@
   integrity sha512-d3uxLj6Znv5jsXAd1vmSMSxz9jsS+XTG3BNhMRYNyJTcp66SxmjJiFVYcAy7rujz44m50hSk7cfGSBCoY/z41w==
   dependencies:
     "@thi.ng/api" "^4.2.4"
+
+"@thi.ng/paths@^1.6.6":
+  version "1.6.6"
+  resolved "https://registry.yarnpkg.com/@thi.ng/paths/-/paths-1.6.6.tgz#3a36fa01a074e1de750b0126ef76dd6caa217380"
+  integrity sha512-x7qYi8RVHGedhskyVk6u292Qcs7MiKvymkoGeXP+0ZPIj2r8c7TNXT/U1z42ytqj7nU4Lv+AbkSgVRc9oF+FYw==
+  dependencies:
+    "@thi.ng/checks" "^1.5.14"
+    "@thi.ng/errors" "^0.1.12"
 
 "@thi.ng/strings@^0.7.1":
   version "0.7.1"
@@ -1281,6 +1316,11 @@ angle-normals@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/angle-normals/-/angle-normals-1.0.0.tgz#958574986aa3f02946a45cd108cb2a3b8907c9ac"
   integrity sha1-lYV0mGqj8ClGpFzRCMsqO4kHyaw=
+
+animejs@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/animejs/-/animejs-3.0.0.tgz#6b0fb87fbd0b13128b35fe8e790b1671ae7b825d"
+  integrity sha512-YL2+GpjoDYM7hqKpJoh+vhXYNiE0klkgUlDl3m+wCuXh9QJF++/KIT2SQYkBkVhxk/GLlFsqI5I/ogWN4pBQSA==
 
 ansi-escapes@^3.0.0:
   version "3.1.0"
@@ -3310,15 +3350,37 @@ glsl-resolve@0.0.1:
     resolve "^0.6.1"
     xtend "^2.1.2"
 
+glsl-specular-beckmann@^1.1.1, glsl-specular-beckmann@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/glsl-specular-beckmann/-/glsl-specular-beckmann-1.1.2.tgz#fce9056933ecdf2456278376a54d082893e775f1"
+  integrity sha1-/OkFaTPs3yRWJ4N2pU0IKJPndfE=
+
 glsl-specular-blinn-phong@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/glsl-specular-blinn-phong/-/glsl-specular-blinn-phong-1.0.2.tgz#49cd056d9a76f042efce94c1bca3f38e5e4ccd27"
   integrity sha1-Sc0FbZp28ELvzpTBvKPzjl5MzSc=
 
+glsl-specular-cook-torrance@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/glsl-specular-cook-torrance/-/glsl-specular-cook-torrance-2.0.1.tgz#a891cc06c8c7b4f4728702b4824fdacbb967d78f"
+  integrity sha1-qJHMBsjHtPRyhwK0gk/ay7ln148=
+  dependencies:
+    glsl-specular-beckmann "^1.1.1"
+
+glsl-specular-gaussian@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/glsl-specular-gaussian/-/glsl-specular-gaussian-1.0.0.tgz#eb3f28ba0df7db306ebabafc194e28b090cac138"
+  integrity sha1-6z8oug332zBuurr8GU4osJDKwTg=
+
 glsl-specular-phong@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/glsl-specular-phong/-/glsl-specular-phong-1.0.0.tgz#a0450808e4629ee64ccb460b7ee0425a97bf6204"
   integrity sha1-oEUICORinuZMy0YLfuBCWpe/YgQ=
+
+glsl-specular-ward@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/glsl-specular-ward/-/glsl-specular-ward-1.0.0.tgz#289368ef5bd4dc9c72354b8de3bcb22def33e9f6"
+  integrity sha1-KJNo71vU3JxyNUuN47yyLe8z6fY=
 
 glsl-token-assignments@^2.0.0:
   version "2.0.2"
@@ -5914,6 +5976,11 @@ primitive-icosphere@^1.0.2:
     gl-vec2 "^1.0.0"
     gl-vec3 "^1.0.3"
     icosphere "^1.0.0"
+
+primitive-plane@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/primitive-plane/-/primitive-plane-2.0.0.tgz#85dc2a858315d1735d5de87107c88a44089bc9dd"
+  integrity sha1-hdwqhYMV0XNdXehxB8iKRAibyd0=
 
 primitive-quad@^2.0.0:
   version "2.0.0"
