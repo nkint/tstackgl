@@ -11,8 +11,6 @@ import { createDiffuseOrenNayar, PropsDiffuseOrenNayar } from './draw-diffuse-or
 import { PropsSpecularPhong, createSpecularPhong } from './draw-specular-phong'
 import { createSpecularBlinnPhong } from './draw-specular-blinn-phong'
 import { createAttenuation, PropsAttenuation } from './draw-attenuation'
-
-import { lightPosition, color } from './state'
 import { createSpecularWard, PropsSpecularWard } from './draw-specular-ward'
 import { createSpecularBeckmann, PropsSpecularBeckmann } from './draw-specular-beckmann'
 import { createSpecularGaussian, PropsSpecularGaussian } from './draw-specular-gaussian'
@@ -20,6 +18,8 @@ import {
   createSpecularCookTorrance,
   PropsSpecularCookTorrance,
 } from './draw-specular-cook-torrance'
+
+import { lightPosition, color } from './state'
 
 type CreateCommand<T> = (
   regl: createRegl.Regl,
@@ -29,15 +29,15 @@ type CreateCommand<T> = (
 const attenuation: PropsAttenuation = {
   radius: 25,
   falloff: 0.5,
-  lightPosition: lightPosition,
   color,
+  lightPosition: vec3.create(),
   model: mat4.create(),
 }
 
 const lambertProps: PropsDiffuseLambert = {
   diffuseColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
+  lightPosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
 }
@@ -45,10 +45,10 @@ const lambertProps: PropsDiffuseLambert = {
 const orenNayar: PropsDiffuseOrenNayar = {
   diffuseColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
-
   roughness: 0.3,
   albedo: 0.9,
+
+  lightPosition: vec3.create(),
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
@@ -57,9 +57,9 @@ const orenNayar: PropsDiffuseOrenNayar = {
 const specularPhong: PropsSpecularPhong = {
   specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
-
   shiness: 0.3,
+
+  lightPosition: vec3.create(),
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
@@ -68,9 +68,9 @@ const specularPhong: PropsSpecularPhong = {
 const specularBlinnPhong: PropsSpecularPhong = {
   specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
   shiness: 0.3,
 
+  lightPosition: vec3.create(),
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
@@ -79,10 +79,10 @@ const specularBlinnPhong: PropsSpecularPhong = {
 const specularWard: PropsSpecularWard = {
   specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
   shinyPar: 0.1,
   shinyPerp: 0.3,
 
+  lightPosition: vec3.create(),
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
@@ -91,9 +91,9 @@ const specularWard: PropsSpecularWard = {
 const specularBeckmann: PropsSpecularBeckmann = {
   specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
   roughness: 0.3,
 
+  lightPosition: vec3.create(),
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
@@ -102,9 +102,9 @@ const specularBeckmann: PropsSpecularBeckmann = {
 const specularGaussian: PropsSpecularGaussian = {
   specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
   shiness: 0.4,
 
+  lightPosition: vec3.create(),
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),
@@ -113,10 +113,10 @@ const specularGaussian: PropsSpecularGaussian = {
 const specularCookTorrance: PropsSpecularCookTorrance = {
   specularColor: color,
   ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: lightPosition,
   roughness: 0.4,
   fresnel: 1.0,
 
+  lightPosition: vec3.create(),
   eyePosition: vec3.create(),
   model: mat4.create(),
   normalMatrix: mat3.create(),

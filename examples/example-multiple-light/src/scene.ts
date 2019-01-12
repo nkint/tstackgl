@@ -8,7 +8,7 @@ import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import createPlane from 'primitive-plane'
-import { lightPosition } from './state'
+import { lightPosition, dirty } from './state'
 import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
 import { createCommandAndProps } from './materials'
 
@@ -18,8 +18,6 @@ export function createReglScene() {
   const init = (canvas: HTMLCanvasElement, __: WebGLRenderingContext) => {
     const width = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerHeight
     const height = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight
-
-    console.log({ parentElement: canvas.parentElement.clientWidth })
 
     adaptDPI(canvas, width, height)
 
@@ -42,8 +40,6 @@ export function createReglScene() {
     )
     const commandsAndProps = [...tx.iterator1(xform, createCommandAndProps)]
 
-    console.log({ commandsAndProps })
-
     const floor = createPlane(20, 15, Math.ceil(commandsAndProps.length / 3), 3)
     const drawFloor = createDrawWireframe(regl, floor)
     const floorProps = {
@@ -57,19 +53,20 @@ export function createReglScene() {
 
     loop = frameCatch(function({}) {
       camera((cameraState: any) => {
-        // if (!cameraState.dirty) {
-        //   return
-        // }
-        // console.log('draw loop')
+        if (!cameraState.dirty && !dirty.deref()) {
+          return
+        }
+        console.log('draw loop')
         // console.log({ cameraState })
 
         regl.clear({ color: [0.1, 0.1, 0.1, 1] })
 
         axes.draw()
 
+        const lp = lightPosition.deref() as Vec3
         lightDebugPoint.draw({
           color: [1, 1, 0],
-          translate: lightPosition,
+          translate: lp,
         })
 
         commandsAndProps.forEach(({ drawCommand, model, props }, i) => {
@@ -81,11 +78,14 @@ export function createReglScene() {
           props.model = model
           props.normalMatrix = normalMatrix
           props.eyePosition = cameraState.eye
+          props.lightPosition = lp
 
           drawCommand.draw(props)
         })
 
         drawFloor.draw(floorProps)
+
+        dirty.reset(false)
       })
     })
   }

@@ -17,8 +17,11 @@
     "typescript": "^3.2.2"
   },
   "dependencies": {
+    "@thi.ng/atom": "^1.5.8",
     "@thi.ng/hdom": "latest",
     "@thi.ng/hdom-components": "latest",
+    "@thi.ng/hiccup-carbon-icons": "^0.1.2",
+    "@thi.ng/interceptors": "^1.9.2",
     "@thi.ng/transducers": "latest",
     "@tstackgl/geometry": "^0.0.0",
     "@tstackgl/regl-draw": "^0.0.0",
