@@ -80,10 +80,7 @@ export function createReglScene() {
           props.eyePosition = cameraState.eye
           props.lightPosition = lp
 
-          // console.log({ path, lightParams: lightParams.deref() })
-          Object.assign((lightParams.deref() as LightParams)[path], props)
-
-          drawCommand.draw(props)
+          drawCommand.draw({ ...props, ...(lightParams.deref() as LightParams)[path] })
         })
 
         drawFloor.draw(floorProps)

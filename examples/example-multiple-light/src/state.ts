@@ -53,8 +53,48 @@ const state = new Atom({
   dirty: true,
   panels: new Array(11).fill(false),
   animationTime: 0,
-  lightParams: lightParamStartState,
+  lightParams: {
+    unicolor: {},
+    normal: {},
+    attenuation: {
+      radius: 25,
+      falloff: 0.5,
+    },
+    lambert: {},
+    orenNayar: {
+      roughness: 0.3,
+      albedo: 0.9,
+    },
+    specularPhong: {
+      shiness: 0.3,
+    },
+    specularBlinnPhong: {
+      shiness: 0.3,
+    },
+    specularWard: {
+      shinyPar: 0.1,
+      shinyPerp: 0.3,
+    },
+    specularBeckmann: {
+      roughness: 0.3,
+    },
+    specularGaussian: {
+      shiness: 0.4,
+    },
+    specularCookTorrance: {
+      roughness: 0.4,
+      fresnel: 1.0,
+    },
+  },
 })
+
+export const lightParams = new Cursor(state, 'lightParams')
+;(window as any).lightParams = lightParams
+
+export const animationTime = new Cursor(state, 'animationTime')
+
+export const dirty = new Cursor(state, 'dirty')
+;(window as any).dirty = dirty
 
 export const BUS = new EventBus(state, {
   [Event.UPDATE_UI]: [valueUpdater('dirty', () => true)],
@@ -76,19 +116,14 @@ export const BUS = new EventBus(state, {
   [Event.UPDATE_LIGHT_PARAM]: [
     valueUpdater('lightParams', (param: any, { value, path, key }) => {
       lightParams.swap(x => {
-        console.log({ x })
         x[path][key] = value
         return x
       })
+      BUS.dispatch([Event.UPDATE_UI])
       return param
     }),
   ],
 })
-
-export const animationTime = new Cursor(BUS.state, 'animationTime')
-
-export const dirty = new Cursor(BUS.state, 'dirty')
-;(window as any).dirty = dirty
 
 const _lightPosition = vec3.create()
 export const lightPosition = BUS.state.addView('animationTime', (t: Number) => {
@@ -100,11 +135,6 @@ export const lightPosition = BUS.state.addView('animationTime', (t: Number) => {
   )
   return _lightPosition
 })
-
-//------------------------------------------------------------------ light params
-
-export const lightParams = new Cursor(BUS.state, 'lightParams')
-;(window as any).lightParams = lightParams
 
 //------------------------------------------------------------------ light animation
 
