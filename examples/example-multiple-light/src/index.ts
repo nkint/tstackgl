@@ -6,7 +6,6 @@ import { createCommandAndProps } from './materials'
 import { defaultMaterialsSpec } from './opengl-material-1997'
 import { accordion, Section, AccordionType } from './accordion/accordion'
 import { Event, BUS, lightParams } from './state'
-import { EventBus } from './interceptors/event-bus'
 
 type BodyType = { path: string; key: string }
 const panels: Section[] = createCommandAndProps.map(({ name, path }) => {
@@ -20,7 +19,6 @@ const panels: Section[] = createCommandAndProps.map(({ name, path }) => {
     })),
   }
 })
-console.log({ panels })
 
 function slider(value: Number, onChange: (x: Number) => void) {
   return [
@@ -35,35 +33,21 @@ function slider(value: Number, onChange: (x: Number) => void) {
 
 const getPanels = () => {
   return panels.map(({ title, body }: { title: string; body: BodyType[] }) => {
-    // console.log({ body })
-
     return {
       title,
       body: [
         body.length === 0
-          ? ['p', 'no parameter']
-          : body.map(({ path, key }) => {
-              // console.log(lightParams.deref(), path, key)
+          ? ['div', 'no parameter']
+          : body.map(({ path, key }, i) => {
               const item = lightParams.deref()[path]
-              // console.log({ item })
               return [
-                'div',
-                ['div', `path: ${path}, key: ${key}, value: ${item[key]}`],
+                `div${i !== 0 ? '.mv2' : ''}`,
+                ['div', `${key}: ${item[key]}`],
                 [
                   slider(item[key], value => {
                     BUS.dispatch([Event.UPDATE_LIGHT_PARAM, { value, path, key }])
                   }),
                 ],
-                // [
-                //   'div',
-                //   [
-                //     'input',
-                //     {
-                //       type: 'number',
-                //       value: item[key],
-                //     },
-                //   ],
-                // ],
               ]
             }),
       ],
@@ -88,21 +72,23 @@ const canvas = canvasWebGL(createReglScene())
 
 const app = () => {
   const processed = ctx.bus.processQueue()
-  // console.log('app render', { processed })
 
   const content = processed
     ? /*!hasWebGL()
       ? ['p', 'Your browser does not support WebGL :- (']
       : */ [
-        'div.w-100.h-100',
-        ['p.ma0.pa2.code', 'light study'],
+        'div.f7.code',
         [
-          'div.vw-100.vh-100.flex',
-          /* */
-          ['div.w5.pa2.pt3', materialPanel],
-          /* */
-          ['div.w-100.vh-100', [canvas]],
-          /* */
+          'div.w-100.h-100',
+          ['p.ma0.pa2', 'light study'],
+          [
+            'div.vw-100.vh-100.flex',
+            /* */
+            ['div.w5.pa2.pt3', materialPanel],
+            /* */
+            ['div.w-100.vh-100', [canvas]],
+            /* */
+          ],
         ],
       ]
     : null
@@ -115,8 +101,8 @@ const ctx = {
   theme: {
     accordion: {
       root: { class: 'mv3' },
-      title: { class: 'pointer fw6 ma0 mt2 pv2 ph3 bb b--gray dim code' },
-      bodyOpen: { class: 'gray bg-near-white pa3 mt2' },
+      title: { class: 'pointer fw6 ma0 mt2 pv2 ph3 bt b--gray dim' },
+      bodyOpen: { class: 'gray pa3 mt2' },
       bodyClosed: { class: 'ph3' },
     },
   },
