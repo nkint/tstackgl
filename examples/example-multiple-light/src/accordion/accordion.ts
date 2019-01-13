@@ -6,13 +6,6 @@ export type Section = { title: string; body: any }
 type OnClick = (id: number) => void
 type PanelOpen = (id: number) => boolean
 
-export type AccordionType = [
-  (ctx: any, onclick: OnClick, panelOpen: PanelOpen, ...sections: Section[]) => any[],
-  (id: number) => void,
-  (id: number) => void,
-  ...Section[]
-]
-
 /**
  * Context-themed accordion component. Takes an `onclick` event handler
  * and `panelOpen` predicate (both of which are only being given a panel

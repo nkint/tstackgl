@@ -21,8 +21,6 @@ import {
 
 import { color, lightParams, LightParams } from './state'
 
-console.log('dudee', lightParams.deref())
-
 type CreateCommand<T> = (
   regl: createRegl.Regl,
   mesh: Mesh,
@@ -30,7 +28,7 @@ type CreateCommand<T> = (
 
 const unicolorProps: PropsUnicolor = {
   model: mat4.create(),
-  color: vec3.create(),
+  color,
 }
 
 const attenuation: PropsAttenuation = {

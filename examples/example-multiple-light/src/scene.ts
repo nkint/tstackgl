@@ -8,9 +8,10 @@ import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import createPlane from 'primitive-plane'
-import { lightPosition, dirty, lightParams, LightParams } from './state'
-import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
+import { lightPosition, dirty, lightParams, LightParams, openLightIndex } from './state'
+import { createWireframe } from './draw-wireframe'
 import { createCommandAndProps } from './materials'
+import { createUnicolorQuad } from './draw-quad'
 
 let loop = { cancel: function() {} }
 
@@ -41,11 +42,16 @@ export function createReglScene() {
     const commandsAndProps = [...tx.iterator1(xform, createCommandAndProps)]
 
     const floor = createPlane(20, 15, Math.ceil(commandsAndProps.length / 3), 3)
-    const drawFloor = createDrawWireframe(regl, floor)
+    const drawFloor = createWireframe(regl, floor)
     const floorProps = {
       color: [0.2, 0.2, 0.2] as Vec3,
       model: mat4.fromRotation(mat4.create(), Math.PI / 2, [1, 0, 0]),
     }
+
+    const activePlane = createPlane(5, 5, 1, 1)
+    const unicolorQuad = createUnicolorQuad(regl, activePlane as any)
+    const activePlaneModelMatrix = mat4.create()
+    const activePlaneRotation = mat4.fromRotation(mat4.create(), Math.PI / 2, [1, 0, 0])
 
     const modelViewMatrix = mat4.create()
     const normalMatrix = mat3.create()
@@ -57,11 +63,19 @@ export function createReglScene() {
           return
         }
         // console.log('draw loop')
-        // console.log({ cameraState })
 
-        regl.clear({ color: [0.1, 0.1, 0.1, 1] })
+        regl.clear({ color: [0, 0, 0, 0] })
 
-        axes.draw()
+        // axes.draw()
+
+        const activePosition: Vec3 =
+          openLightIndex.deref() !== -1
+            ? [
+                7.5 - Math.floor(openLightIndex.deref() / numRow) * 5,
+                0,
+                5 - (openLightIndex.deref() % numRow) * 5,
+              ]
+            : null
 
         const lp = lightPosition.deref() as Vec3
         lightDebugPoint.draw({
@@ -84,6 +98,17 @@ export function createReglScene() {
         })
 
         drawFloor.draw(floorProps)
+
+        if (activePosition) {
+          unicolorQuad.draw({
+            color: [0.2, 0.2, 0.2],
+            model: mat4.multiply(
+              activePlaneModelMatrix,
+              mat4.fromTranslation(activePlaneModelMatrix, activePosition),
+              activePlaneRotation,
+            ),
+          })
+        }
 
         dirty.reset(false)
       })

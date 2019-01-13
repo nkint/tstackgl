@@ -1,6 +1,7 @@
 import createRegl from 'regl'
-import { Mesh, Vec3, Mat4 } from '@tstackgl/types'
-import { map } from '@thi.ng/transducers'
+import { Vec3, Mat4 } from '@tstackgl/types'
+
+export type Quad = [Vec3, Vec3, Vec3, Vec3]
 
 const vert = `
 precision mediump float;
@@ -29,25 +30,24 @@ interface Props {
 
 interface Uniforms extends Props {}
 
-export function createWireframe(regl: createRegl.Regl, mesh: Mesh) {
-  // const input: Vec3[] = [[1, 0, 3], [3, 2, 1], [5, 4, 7]]
-  // const expected = [[[1, 0], [0, 3], [3, 1]], [[3, 2], [2, 1], [1, 3]], [[5, 4], [4, 7], [7, 5]]]
-
-  const triangleToSegments = ([a, b, c]: Vec3) => [[a, b], [b, c], [c, a]]
-  const wireframeCells = [...map(triangleToSegments, mesh.cells)]
-
+export function createUnicolorQuad(
+  regl: createRegl.Regl,
+  quad: {
+    positions: Quad
+  },
+) {
+  const cells = [[0, 1, 2], [1, 2, 3]] // TODO: test normals
   const draw = regl<Uniforms, Attributes, Props>({
     frag,
     vert,
     attributes: {
-      position: () => mesh.positions,
+      position: () => quad.positions,
     },
     uniforms: {
       color: regl.prop<Props, 'color'>('color'),
       model: regl.prop<Props, 'model'>('model'),
     },
-    elements: wireframeCells,
-    primitive: 'lines',
+    elements: () => cells,
   })
 
   return {
