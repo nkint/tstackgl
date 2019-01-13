@@ -11,12 +11,49 @@ export const Event = {
   UPDATE_UI: 'UPDATE_UI',
   TOGGLE_PANEL_SINGLE: 'TOGGLE_PANEL_SINGLE',
   UPDATE_ANIMATION_TIME: 'UPDATE_ANIMATION_TIME',
+  UPDATE_LIGHT_PARAM: 'UPDATE_LIGHT_PARAM',
 }
+
+const lightParamStartState = {
+  unicolor: {},
+  normal: {},
+  attenuation: {
+    radius: 25,
+    falloff: 0.5,
+  },
+  lambert: {},
+  orenNayar: {
+    roughness: 0.3,
+    albedo: 0.9,
+  },
+  specularPhong: {
+    shiness: 0.3,
+  },
+  specularBlinnPhong: {
+    shiness: 0.3,
+  },
+  specularWard: {
+    shinyPar: 0.1,
+    shinyPerp: 0.3,
+  },
+  specularBeckmann: {
+    roughness: 0.3,
+  },
+  specularGaussian: {
+    shiness: 0.4,
+  },
+  specularCookTorrance: {
+    roughness: 0.4,
+    fresnel: 1.0,
+  },
+}
+export type LightParams = typeof lightParamStartState
 
 const state = new Atom({
   dirty: true,
   panels: new Array(11).fill(false),
   animationTime: 0,
+  lightParams: lightParamStartState,
 })
 
 export const BUS = new EventBus(state, {
@@ -36,6 +73,16 @@ export const BUS = new EventBus(state, {
       return newAnimationTime
     }),
   ],
+  [Event.UPDATE_LIGHT_PARAM]: [
+    valueUpdater('lightParams', (param: any, { value, path, key }) => {
+      lightParams.swap(x => {
+        console.log({ x })
+        x[path][key] = value
+        return x
+      })
+      return param
+    }),
+  ],
 })
 
 export const animationTime = new Cursor(BUS.state, 'animationTime')
@@ -53,6 +100,11 @@ export const lightPosition = BUS.state.addView('animationTime', (t: Number) => {
   )
   return _lightPosition
 })
+
+//------------------------------------------------------------------ light params
+
+export const lightParams = new Cursor(BUS.state, 'lightParams')
+;(window as any).lightParams = lightParams
 
 //------------------------------------------------------------------ light animation
 

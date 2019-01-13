@@ -8,7 +8,7 @@ import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import createPlane from 'primitive-plane'
-import { lightPosition, dirty } from './state'
+import { lightPosition, dirty, lightParams, LightParams } from './state'
 import { createDrawMeshWireframe as createDrawWireframe } from './draw-wireframe'
 import { createCommandAndProps } from './materials'
 
@@ -31,11 +31,11 @@ export function createReglScene() {
 
     const numRow = 3
     const xform = tx.comp(
-      tx.mapIndexed((i: number, { create, props }) => {
+      tx.mapIndexed((i: number, { create, props, path }) => {
         const model = mat4.create()
         const translation: Vec3 = [7.5 - Math.floor(i / numRow) * 5, 1.5, 5 - (i % numRow) * 5]
         mat4.translate(model, model, translation)
-        return { model, drawCommand: create(regl, mesh), props }
+        return { model, drawCommand: create(regl, mesh), props, path }
       }),
     )
     const commandsAndProps = [...tx.iterator1(xform, createCommandAndProps)]
@@ -56,7 +56,7 @@ export function createReglScene() {
         if (!cameraState.dirty && !dirty.deref()) {
           return
         }
-        console.log('draw loop')
+        // console.log('draw loop')
         // console.log({ cameraState })
 
         regl.clear({ color: [0.1, 0.1, 0.1, 1] })
@@ -69,7 +69,7 @@ export function createReglScene() {
           translate: lp,
         })
 
-        commandsAndProps.forEach(({ drawCommand, model, props }, i) => {
+        commandsAndProps.forEach(({ drawCommand, model, props, path }, i) => {
           mat4.multiply(modelViewMatrix, cameraState.view, model)
           mat4.invert(inverseModelViewMatrix, modelViewMatrix)
           mat3.fromMat4(normalMatrix, inverseModelViewMatrix)
@@ -79,6 +79,9 @@ export function createReglScene() {
           props.normalMatrix = normalMatrix
           props.eyePosition = cameraState.eye
           props.lightPosition = lp
+
+          // console.log({ path, lightParams: lightParams.deref() })
+          Object.assign((lightParams.deref() as LightParams)[path], props)
 
           drawCommand.draw(props)
         })
