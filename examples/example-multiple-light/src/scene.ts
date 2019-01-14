@@ -2,7 +2,7 @@ import createRegl from 'regl'
 import { adaptDPI } from '@thi.ng/hdom-components/canvas'
 import { createFrameCatch, createXYZ, createDrawPointDebug } from '@tstackgl/regl-draw'
 import { Mesh, Vec3 } from '@tstackgl/types'
-import createCamera from 'regl-camera' // TODO: remove dependency
+import createCamera from 'regl-camera'
 import createTorus from 'primitive-torus'
 import * as tx from '@thi.ng/transducers'
 import mat4 from 'gl-mat4'

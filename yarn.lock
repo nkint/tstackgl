@@ -1250,6 +1250,11 @@
     "@thi.ng/errors" "^0.1.12"
     "@thi.ng/strings" "^0.7.1"
 
+"@types/clone@^0.1.30":
+  version "0.1.30"
+  resolved "https://registry.yarnpkg.com/@types/clone/-/clone-0.1.30.tgz#e7365648c1b42136a59c7d5040637b3b5c83b614"
+  integrity sha1-5zZWSMG0ITalnH1QQGN7O1yDthQ=
+
 "@types/earcut@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@types/earcut/-/earcut-2.1.0.tgz#20cbed6e57dc65de3c1255c1a0c586864ed5c7e9"
@@ -1950,7 +1955,7 @@ clone@^1.0.2:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
 
-clone@^2.1.1:
+clone@^2.1.1, clone@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
 
@@ -2447,6 +2452,13 @@ csso@~2.3.1:
   dependencies:
     clap "^1.0.9"
     source-map "^0.5.3"
+
+cube-cube@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/cube-cube/-/cube-cube-1.0.0.tgz#38c6c361d6cee720b38e515df5527e6367349ebe"
+  integrity sha1-OMbDYdbO5yCzjlFd9VJ+Y2c0nr4=
+  dependencies:
+    rectangular-prism "^1.0.0"
 
 currently-unhandled@^0.4.1:
   version "0.4.1"
@@ -2951,6 +2963,11 @@ extsprintf@^1.2.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
 
+face-normals@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/face-normals/-/face-normals-0.0.0.tgz#78ae442b65c23ceb48ad3e23b28c4933e441ae93"
+  integrity sha1-eK5EK2XCPOtIrT4jsoxJM+RBrpM=
+
 falafel@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/falafel/-/falafel-2.1.0.tgz#96bb17761daba94f46d001738b3cedf3a67fe06c"
@@ -3258,6 +3275,11 @@ gl-mat3@^2.0.0:
 gl-mat4@^1.1.4, gl-mat4@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/gl-mat4/-/gl-mat4-1.2.0.tgz#49d8a7636b70aa00819216635f4a3fd3f4669b26"
+
+gl-matrix@^2.2.0:
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/gl-matrix/-/gl-matrix-2.8.1.tgz#1c7873448eac61d2cd25803a074e837bd42581a3"
+  integrity sha512-0YCjVpE3pS5XWlN3J4X7AiAx65+nqAI54LndtVFnQZB6G/FVLkZH8y8V6R3cIoOQR4pUdfwQGd1iwyoXHJ4Qfw==
 
 gl-quat@^1.0.0:
   version "1.0.0"
@@ -5113,6 +5135,13 @@ ora@^2.1.0:
     strip-ansi "^4.0.0"
     wcwidth "^1.0.1"
 
+orbit-camera@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/orbit-camera/-/orbit-camera-1.0.0.tgz#8da1615ab5c1e777a2bf65b95e5cd1f517f1fc31"
+  integrity sha1-jaFhWrXB53eiv2W5XlzR9Rfx/DE=
+  dependencies:
+    gl-matrix "^2.2.0"
+
 os-browserify@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
@@ -6266,6 +6295,11 @@ readdirp@^2.0.0:
     micromatch "^3.1.10"
     readable-stream "^2.0.2"
 
+rectangular-prism@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/rectangular-prism/-/rectangular-prism-1.0.0.tgz#e06f845b79da89321b5ada24ff481c7cce8e3703"
+  integrity sha1-4G+EW3naiTIbWtok/0gcfM6ONwM=
+
 redent@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/redent/-/redent-1.0.0.tgz#cf916ab1fd5f1f16dfb20822dd6ec7f730c2afde"
@@ -7300,6 +7334,11 @@ unicode-trie@^0.3.1:
   dependencies:
     pako "^0.2.5"
     tiny-inflate "^1.0.0"
+
+unindex-mesh@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/unindex-mesh/-/unindex-mesh-2.0.0.tgz#7d1da6af2d4a7971f246a3c89d5103ed735994cd"
+  integrity sha1-fR2mry1KeXHyRqPInVED7XNZlM0=
 
 union-value@^1.0.0:
   version "1.0.0"
