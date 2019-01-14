@@ -54,6 +54,10 @@ export const createDrawVoxel = (
     },
 
     count: voxel.positions.length / 3,
+
+    cull: {
+      enable: true, // why this is so important??
+    },
   })
 
   return { draw }

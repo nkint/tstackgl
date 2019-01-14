@@ -66,6 +66,16 @@ function createMesh() {
   }
 }
 
+const getTime =
+  window.performance && window.performance.now
+    ? function now() {
+        return performance.now()
+      }
+    : Date.now ||
+      function now() {
+        return +new Date()
+      }
+
 function createReglScene() {
   // canvas init hook
   const init = (canvas: HTMLCanvasElement, __: WebGLRenderingContext) => {
@@ -113,7 +123,7 @@ function createReglScene() {
 
     console.log('dude')
     loop = frameCatch(function(context: createREGL.DefaultContext) {
-      const now = context.time * TIMESCALE
+      const now = getTime() * TIMESCALE
       const width = canvas.width
       const height = canvas.height
 
@@ -121,7 +131,7 @@ function createReglScene() {
 
       heightmap.use(() => {
         drawHeight.draw({
-          uTime: 2757.050000000163, //now,
+          uTime: now * 0.8,
           uResolution: RES,
         })
       })
@@ -129,12 +139,12 @@ function createReglScene() {
       mat4.perspective(projection, Math.PI / 4, width / height, 0.001, 100)
 
       quat.identity(camera.rotation)
-      quat.rotateY(camera.rotation, camera.rotation, now * 0.2)
+      quat.rotateY(camera.rotation, camera.rotation, now * 0.0002)
       quat.rotateX(camera.rotation, camera.rotation, -0.5)
       camera.view(view)
 
       quat.identity(camera.rotation)
-      quat.rotateY(camera.rotation, camera.rotation, now * 0.2)
+      quat.rotateY(camera.rotation, camera.rotation, now * 0.0002)
 
       const voxelProps: PropsVoxel = {
         uResolution: RES,
