@@ -45,5 +45,4 @@ void main() {
     , clamp((nhl - height) * threshold, -1.0, 1.0)
     , clamp((nhr - height) * threshold, -1.0, 1.0)
   );
-
 }

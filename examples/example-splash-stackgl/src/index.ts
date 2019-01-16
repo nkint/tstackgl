@@ -84,7 +84,10 @@ function createReglScene() {
 
     adaptDPI(canvas, width, height)
 
-    const regl = createRegl({ canvas, extensions: ['OES_standard_derivatives'] })
+    const regl = createRegl({
+      canvas,
+      extensions: ['OES_standard_derivatives', 'OES_texture_float'],
+    })
     const frameCatch = createFrameCatch(regl)
 
     const fboParams = {
@@ -98,12 +101,13 @@ function createReglScene() {
       wrap: 'clamp',
       min: 'nearest',
       mag: 'nearest',
+      type: 'float',
     })
     const heightmap = regl.framebuffer({ color: heightmapTexture, ...fboParams })
     // const heightmap = regl.framebuffer({
     //   shape: [SIZE, SIZE],
     //   ...fboParams,
-    //   stencil: false
+    //   stencil: false,
     // })
 
     const gradient = regl.texture(gradientMap)
@@ -131,7 +135,7 @@ function createReglScene() {
 
       heightmap.use(() => {
         drawHeight.draw({
-          uTime: now * 0.8,
+          uTime: now,
           uResolution: RES,
         })
       })
