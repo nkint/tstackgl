@@ -1,6 +1,6 @@
 import createREGL from 'regl'
-import heightmapVert from './voxel.vert'
-import heightmapFrag from './voxel.frag'
+import heightmapVert from './shader/voxel.vert'
+import heightmapFrag from './shader/voxel.frag'
 import { Vec2, Mat4 } from '@tstackgl/types'
 
 export type PropsVoxel = {

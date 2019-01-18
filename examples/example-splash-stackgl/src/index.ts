@@ -104,12 +104,6 @@ function createReglScene() {
       type: 'float',
     })
     const heightmap = regl.framebuffer({ color: heightmapTexture, ...fboParams })
-    // const heightmap = regl.framebuffer({
-    //   shape: [SIZE, SIZE],
-    //   ...fboParams,
-    //   stencil: false,
-    // })
-
     const gradient = regl.texture(gradientMap)
     const projection = mat4.create()
     const viewrot = mat4.create()
@@ -125,7 +119,6 @@ function createReglScene() {
     const voxels = createMesh()
     const drawVoxel = createDrawVoxel(regl, voxels)
 
-    console.log('dude')
     loop = frameCatch(function(context: createREGL.DefaultContext) {
       const now = getTime() * TIMESCALE
       const width = canvas.width

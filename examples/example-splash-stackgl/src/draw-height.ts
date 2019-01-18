@@ -1,6 +1,6 @@
 import createREGL from 'regl'
-import heightmapVert from './heightmap.vert'
-import heightmapFrag from './heightmap.frag'
+import heightmapVert from './shader/heightmap.vert'
+import heightmapFrag from './shader/heightmap.frag'
 import { Vec2 } from '@tstackgl/types'
 
 type Props = {
