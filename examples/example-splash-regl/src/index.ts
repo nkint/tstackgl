@@ -1,8 +1,7 @@
-
 import { start } from '@thi.ng/hdom'
 import { canvasWebGL } from '@thi.ng/hdom-components/canvas'
 import { hasWebGL } from '@thi.ng/checks'
-import { createReglScene } from './scene';
+import { createReglScene } from './scene'
 
 let loop = { cancel: function() {} }
 
