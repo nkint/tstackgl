@@ -4,7 +4,12 @@ import normals from 'angle-normals'
 import mat4 from 'gl-mat4'
 import { Uniforms, Attributes, Props } from './types'
 
-export const createDrawOutline = (regl: createREGL.Regl, mesh: Mesh, uniforms: Uniforms) => ({
+export const createDrawOutline = (
+  regl: createREGL.Regl,
+  mesh: Mesh,
+  uniforms: Uniforms,
+  positionsCount: number,
+) => ({
   draw: regl<Uniforms, Attributes, Props>({
     frag: `
   precision highp float;
@@ -49,6 +54,6 @@ export const createDrawOutline = (regl: createREGL.Regl, mesh: Mesh, uniforms: U
 
     uniforms,
 
-    count: 799,
+    count: positionsCount,
   }),
 })

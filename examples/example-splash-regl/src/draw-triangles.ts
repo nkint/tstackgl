@@ -3,7 +3,12 @@ import normals from 'angle-normals'
 import { Mesh } from '@tstackgl/types'
 import { Uniforms, Attributes, Props } from './types'
 
-export const createDrawTriangles = (regl: createREGL.Regl, mesh: Mesh, uniforms: Uniforms) => ({
+export const createDrawTriangles = (
+  regl: createREGL.Regl,
+  mesh: Mesh,
+  uniforms: Uniforms,
+  positionsCount: number,
+) => ({
   draw: regl<Uniforms, Attributes, Props>({
     frag: `
   precision highp float;
@@ -49,13 +54,12 @@ export const createDrawTriangles = (regl: createREGL.Regl, mesh: Mesh, uniforms:
       normal: regl.buffer(normals(mesh.cells, mesh.positions)),
       uv: regl.buffer(mesh.uvs),
     },
+    uniforms: uniforms,
 
     elements: regl.elements(mesh.cells),
 
     primitive: 'triangles',
 
-    uniforms: uniforms,
-
-    count: 799,
+    count: positionsCount,
   }),
 })

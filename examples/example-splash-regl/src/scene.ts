@@ -24,8 +24,9 @@ export function createReglScene() {
     })
 
     let mesh = createSphere(7, {
-      subdivisions: 3,
+      subdivisions: 2,
     })
+    const positionsCount = mesh.positions.length
 
     const uvs = mesh.uvs
     const ns = mesh.normals
@@ -35,7 +36,6 @@ export function createReglScene() {
     mesh.normals = ns
 
     const n = new Noise(Math.random())
-    console.log({ n })
 
     let dx: Array<Array<Array<Number>>> = []
     let rnd
@@ -77,8 +77,8 @@ export function createReglScene() {
 
     const frameCatch = createFrameCatch(regl)
 
-    const drawOutline = createDrawOutline(regl, mesh, uniforms)
-    const drawTriangles = createDrawTriangles(regl, mesh, uniforms)
+    const drawOutline = createDrawOutline(regl, mesh, uniforms, positionsCount)
+    const drawTriangles = createDrawTriangles(regl, mesh, uniforms, positionsCount)
 
     loop = frameCatch(function({}) {
       regl.clear({
