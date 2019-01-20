@@ -1516,7 +1516,470 @@ exports.adaptDPI = (canvas, width, height) => {
     return dpr;
 };
 
-},{}],"../../../node_modules/regl/dist/regl.js":[function(require,module,exports) {
+},{}],"../../../node_modules/@thi.ng/checks/exists-not-null.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function existsAndNotNull(x) {
+    return x != null;
+}
+exports.existsAndNotNull = existsAndNotNull;
+
+},{}],"../../../node_modules/@thi.ng/checks/exists.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function exists(x) {
+    return x !== undefined;
+}
+exports.exists = exists;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-crypto.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasCrypto() {
+    return typeof window !== "undefined" && window["crypto"] !== undefined;
+}
+exports.hasCrypto = hasCrypto;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-max-length.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasMaxLength(len, x) {
+    return x != null && x.length <= len;
+}
+exports.hasMaxLength = hasMaxLength;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-min-length.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasMinLength(len, x) {
+    return x != null && x.length >= len;
+}
+exports.hasMinLength = hasMinLength;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-performance.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_function_1 = require("./is-function");
+function hasPerformance() {
+    return typeof performance !== 'undefined' && is_function_1.isFunction(performance.now);
+}
+exports.hasPerformance = hasPerformance;
+
+},{"./is-function":"../../../node_modules/@thi.ng/checks/is-function.js"}],"../../../node_modules/@thi.ng/checks/has-wasm.js":[function(require,module,exports) {
+var global = arguments[3];
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasWASM() {
+    return (typeof window !== "undefined" && typeof window["WebAssembly"] !== "undefined") ||
+        (typeof global !== "undefined" && typeof global["WebAssembly"] !== "undefined");
+}
+exports.hasWASM = hasWASM;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-webgl.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasWebGL() {
+    try {
+        document.createElement("canvas").getContext("webgl");
+        return true;
+    }
+    catch (e) {
+        return false;
+    }
+}
+exports.hasWebGL = hasWebGL;
+
+},{}],"../../../node_modules/@thi.ng/checks/has-websocket.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function hasWebSocket() {
+    return typeof WebSocket !== "undefined";
+}
+exports.hasWebSocket = hasWebSocket;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-arraylike.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isArrayLike(x) {
+    return (x != null && typeof x !== "function" && x.length !== undefined);
+}
+exports.isArrayLike = isArrayLike;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-blob.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isBlob(x) {
+    return x instanceof Blob;
+}
+exports.isBlob = isBlob;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-boolean.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isBoolean(x) {
+    return typeof x === "boolean";
+}
+exports.isBoolean = isBoolean;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-chrome.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isChrome() {
+    return typeof window !== "undefined" && !!window["chrome"];
+}
+exports.isChrome = isChrome;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-date.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isDate(x) {
+    return x instanceof Date;
+}
+exports.isDate = isDate;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-even.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isEven(x) {
+    return (x % 2) === 0;
+}
+exports.isEven = isEven;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-false.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFalse(x) {
+    return x === false;
+}
+exports.isFalse = isFalse;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-file.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFile(x) {
+    return x instanceof File;
+}
+exports.isFile = isFile;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-firefox.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFirefox() {
+    return typeof window !== "undefined" && !!window["InstallTrigger"];
+}
+exports.isFirefox = isFirefox;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-ie.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isIE() {
+    return typeof document !== "undefined" &&
+        (typeof document["documentMode"] !== "undefined" ||
+            navigator.userAgent.indexOf("MSIE") > 0);
+}
+exports.isIE = isIE;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-in-range.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isInRange(min, max, x) {
+    return x >= min && x <= max;
+}
+exports.isInRange = isInRange;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-int32.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isInt32(x) {
+    return typeof x === "number" && (x | 0) === x;
+}
+exports.isInt32 = isInt32;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-iterable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isIterable(x) {
+    return x != null && typeof x[Symbol.iterator] === "function";
+}
+exports.isIterable = isIterable;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-map.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isMap(x) {
+    return x instanceof Map;
+}
+exports.isMap = isMap;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-mobile.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isMobile() {
+    return typeof navigator !== "undefined" &&
+        /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent) &&
+        !/crios/i.test(navigator.userAgent);
+}
+exports.isMobile = isMobile;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-nan.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNaN(x) {
+    return x !== x;
+}
+exports.isNaN = isNaN;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-negative.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNegative(x) {
+    return typeof x === "number" && x < 0;
+}
+exports.isNegative = isNegative;
+
+},{}],"../../../node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
+
+},{}],"../../../node_modules/@thi.ng/checks/is-node.js":[function(require,module,exports) {
+var process = require("process");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNode() {
+    if (typeof process === "object") {
+        if (typeof process.versions === "object") {
+            if (typeof process.versions.node !== "undefined") {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+exports.isNode = isNode;
+
+},{"process":"../../../node_modules/parcel-bundler/src/builtins/_empty.js"}],"../../../node_modules/@thi.ng/checks/is-null.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNull(x) {
+    return x === null;
+}
+exports.isNull = isNull;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-number.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNumber(x) {
+    return typeof x === "number";
+}
+exports.isNumber = isNumber;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-object.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isObject(x) {
+    return x !== null && typeof x === "object";
+}
+exports.isObject = isObject;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-odd.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isOdd(x) {
+    return (x % 2) !== 0;
+}
+exports.isOdd = isOdd;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-positive.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isPosititve(x) {
+    return typeof x === "number" && x > 0;
+}
+exports.isPosititve = isPosititve;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-promise.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isPromise(x) {
+    return x instanceof Promise;
+}
+exports.isPromise = isPromise;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-promiselike.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const implements_function_1 = require("./implements-function");
+function isPromiseLike(x) {
+    return x instanceof Promise ||
+        (implements_function_1.implementsFunction(x, "then") && implements_function_1.implementsFunction(x, "catch"));
+}
+exports.isPromiseLike = isPromiseLike;
+
+},{"./implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js"}],"../../../node_modules/@thi.ng/checks/is-regexp.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isRegExp(x) {
+    return x instanceof RegExp;
+}
+exports.isRegExp = isRegExp;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-safari.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_chrome_1 = require("./is-chrome");
+function isSafari() {
+    return typeof navigator !== "undefined" && /Safari/.test(navigator.userAgent) && !is_chrome_1.isChrome();
+}
+exports.isSafari = isSafari;
+
+},{"./is-chrome":"../../../node_modules/@thi.ng/checks/is-chrome.js"}],"../../../node_modules/@thi.ng/checks/is-set.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isSet(x) {
+    return x instanceof Set;
+}
+exports.isSet = isSet;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-symbol.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isSymbol(x) {
+    return typeof x === "symbol";
+}
+exports.isSymbol = isSymbol;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-transferable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isTransferable(x) {
+    return x instanceof ArrayBuffer ||
+        (typeof SharedArrayBuffer !== "undefined" && x instanceof SharedArrayBuffer) ||
+        (typeof MessagePort !== "undefined" && x instanceof MessagePort);
+}
+exports.isTransferable = isTransferable;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-true.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isTrue(x) {
+    return x === true;
+}
+exports.isTrue = isTrue;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-typedarray.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isTypedArray(x) {
+    return x && (x.constructor === Float32Array ||
+        x.constructor === Uint32Array ||
+        x.constructor === Uint8Array ||
+        x.constructor === Uint8ClampedArray ||
+        x.constructor === Int8Array ||
+        x.constructor === Uint16Array ||
+        x.constructor === Int16Array ||
+        x.constructor === Int32Array ||
+        x.constructor === Float64Array);
+}
+exports.isTypedArray = isTypedArray;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-uint32.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUint32(x) {
+    return typeof x === "number" && (x >>> 0) === x;
+}
+exports.isUint32 = isUint32;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-undefined.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUndefined(x) {
+    return x === undefined;
+}
+exports.isUndefined = isUndefined;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-uuid.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUUID(x) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
+}
+exports.isUUID = isUUID;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-uuid4.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isUUIDv4(x) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
+}
+exports.isUUIDv4 = isUUIDv4;
+
+},{}],"../../../node_modules/@thi.ng/checks/is-zero.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isZero(x) {
+    return x === 0;
+}
+exports.isZero = isZero;
+
+},{}],"../../../node_modules/@thi.ng/checks/index.js":[function(require,module,exports) {
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("./exists-not-null"));
+__export(require("./exists"));
+__export(require("./has-crypto"));
+__export(require("./has-max-length"));
+__export(require("./has-min-length"));
+__export(require("./has-performance"));
+__export(require("./has-wasm"));
+__export(require("./has-webgl"));
+__export(require("./has-websocket"));
+__export(require("./implements-function"));
+__export(require("./is-array"));
+__export(require("./is-arraylike"));
+__export(require("./is-blob"));
+__export(require("./is-boolean"));
+__export(require("./is-chrome"));
+__export(require("./is-date"));
+__export(require("./is-even"));
+__export(require("./is-false"));
+__export(require("./is-file"));
+__export(require("./is-firefox"));
+__export(require("./is-function"));
+__export(require("./is-ie"));
+__export(require("./is-in-range"));
+__export(require("./is-int32"));
+__export(require("./is-iterable"));
+__export(require("./is-map"));
+__export(require("./is-mobile"));
+__export(require("./is-nan"));
+__export(require("./is-negative"));
+__export(require("./is-node"));
+__export(require("./is-not-string-iterable"));
+__export(require("./is-null"));
+__export(require("./is-number"));
+__export(require("./is-object"));
+__export(require("./is-odd"));
+__export(require("./is-plain-object"));
+__export(require("./is-positive"));
+__export(require("./is-promise"));
+__export(require("./is-promiselike"));
+__export(require("./is-regexp"));
+__export(require("./is-safari"));
+__export(require("./is-set"));
+__export(require("./is-string"));
+__export(require("./is-symbol"));
+__export(require("./is-transferable"));
+__export(require("./is-true"));
+__export(require("./is-typedarray"));
+__export(require("./is-uint32"));
+__export(require("./is-undefined"));
+__export(require("./is-uuid"));
+__export(require("./is-uuid4"));
+__export(require("./is-zero"));
+
+},{"./exists-not-null":"../../../node_modules/@thi.ng/checks/exists-not-null.js","./exists":"../../../node_modules/@thi.ng/checks/exists.js","./has-crypto":"../../../node_modules/@thi.ng/checks/has-crypto.js","./has-max-length":"../../../node_modules/@thi.ng/checks/has-max-length.js","./has-min-length":"../../../node_modules/@thi.ng/checks/has-min-length.js","./has-performance":"../../../node_modules/@thi.ng/checks/has-performance.js","./has-wasm":"../../../node_modules/@thi.ng/checks/has-wasm.js","./has-webgl":"../../../node_modules/@thi.ng/checks/has-webgl.js","./has-websocket":"../../../node_modules/@thi.ng/checks/has-websocket.js","./implements-function":"../../../node_modules/@thi.ng/checks/implements-function.js","./is-array":"../../../node_modules/@thi.ng/checks/is-array.js","./is-arraylike":"../../../node_modules/@thi.ng/checks/is-arraylike.js","./is-blob":"../../../node_modules/@thi.ng/checks/is-blob.js","./is-boolean":"../../../node_modules/@thi.ng/checks/is-boolean.js","./is-chrome":"../../../node_modules/@thi.ng/checks/is-chrome.js","./is-date":"../../../node_modules/@thi.ng/checks/is-date.js","./is-even":"../../../node_modules/@thi.ng/checks/is-even.js","./is-false":"../../../node_modules/@thi.ng/checks/is-false.js","./is-file":"../../../node_modules/@thi.ng/checks/is-file.js","./is-firefox":"../../../node_modules/@thi.ng/checks/is-firefox.js","./is-function":"../../../node_modules/@thi.ng/checks/is-function.js","./is-ie":"../../../node_modules/@thi.ng/checks/is-ie.js","./is-in-range":"../../../node_modules/@thi.ng/checks/is-in-range.js","./is-int32":"../../../node_modules/@thi.ng/checks/is-int32.js","./is-iterable":"../../../node_modules/@thi.ng/checks/is-iterable.js","./is-map":"../../../node_modules/@thi.ng/checks/is-map.js","./is-mobile":"../../../node_modules/@thi.ng/checks/is-mobile.js","./is-nan":"../../../node_modules/@thi.ng/checks/is-nan.js","./is-negative":"../../../node_modules/@thi.ng/checks/is-negative.js","./is-node":"../../../node_modules/@thi.ng/checks/is-node.js","./is-not-string-iterable":"../../../node_modules/@thi.ng/checks/is-not-string-iterable.js","./is-null":"../../../node_modules/@thi.ng/checks/is-null.js","./is-number":"../../../node_modules/@thi.ng/checks/is-number.js","./is-object":"../../../node_modules/@thi.ng/checks/is-object.js","./is-odd":"../../../node_modules/@thi.ng/checks/is-odd.js","./is-plain-object":"../../../node_modules/@thi.ng/checks/is-plain-object.js","./is-positive":"../../../node_modules/@thi.ng/checks/is-positive.js","./is-promise":"../../../node_modules/@thi.ng/checks/is-promise.js","./is-promiselike":"../../../node_modules/@thi.ng/checks/is-promiselike.js","./is-regexp":"../../../node_modules/@thi.ng/checks/is-regexp.js","./is-safari":"../../../node_modules/@thi.ng/checks/is-safari.js","./is-set":"../../../node_modules/@thi.ng/checks/is-set.js","./is-string":"../../../node_modules/@thi.ng/checks/is-string.js","./is-symbol":"../../../node_modules/@thi.ng/checks/is-symbol.js","./is-transferable":"../../../node_modules/@thi.ng/checks/is-transferable.js","./is-true":"../../../node_modules/@thi.ng/checks/is-true.js","./is-typedarray":"../../../node_modules/@thi.ng/checks/is-typedarray.js","./is-uint32":"../../../node_modules/@thi.ng/checks/is-uint32.js","./is-undefined":"../../../node_modules/@thi.ng/checks/is-undefined.js","./is-uuid":"../../../node_modules/@thi.ng/checks/is-uuid.js","./is-uuid4":"../../../node_modules/@thi.ng/checks/is-uuid4.js","./is-zero":"../../../node_modules/@thi.ng/checks/is-zero.js"}],"../../../node_modules/regl/dist/regl.js":[function(require,module,exports) {
 var define;
 var global = arguments[3];
 (function (global, factory) {
@@ -14032,14 +14495,6 @@ earcut.flatten = function (data) {
     return result;
 };
 
-},{}],"../../../node_modules/@thi.ng/checks/is-arraylike.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isArrayLike(x) {
-    return (x != null && typeof x !== "function" && x.length !== undefined);
-}
-exports.isArrayLike = isArrayLike;
-
 },{}],"../../../node_modules/@thi.ng/transducers/func/ensure-iterable.js":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -14108,15 +14563,7 @@ function* wrap(src, n = 1, left = true, right = true) {
 }
 exports.wrap = wrap;
 
-},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js"}],"../../../node_modules/@thi.ng/checks/is-iterable.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isIterable(x) {
-    return x != null && typeof x[Symbol.iterator] === "function";
-}
-exports.isIterable = isIterable;
-
-},{}],"../../../node_modules/@thi.ng/transducers/reduced.js":[function(require,module,exports) {
+},{"@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","../func/ensure-array":"../../../node_modules/@thi.ng/transducers/func/ensure-array.js"}],"../../../node_modules/@thi.ng/transducers/reduced.js":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Reduced {
@@ -17843,14 +18290,6 @@ function constantly(x) {
 }
 exports.constantly = constantly;
 
-},{}],"../../../node_modules/@thi.ng/checks/is-even.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isEven(x) {
-    return (x % 2) === 0;
-}
-exports.isEven = isEven;
-
 },{}],"../../../node_modules/@thi.ng/transducers/func/even.js":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -17998,14 +18437,6 @@ function lookup3d(src, width, height) {
     return (i) => src[i[0] + i[1] * width + i[2] * stridez];
 }
 exports.lookup3d = lookup3d;
-
-},{}],"../../../node_modules/@thi.ng/checks/is-odd.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isOdd(x) {
-    return (x % 2) !== 0;
-}
-exports.isOdd = isOdd;
 
 },{}],"../../../node_modules/@thi.ng/transducers/func/odd.js":[function(require,module,exports) {
 "use strict";
@@ -18985,7 +19416,58 @@ function createOctahedron(r) {
 }
 exports.createOctahedron = createOctahedron;
 
-},{"gl-vec3":"../../../node_modules/gl-vec3/index.js"}],"../../../node_modules/@tstackgl/geometry/dist/index.js":[function(require,module,exports) {
+},{"gl-vec3":"../../../node_modules/gl-vec3/index.js"}],"../../../node_modules/@tstackgl/geometry/dist/mesh-combine-normals.js":[function(require,module,exports) {
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var slice = require("sliced");
+function combine(meshes) {
+    var hasNormals = meshes.every(function (mesh) { return mesh.normals && mesh.positions.length === mesh.normals.length; });
+    var hasColors = meshes.every(function (mesh) { return mesh.colors && mesh.positions.length === mesh.colors.length; });
+    var pos = [];
+    var cel = [];
+    var nor = [];
+    var color = [];
+    var p = 0;
+    var c = 0;
+    var k = 0;
+    var j = 0;
+    for (var i = 0; i < meshes.length; i++) {
+        var mpos = meshes[i].positions;
+        var mcel = meshes[i].cells;
+        var mnor = meshes[i].normals;
+        var mcol = meshes[i].colors;
+        for (j = 0; j < mpos.length; j++) {
+            pos[j + p] = slice(mpos[j]);
+            if (hasNormals)
+                nor[j + p] = slice(mnor[j]);
+            if (hasColors)
+                color[j + p] = slice(mcol[j]);
+        }
+        for (j = 0; j < mcel.length; j++) {
+            cel[(k = j + c)] = slice(mcel[j]);
+            for (var l = 0; l < cel[k].length; l++) {
+                cel[k][l] += p;
+            }
+        }
+        p += mpos.length;
+        c += mcel.length;
+    }
+    return __assign({ cells: cel, positions: pos }, (hasNormals && { normals: nor }), (hasColors && { colors: color }));
+}
+exports.combine = combine;
+
+},{"sliced":"../../../node_modules/sliced/index.js"}],"../../../node_modules/@tstackgl/geometry/dist/index.js":[function(require,module,exports) {
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -18999,8 +19481,9 @@ __export(require("./shape/circle"));
 __export(require("./shape/primitive-icosahedron"));
 __export(require("./shape/primitive-cylinder"));
 __export(require("./shape/primitive-octahedron"));
+__export(require("./mesh-combine-normals"));
 
-},{"./calc/get-centroid":"../../../node_modules/@tstackgl/geometry/dist/calc/get-centroid.js","./calc/extrude/extrude":"../../../node_modules/@tstackgl/geometry/dist/calc/extrude/extrude.js","./calc/angle-between":"../../../node_modules/@tstackgl/geometry/dist/calc/angle-between.js","./edge":"../../../node_modules/@tstackgl/geometry/dist/edge.js","./shape/circle":"../../../node_modules/@tstackgl/geometry/dist/shape/circle.js","./shape/primitive-icosahedron":"../../../node_modules/@tstackgl/geometry/dist/shape/primitive-icosahedron.js","./shape/primitive-cylinder":"../../../node_modules/@tstackgl/geometry/dist/shape/primitive-cylinder.js","./shape/primitive-octahedron":"../../../node_modules/@tstackgl/geometry/dist/shape/primitive-octahedron.js"}],"../../../node_modules/@tstackgl/regl-draw/dist/draw-axes.js":[function(require,module,exports) {
+},{"./calc/get-centroid":"../../../node_modules/@tstackgl/geometry/dist/calc/get-centroid.js","./calc/extrude/extrude":"../../../node_modules/@tstackgl/geometry/dist/calc/extrude/extrude.js","./calc/angle-between":"../../../node_modules/@tstackgl/geometry/dist/calc/angle-between.js","./edge":"../../../node_modules/@tstackgl/geometry/dist/edge.js","./shape/circle":"../../../node_modules/@tstackgl/geometry/dist/shape/circle.js","./shape/primitive-icosahedron":"../../../node_modules/@tstackgl/geometry/dist/shape/primitive-icosahedron.js","./shape/primitive-cylinder":"../../../node_modules/@tstackgl/geometry/dist/shape/primitive-cylinder.js","./shape/primitive-octahedron":"../../../node_modules/@tstackgl/geometry/dist/shape/primitive-octahedron.js","./mesh-combine-normals":"../../../node_modules/@tstackgl/geometry/dist/mesh-combine-normals.js"}],"../../../node_modules/@tstackgl/regl-draw/dist/draw-axes.js":[function(require,module,exports) {
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -19806,6375 +20289,515 @@ __export(require("./draw-basic-mesh"));
 __export(require("./draw-normal-lines"));
 __export(require("./draw-normal-mesh"));
 
-},{"./frameCatch":"../../../node_modules/@tstackgl/regl-draw/dist/frameCatch.js","./draw-axes":"../../../node_modules/@tstackgl/regl-draw/dist/draw-axes.js","./draw-debug":"../../../node_modules/@tstackgl/regl-draw/dist/draw-debug.js","./draw-mesh-unicolor":"../../../node_modules/@tstackgl/regl-draw/dist/draw-mesh-unicolor.js","./draw-mesh-wireframe":"../../../node_modules/@tstackgl/regl-draw/dist/draw-mesh-wireframe.js","./draw-basic-mesh":"../../../node_modules/@tstackgl/regl-draw/dist/draw-basic-mesh.js","./draw-normal-lines":"../../../node_modules/@tstackgl/regl-draw/dist/draw-normal-lines.js","./draw-normal-mesh":"../../../node_modules/@tstackgl/regl-draw/dist/draw-normal-mesh.js"}],"../../../node_modules/mouse-event/mouse.js":[function(require,module,exports) {
-'use strict'
-
-function mouseButtons(ev) {
-  if(typeof ev === 'object') {
-    if('buttons' in ev) {
-      return ev.buttons
-    } else if('which' in ev) {
-      var b = ev.which
-      if(b === 2) {
-        return 4
-      } else if(b === 3) {
-        return 2
-      } else if(b > 0) {
-        return 1<<(b-1)
-      }
-    } else if('button' in ev) {
-      var b = ev.button
-      if(b === 1) {
-        return 4
-      } else if(b === 2) {
-        return 2
-      } else if(b >= 0) {
-        return 1<<b
-      }
-    }
-  }
-  return 0
-}
-exports.buttons = mouseButtons
-
-function mouseElement(ev) {
-  return ev.target || ev.srcElement || window
-}
-exports.element = mouseElement
-
-function mouseRelativeX(ev) {
-  if(typeof ev === 'object') {
-    if('offsetX' in ev) {
-      return ev.offsetX
-    }
-    var target = mouseElement(ev)
-    var bounds = target.getBoundingClientRect()
-    return ev.clientX - bounds.left
-  }
-  return 0
-}
-exports.x = mouseRelativeX
-
-function mouseRelativeY(ev) {
-  if(typeof ev === 'object') {
-    if('offsetY' in ev) {
-      return ev.offsetY
-    }
-    var target = mouseElement(ev)
-    var bounds = target.getBoundingClientRect()
-    return ev.clientY - bounds.top
-  }
-  return 0
-}
-exports.y = mouseRelativeY
-
-},{}],"../../../node_modules/mouse-change/mouse-listen.js":[function(require,module,exports) {
-'use strict'
-
-module.exports = mouseListen
-
-var mouse = require('mouse-event')
-
-function mouseListen (element, callback) {
-  if (!callback) {
-    callback = element
-    element = window
-  }
-
-  var buttonState = 0
-  var x = 0
-  var y = 0
-  var mods = {
-    shift: false,
-    alt: false,
-    control: false,
-    meta: false
-  }
-  var attached = false
-
-  function updateMods (ev) {
-    var changed = false
-    if ('altKey' in ev) {
-      changed = changed || ev.altKey !== mods.alt
-      mods.alt = !!ev.altKey
-    }
-    if ('shiftKey' in ev) {
-      changed = changed || ev.shiftKey !== mods.shift
-      mods.shift = !!ev.shiftKey
-    }
-    if ('ctrlKey' in ev) {
-      changed = changed || ev.ctrlKey !== mods.control
-      mods.control = !!ev.ctrlKey
-    }
-    if ('metaKey' in ev) {
-      changed = changed || ev.metaKey !== mods.meta
-      mods.meta = !!ev.metaKey
-    }
-    return changed
-  }
-
-  function handleEvent (nextButtons, ev) {
-    var nextX = mouse.x(ev)
-    var nextY = mouse.y(ev)
-    if ('buttons' in ev) {
-      nextButtons = ev.buttons | 0
-    }
-    if (nextButtons !== buttonState ||
-      nextX !== x ||
-      nextY !== y ||
-      updateMods(ev)) {
-      buttonState = nextButtons | 0
-      x = nextX || 0
-      y = nextY || 0
-      callback && callback(buttonState, x, y, mods)
-    }
-  }
-
-  function clearState (ev) {
-    handleEvent(0, ev)
-  }
-
-  function handleBlur () {
-    if (buttonState ||
-      x ||
-      y ||
-      mods.shift ||
-      mods.alt ||
-      mods.meta ||
-      mods.control) {
-      x = y = 0
-      buttonState = 0
-      mods.shift = mods.alt = mods.control = mods.meta = false
-      callback && callback(0, 0, 0, mods)
-    }
-  }
-
-  function handleMods (ev) {
-    if (updateMods(ev)) {
-      callback && callback(buttonState, x, y, mods)
-    }
-  }
-
-  function handleMouseMove (ev) {
-    if (mouse.buttons(ev) === 0) {
-      handleEvent(0, ev)
-    } else {
-      handleEvent(buttonState, ev)
-    }
-  }
-
-  function handleMouseDown (ev) {
-    handleEvent(buttonState | mouse.buttons(ev), ev)
-  }
-
-  function handleMouseUp (ev) {
-    handleEvent(buttonState & ~mouse.buttons(ev), ev)
-  }
-
-  function attachListeners () {
-    if (attached) {
-      return
-    }
-    attached = true
-
-    element.addEventListener('mousemove', handleMouseMove)
-
-    element.addEventListener('mousedown', handleMouseDown)
-
-    element.addEventListener('mouseup', handleMouseUp)
-
-    element.addEventListener('mouseleave', clearState)
-    element.addEventListener('mouseenter', clearState)
-    element.addEventListener('mouseout', clearState)
-    element.addEventListener('mouseover', clearState)
-
-    element.addEventListener('blur', handleBlur)
-
-    element.addEventListener('keyup', handleMods)
-    element.addEventListener('keydown', handleMods)
-    element.addEventListener('keypress', handleMods)
-
-    if (element !== window) {
-      window.addEventListener('blur', handleBlur)
-
-      window.addEventListener('keyup', handleMods)
-      window.addEventListener('keydown', handleMods)
-      window.addEventListener('keypress', handleMods)
-    }
-  }
-
-  function detachListeners () {
-    if (!attached) {
-      return
-    }
-    attached = false
-
-    element.removeEventListener('mousemove', handleMouseMove)
-
-    element.removeEventListener('mousedown', handleMouseDown)
-
-    element.removeEventListener('mouseup', handleMouseUp)
-
-    element.removeEventListener('mouseleave', clearState)
-    element.removeEventListener('mouseenter', clearState)
-    element.removeEventListener('mouseout', clearState)
-    element.removeEventListener('mouseover', clearState)
-
-    element.removeEventListener('blur', handleBlur)
-
-    element.removeEventListener('keyup', handleMods)
-    element.removeEventListener('keydown', handleMods)
-    element.removeEventListener('keypress', handleMods)
-
-    if (element !== window) {
-      window.removeEventListener('blur', handleBlur)
-
-      window.removeEventListener('keyup', handleMods)
-      window.removeEventListener('keydown', handleMods)
-      window.removeEventListener('keypress', handleMods)
-    }
-  }
-
-  // Attach listeners
-  attachListeners()
-
-  var result = {
-    element: element
-  }
-
-  Object.defineProperties(result, {
-    enabled: {
-      get: function () { return attached },
-      set: function (f) {
-        if (f) {
-          attachListeners()
-        } else {
-          detachListeners()
-        }
-      },
-      enumerable: true
-    },
-    buttons: {
-      get: function () { return buttonState },
-      enumerable: true
-    },
-    x: {
-      get: function () { return x },
-      enumerable: true
-    },
-    y: {
-      get: function () { return y },
-      enumerable: true
-    },
-    mods: {
-      get: function () { return mods },
-      enumerable: true
-    }
-  })
-
-  return result
-}
-
-},{"mouse-event":"../../../node_modules/mouse-event/mouse.js"}],"../../../node_modules/parse-unit/index.js":[function(require,module,exports) {
-module.exports = function parseUnit(str, out) {
-    if (!out)
-        out = [ 0, '' ]
-
-    str = String(str)
-    var num = parseFloat(str, 10)
-    out[0] = num
-    out[1] = str.match(/[\d.\-\+]*\s*(.*)/)[1] || ''
-    return out
-}
-},{}],"../../../node_modules/to-px/browser.js":[function(require,module,exports) {
-'use strict'
-
-var parseUnit = require('parse-unit')
-
-module.exports = toPX
-
-var PIXELS_PER_INCH = getSizeBrutal('in', document.body) // 96
-
-
-function getPropertyInPX(element, prop) {
-  var parts = parseUnit(getComputedStyle(element).getPropertyValue(prop))
-  return parts[0] * toPX(parts[1], element)
-}
-
-//This brutal hack is needed
-function getSizeBrutal(unit, element) {
-  var testDIV = document.createElement('div')
-  testDIV.style['height'] = '128' + unit
-  element.appendChild(testDIV)
-  var size = getPropertyInPX(testDIV, 'height') / 128
-  element.removeChild(testDIV)
-  return size
-}
-
-function toPX(str, element) {
-  if (!str) return null
-
-  element = element || document.body
-  str = (str + '' || 'px').trim().toLowerCase()
-  if(element === window || element === document) {
-    element = document.body
-  }
-
-  switch(str) {
-    case '%':  //Ambiguous, not sure if we should use width or height
-      return element.clientHeight / 100.0
-    case 'ch':
-    case 'ex':
-      return getSizeBrutal(str, element)
-    case 'em':
-      return getPropertyInPX(element, 'font-size')
-    case 'rem':
-      return getPropertyInPX(document.body, 'font-size')
-    case 'vw':
-      return window.innerWidth/100
-    case 'vh':
-      return window.innerHeight/100
-    case 'vmin':
-      return Math.min(window.innerWidth, window.innerHeight) / 100
-    case 'vmax':
-      return Math.max(window.innerWidth, window.innerHeight) / 100
-    case 'in':
-      return PIXELS_PER_INCH
-    case 'cm':
-      return PIXELS_PER_INCH / 2.54
-    case 'mm':
-      return PIXELS_PER_INCH / 25.4
-    case 'pt':
-      return PIXELS_PER_INCH / 72
-    case 'pc':
-      return PIXELS_PER_INCH / 6
-    case 'px':
-      return 1
-  }
-
-  // detect number of units
-  var parts = parseUnit(str)
-  if (!isNaN(parts[0]) && parts[1]) {
-    var px = toPX(parts[1], element)
-    return typeof px === 'number' ? parts[0] * px : null
-  }
-
-  return null
-}
-
-},{"parse-unit":"../../../node_modules/parse-unit/index.js"}],"../../../node_modules/mouse-wheel/wheel.js":[function(require,module,exports) {
-'use strict'
-
-var toPX = require('to-px')
-
-module.exports = mouseWheelListen
-
-function mouseWheelListen(element, callback, noScroll) {
-  if(typeof element === 'function') {
-    noScroll = !!callback
-    callback = element
-    element = window
-  }
-  var lineHeight = toPX('ex', element)
-  var listener = function(ev) {
-    if(noScroll) {
-      ev.preventDefault()
-    }
-    var dx = ev.deltaX || 0
-    var dy = ev.deltaY || 0
-    var dz = ev.deltaZ || 0
-    var mode = ev.deltaMode
-    var scale = 1
-    switch(mode) {
-      case 1:
-        scale = lineHeight
-      break
-      case 2:
-        scale = window.innerHeight
-      break
-    }
-    dx *= scale
-    dy *= scale
-    dz *= scale
-    if(dx || dy || dz) {
-      return callback(dx, dy, dz, ev)
-    }
-  }
-  element.addEventListener('wheel', listener)
-  return listener
-}
-
-},{"to-px":"../../../node_modules/to-px/browser.js"}],"../../../node_modules/regl-camera/regl-camera.js":[function(require,module,exports) {
-var mouseChange = require('mouse-change')
-var mouseWheel = require('mouse-wheel')
-var identity = require('gl-mat4/identity')
-var perspective = require('gl-mat4/perspective')
-var lookAt = require('gl-mat4/lookAt')
-
-module.exports = createCamera
-
-var isBrowser = typeof window !== 'undefined'
-
-function createCamera (regl, props_) {
-  var props = props_ || {}
-
-  // Preserve backward-compatibilty while renaming preventDefault -> noScroll
-  if (typeof props.noScroll === 'undefined') {
-    props.noScroll = props.preventDefault;
-  }
-
-  var cameraState = {
-    view: identity(new Float32Array(16)),
-    projection: identity(new Float32Array(16)),
-    center: new Float32Array(props.center || 3),
-    theta: props.theta || 0,
-    phi: props.phi || 0,
-    distance: Math.log(props.distance || 10.0),
-    eye: new Float32Array(3),
-    up: new Float32Array(props.up || [0, 1, 0]),
-    fovy: props.fovy || Math.PI / 4.0,
-    near: typeof props.near !== 'undefined' ? props.near : 0.01,
-    far: typeof props.far !== 'undefined' ? props.far : 1000.0,
-    noScroll: typeof props.noScroll !== 'undefined' ? props.noScroll : false,
-    flipY: !!props.flipY,
-    dtheta: 0,
-    dphi: 0,
-    rotationSpeed: typeof props.rotationSpeed !== 'undefined' ? props.rotationSpeed : 1,
-    zoomSpeed: typeof props.zoomSpeed !== 'undefined' ? props.zoomSpeed : 1,
-    renderOnDirty: typeof props.renderOnDirty !== undefined ? !!props.renderOnDirty : false
-  }
-
-  var element = props.element
-  var damping = typeof props.damping !== 'undefined' ? props.damping : 0.9
-
-  var right = new Float32Array([1, 0, 0])
-  var front = new Float32Array([0, 0, 1])
-
-  var minDistance = Math.log('minDistance' in props ? props.minDistance : 0.1)
-  var maxDistance = Math.log('maxDistance' in props ? props.maxDistance : 1000)
-
-  var ddistance = 0
-
-  var prevX = 0
-  var prevY = 0
-
-  if (isBrowser && props.mouse !== false) {
-    var source = element || regl._gl.canvas
-
-    function getWidth () {
-      return element ? element.offsetWidth : window.innerWidth
-    }
-
-    function getHeight () {
-      return element ? element.offsetHeight : window.innerHeight
-    }
-
-    mouseChange(source, function (buttons, x, y) {
-      if (buttons & 1) {
-        var dx = (x - prevX) / getWidth()
-        var dy = (y - prevY) / getHeight()
-
-        cameraState.dtheta += cameraState.rotationSpeed * 4.0 * dx
-        cameraState.dphi += cameraState.rotationSpeed * 4.0 * dy
-        cameraState.dirty = true;
-      }
-      prevX = x
-      prevY = y
-    })
-
-    mouseWheel(source, function (dx, dy) {
-      ddistance += dy / getHeight() * cameraState.zoomSpeed
-      cameraState.dirty = true;
-    }, props.noScroll)
-  }
-
-  function damp (x) {
-    var xd = x * damping
-    if (Math.abs(xd) < 0.1) {
-      return 0
-    }
-    cameraState.dirty = true;
-    return xd
-  }
-
-  function clamp (x, lo, hi) {
-    return Math.min(Math.max(x, lo), hi)
-  }
-
-  function updateCamera (props) {
-    Object.keys(props).forEach(function (prop) {
-      cameraState[prop] = props[prop]
-    })
-
-    var center = cameraState.center
-    var eye = cameraState.eye
-    var up = cameraState.up
-    var dtheta = cameraState.dtheta
-    var dphi = cameraState.dphi
-
-    cameraState.theta += dtheta
-    cameraState.phi = clamp(
-      cameraState.phi + dphi,
-      -Math.PI / 2.0,
-      Math.PI / 2.0)
-    cameraState.distance = clamp(
-      cameraState.distance + ddistance,
-      minDistance,
-      maxDistance)
-
-    cameraState.dtheta = damp(dtheta)
-    cameraState.dphi = damp(dphi)
-    ddistance = damp(ddistance)
-
-    var theta = cameraState.theta
-    var phi = cameraState.phi
-    var r = Math.exp(cameraState.distance)
-
-    var vf = r * Math.sin(theta) * Math.cos(phi)
-    var vr = r * Math.cos(theta) * Math.cos(phi)
-    var vu = r * Math.sin(phi)
-
-    for (var i = 0; i < 3; ++i) {
-      eye[i] = center[i] + vf * front[i] + vr * right[i] + vu * up[i]
-    }
-
-    lookAt(cameraState.view, eye, center, up)
-  }
-
-  cameraState.dirty = true;
-
-  var injectContext = regl({
-    context: Object.assign({}, cameraState, {
-      dirty: function () {
-        return cameraState.dirty;
-      },
-      projection: function (context) {
-        perspective(cameraState.projection,
-          cameraState.fovy,
-          context.viewportWidth / context.viewportHeight,
-          cameraState.near,
-          cameraState.far)
-        if (cameraState.flipY) { cameraState.projection[5] *= -1 }
-        return cameraState.projection
-      }
-    }),
-    uniforms: Object.keys(cameraState).reduce(function (uniforms, name) {
-      uniforms[name] = regl.context(name)
-      return uniforms
-    }, {})
-  })
-
-  function setupCamera (props, block) {
-    if (typeof setupCamera.dirty !== 'undefined') {
-      cameraState.dirty = setupCamera.dirty || cameraState.dirty
-      setupCamera.dirty = undefined;
-    }
-
-    if (props && block) {
-      cameraState.dirty = true;
-    }
-
-    if (cameraState.renderOnDirty && !cameraState.dirty) return;
-
-    if (!block) {
-      block = props
-      props = {}
-    }
-
-    updateCamera(props)
-    injectContext(block)
-    cameraState.dirty = false;
-  }
-
-  Object.keys(cameraState).forEach(function (name) {
-    setupCamera[name] = cameraState[name]
-  })
-
-  return setupCamera
-}
-
-},{"mouse-change":"../../../node_modules/mouse-change/mouse-listen.js","mouse-wheel":"../../../node_modules/mouse-wheel/wheel.js","gl-mat4/identity":"../../../node_modules/gl-mat4/identity.js","gl-mat4/perspective":"../../../node_modules/gl-mat4/perspective.js","gl-mat4/lookAt":"../../../node_modules/gl-mat4/lookAt.js"}],"../../../node_modules/defined/index.js":[function(require,module,exports) {
-module.exports = function () {
-    for (var i = 0; i < arguments.length; i++) {
-        if (arguments[i] !== undefined) return arguments[i];
-    }
-};
-
-},{}],"../../../node_modules/primitive-torus/index.js":[function(require,module,exports) {
-var defined = require('defined')
-var sub = require('gl-vec3/subtract')
-var normalize = require('gl-vec3/normalize')
-
-module.exports = createTorusMesh
-function createTorusMesh (opt) {
-  opt = opt || {}
-  var majorRadius = defined(opt.majorRadius, 1)
-  var minorRadius = defined(opt.minorRadius, 0.25)
-  var minorSegments = defined(opt.minorSegments, 32)
-  var majorSegments = defined(opt.majorSegments, 64)
-  var arc = defined(opt.arc, Math.PI * 2)
-  var PI2 = Math.PI * 2
-
-  var center = [0, 0, 0]
-  var uvs = []
-  var positions = []
-  var cells = []
-  var tmp = [0, 0, 0]
-  var normals = []
-
-  for (var j = 0; j <= minorSegments; j++) {
-    for (var i = 0; i <= majorSegments; i++) {
-      var u = i / majorSegments * arc
-      var v = j / minorSegments * PI2
-
-      center[0] = majorRadius * Math.cos(u)
-      center[1] = majorRadius * Math.sin(u)
-
-      var vertex = [
-        (majorRadius + minorRadius * Math.cos(v)) * Math.cos(u),
-        (majorRadius + minorRadius * Math.cos(v)) * Math.sin(u),
-        minorRadius * Math.sin(v)
-      ]
-      positions.push(vertex)
-
-      sub(tmp, vertex, center)
-      normalize(tmp, tmp)
-      normals.push(tmp.slice())
-      uvs.push([ i / majorSegments, j / minorSegments ])
-    }
-  }
-
-  for (var j = 1; j <= minorSegments; j++) {
-    for (var i = 1; i <= majorSegments; i++) {
-      var a = (majorSegments + 1) * j + i - 1
-      var b = (majorSegments + 1) * (j - 1) + i - 1
-      var c = (majorSegments + 1) * (j - 1) + i
-      var d = (majorSegments + 1) * j + i
-
-      cells.push([ a, b, d ])
-      cells.push([ b, c, d ])
-    }
+},{"./frameCatch":"../../../node_modules/@tstackgl/regl-draw/dist/frameCatch.js","./draw-axes":"../../../node_modules/@tstackgl/regl-draw/dist/draw-axes.js","./draw-debug":"../../../node_modules/@tstackgl/regl-draw/dist/draw-debug.js","./draw-mesh-unicolor":"../../../node_modules/@tstackgl/regl-draw/dist/draw-mesh-unicolor.js","./draw-mesh-wireframe":"../../../node_modules/@tstackgl/regl-draw/dist/draw-mesh-wireframe.js","./draw-basic-mesh":"../../../node_modules/@tstackgl/regl-draw/dist/draw-basic-mesh.js","./draw-normal-lines":"../../../node_modules/@tstackgl/regl-draw/dist/draw-normal-lines.js","./draw-normal-mesh":"../../../node_modules/@tstackgl/regl-draw/dist/draw-normal-mesh.js"}],"../../../node_modules/mesh-reindex/index.js":[function(require,module,exports) {
+module.exports = reindex
+
+function reindex(array) {
+  var pos = []
+  var cel = []
+
+  var i = 0
+  var c = 0
+  while (i < array.length) {
+    cel.push([c++, c++, c++])
+    pos.push([
+        array[i++]
+      , array[i++]
+      , array[i++]
+    ], [
+        array[i++]
+      , array[i++]
+      , array[i++]
+    ], [
+        array[i++]
+      , array[i++]
+      , array[i++]
+    ])
   }
 
   return {
-    uvs: uvs,
-    cells: cells,
-    normals: normals,
-    positions: positions
+      positions: pos
+    , cells: cel
   }
 }
 
-},{"defined":"../../../node_modules/defined/index.js","gl-vec3/subtract":"../../../node_modules/gl-vec3/subtract.js","gl-vec3/normalize":"../../../node_modules/gl-vec3/normalize.js"}],"../../../node_modules/gl-mat3/adjoint.js":[function(require,module,exports) {
-module.exports = adjoint
-
-/**
- * Calculates the adjugate of a mat3
- *
- * @alias mat3.adjoint
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the source matrix
- * @returns {mat3} out
- */
-function adjoint(out, a) {
-  var a00 = a[0], a01 = a[1], a02 = a[2]
-  var a10 = a[3], a11 = a[4], a12 = a[5]
-  var a20 = a[6], a21 = a[7], a22 = a[8]
-
-  out[0] = (a11 * a22 - a12 * a21)
-  out[1] = (a02 * a21 - a01 * a22)
-  out[2] = (a01 * a12 - a02 * a11)
-  out[3] = (a12 * a20 - a10 * a22)
-  out[4] = (a00 * a22 - a02 * a20)
-  out[5] = (a02 * a10 - a00 * a12)
-  out[6] = (a10 * a21 - a11 * a20)
-  out[7] = (a01 * a20 - a00 * a21)
-  out[8] = (a00 * a11 - a01 * a10)
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/clone.js":[function(require,module,exports) {
-module.exports = clone
-
-/**
- * Creates a new mat3 initialized with values from an existing matrix
- *
- * @alias mat3.clone
- * @param {mat3} a matrix to clone
- * @returns {mat3} a new 3x3 matrix
- */
-function clone(a) {
-  var out = new Float32Array(9)
-  out[0] = a[0]
-  out[1] = a[1]
-  out[2] = a[2]
-  out[3] = a[3]
-  out[4] = a[4]
-  out[5] = a[5]
-  out[6] = a[6]
-  out[7] = a[7]
-  out[8] = a[8]
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/copy.js":[function(require,module,exports) {
-module.exports = copy
-
-/**
- * Copy the values from one mat3 to another
- *
- * @alias mat3.copy
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the source matrix
- * @returns {mat3} out
- */
-function copy(out, a) {
-  out[0] = a[0]
-  out[1] = a[1]
-  out[2] = a[2]
-  out[3] = a[3]
-  out[4] = a[4]
-  out[5] = a[5]
-  out[6] = a[6]
-  out[7] = a[7]
-  out[8] = a[8]
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/create.js":[function(require,module,exports) {
-module.exports = create
-
-/**
- * Creates a new identity mat3
- *
- * @alias mat3.create
- * @returns {mat3} a new 3x3 matrix
- */
-function create() {
-  var out = new Float32Array(9)
-  out[0] = 1
-  out[1] = 0
-  out[2] = 0
-  out[3] = 0
-  out[4] = 1
-  out[5] = 0
-  out[6] = 0
-  out[7] = 0
-  out[8] = 1
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/determinant.js":[function(require,module,exports) {
-module.exports = determinant
-
-/**
- * Calculates the determinant of a mat3
- *
- * @alias mat3.determinant
- * @param {mat3} a the source matrix
- * @returns {Number} determinant of a
- */
-function determinant(a) {
-  var a00 = a[0], a01 = a[1], a02 = a[2]
-  var a10 = a[3], a11 = a[4], a12 = a[5]
-  var a20 = a[6], a21 = a[7], a22 = a[8]
-
-  return a00 * (a22 * a11 - a12 * a21)
-       + a01 * (a12 * a20 - a22 * a10)
-       + a02 * (a21 * a10 - a11 * a20)
-}
-
-},{}],"../../../node_modules/gl-mat3/frob.js":[function(require,module,exports) {
-module.exports = frob
-
-/**
- * Returns Frobenius norm of a mat3
- *
- * @alias mat3.frob
- * @param {mat3} a the matrix to calculate Frobenius norm of
- * @returns {Number} Frobenius norm
- */
-function frob(a) {
-  return Math.sqrt(
-      a[0]*a[0]
-    + a[1]*a[1]
-    + a[2]*a[2]
-    + a[3]*a[3]
-    + a[4]*a[4]
-    + a[5]*a[5]
-    + a[6]*a[6]
-    + a[7]*a[7]
-    + a[8]*a[8]
-  )
-}
-
-},{}],"../../../node_modules/gl-mat3/fromMat2.js":[function(require,module,exports) {
-module.exports = fromMat2d
-
-/**
- * Copies the values from a mat2d into a mat3
- *
- * @alias mat3.fromMat2d
- * @param {mat3} out the receiving matrix
- * @param {mat2d} a the matrix to copy
- * @returns {mat3} out
- **/
-function fromMat2d(out, a) {
-  out[0] = a[0]
-  out[1] = a[1]
-  out[2] = 0
-
-  out[3] = a[2]
-  out[4] = a[3]
-  out[5] = 0
-
-  out[6] = a[4]
-  out[7] = a[5]
-  out[8] = 1
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/fromMat4.js":[function(require,module,exports) {
-module.exports = fromMat4
-
-/**
- * Copies the upper-left 3x3 values into the given mat3.
- *
- * @alias mat3.fromMat4
- * @param {mat3} out the receiving 3x3 matrix
- * @param {mat4} a   the source 4x4 matrix
- * @returns {mat3} out
- */
-function fromMat4(out, a) {
-  out[0] = a[0]
-  out[1] = a[1]
-  out[2] = a[2]
-  out[3] = a[4]
-  out[4] = a[5]
-  out[5] = a[6]
-  out[6] = a[8]
-  out[7] = a[9]
-  out[8] = a[10]
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/fromQuat.js":[function(require,module,exports) {
-module.exports = fromQuat
-
-/**
-* Calculates a 3x3 matrix from the given quaternion
-*
-* @alias mat3.fromQuat
-* @param {mat3} out mat3 receiving operation result
-* @param {quat} q Quaternion to create matrix from
-*
-* @returns {mat3} out
-*/
-function fromQuat(out, q) {
-  var x = q[0]
-  var y = q[1]
-  var z = q[2]
-  var w = q[3]
-
-  var x2 = x + x
-  var y2 = y + y
-  var z2 = z + z
-
-  var xx = x * x2
-  var yx = y * x2
-  var yy = y * y2
-  var zx = z * x2
-  var zy = z * y2
-  var zz = z * z2
-  var wx = w * x2
-  var wy = w * y2
-  var wz = w * z2
-
-  out[0] = 1 - yy - zz
-  out[3] = yx - wz
-  out[6] = zx + wy
-
-  out[1] = yx + wz
-  out[4] = 1 - xx - zz
-  out[7] = zy - wx
-
-  out[2] = zx - wy
-  out[5] = zy + wx
-  out[8] = 1 - xx - yy
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/identity.js":[function(require,module,exports) {
-module.exports = identity
-
-/**
- * Set a mat3 to the identity matrix
- *
- * @alias mat3.identity
- * @param {mat3} out the receiving matrix
- * @returns {mat3} out
- */
-function identity(out) {
-  out[0] = 1
-  out[1] = 0
-  out[2] = 0
-  out[3] = 0
-  out[4] = 1
-  out[5] = 0
-  out[6] = 0
-  out[7] = 0
-  out[8] = 1
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/invert.js":[function(require,module,exports) {
-module.exports = invert
-
-/**
- * Inverts a mat3
- *
- * @alias mat3.invert
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the source matrix
- * @returns {mat3} out
- */
-function invert(out, a) {
-  var a00 = a[0], a01 = a[1], a02 = a[2]
-  var a10 = a[3], a11 = a[4], a12 = a[5]
-  var a20 = a[6], a21 = a[7], a22 = a[8]
-
-  var b01 = a22 * a11 - a12 * a21
-  var b11 = -a22 * a10 + a12 * a20
-  var b21 = a21 * a10 - a11 * a20
-
-  // Calculate the determinant
-  var det = a00 * b01 + a01 * b11 + a02 * b21
-
-  if (!det) return null
-  det = 1.0 / det
-
-  out[0] = b01 * det
-  out[1] = (-a22 * a01 + a02 * a21) * det
-  out[2] = (a12 * a01 - a02 * a11) * det
-  out[3] = b11 * det
-  out[4] = (a22 * a00 - a02 * a20) * det
-  out[5] = (-a12 * a00 + a02 * a10) * det
-  out[6] = b21 * det
-  out[7] = (-a21 * a00 + a01 * a20) * det
-  out[8] = (a11 * a00 - a01 * a10) * det
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/multiply.js":[function(require,module,exports) {
-module.exports = multiply
-
-/**
- * Multiplies two mat3's
- *
- * @alias mat3.multiply
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the first operand
- * @param {mat3} b the second operand
- * @returns {mat3} out
- */
-function multiply(out, a, b) {
-  var a00 = a[0], a01 = a[1], a02 = a[2]
-  var a10 = a[3], a11 = a[4], a12 = a[5]
-  var a20 = a[6], a21 = a[7], a22 = a[8]
-
-  var b00 = b[0], b01 = b[1], b02 = b[2]
-  var b10 = b[3], b11 = b[4], b12 = b[5]
-  var b20 = b[6], b21 = b[7], b22 = b[8]
-
-  out[0] = b00 * a00 + b01 * a10 + b02 * a20
-  out[1] = b00 * a01 + b01 * a11 + b02 * a21
-  out[2] = b00 * a02 + b01 * a12 + b02 * a22
-
-  out[3] = b10 * a00 + b11 * a10 + b12 * a20
-  out[4] = b10 * a01 + b11 * a11 + b12 * a21
-  out[5] = b10 * a02 + b11 * a12 + b12 * a22
-
-  out[6] = b20 * a00 + b21 * a10 + b22 * a20
-  out[7] = b20 * a01 + b21 * a11 + b22 * a21
-  out[8] = b20 * a02 + b21 * a12 + b22 * a22
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/normalFromMat4.js":[function(require,module,exports) {
-module.exports = normalFromMat4
-
-/**
-* Calculates a 3x3 normal matrix (transpose inverse) from the 4x4 matrix
-*
-* @alias mat3.normalFromMat4
-* @param {mat3} out mat3 receiving operation result
-* @param {mat4} a Mat4 to derive the normal matrix from
-*
-* @returns {mat3} out
-*/
-function normalFromMat4(out, a) {
-  var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3]
-  var a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7]
-  var a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11]
-  var a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15]
-
-  var b00 = a00 * a11 - a01 * a10
-  var b01 = a00 * a12 - a02 * a10
-  var b02 = a00 * a13 - a03 * a10
-  var b03 = a01 * a12 - a02 * a11
-  var b04 = a01 * a13 - a03 * a11
-  var b05 = a02 * a13 - a03 * a12
-  var b06 = a20 * a31 - a21 * a30
-  var b07 = a20 * a32 - a22 * a30
-  var b08 = a20 * a33 - a23 * a30
-  var b09 = a21 * a32 - a22 * a31
-  var b10 = a21 * a33 - a23 * a31
-  var b11 = a22 * a33 - a23 * a32
-
-  // Calculate the determinant
-  var det = b00 * b11
-          - b01 * b10
-          + b02 * b09
-          + b03 * b08
-          - b04 * b07
-          + b05 * b06
-
-  if (!det) return null
-  det = 1.0 / det
-
-  out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det
-  out[1] = (a12 * b08 - a10 * b11 - a13 * b07) * det
-  out[2] = (a10 * b10 - a11 * b08 + a13 * b06) * det
-
-  out[3] = (a02 * b10 - a01 * b11 - a03 * b09) * det
-  out[4] = (a00 * b11 - a02 * b08 + a03 * b07) * det
-  out[5] = (a01 * b08 - a00 * b10 - a03 * b06) * det
-
-  out[6] = (a31 * b05 - a32 * b04 + a33 * b03) * det
-  out[7] = (a32 * b02 - a30 * b05 - a33 * b01) * det
-  out[8] = (a30 * b04 - a31 * b02 + a33 * b00) * det
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/rotate.js":[function(require,module,exports) {
-module.exports = rotate
-
-/**
- * Rotates a mat3 by the given angle
- *
- * @alias mat3.rotate
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the matrix to rotate
- * @param {Number} rad the angle to rotate the matrix by
- * @returns {mat3} out
- */
-function rotate(out, a, rad) {
-  var a00 = a[0], a01 = a[1], a02 = a[2]
-  var a10 = a[3], a11 = a[4], a12 = a[5]
-  var a20 = a[6], a21 = a[7], a22 = a[8]
-
-  var s = Math.sin(rad)
-  var c = Math.cos(rad)
-
-  out[0] = c * a00 + s * a10
-  out[1] = c * a01 + s * a11
-  out[2] = c * a02 + s * a12
-
-  out[3] = c * a10 - s * a00
-  out[4] = c * a11 - s * a01
-  out[5] = c * a12 - s * a02
-
-  out[6] = a20
-  out[7] = a21
-  out[8] = a22
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/scale.js":[function(require,module,exports) {
-module.exports = scale
-
-/**
- * Scales the mat3 by the dimensions in the given vec2
- *
- * @alias mat3.scale
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the matrix to rotate
- * @param {vec2} v the vec2 to scale the matrix by
- * @returns {mat3} out
- **/
-function scale(out, a, v) {
-  var x = v[0]
-  var y = v[1]
-
-  out[0] = x * a[0]
-  out[1] = x * a[1]
-  out[2] = x * a[2]
-
-  out[3] = y * a[3]
-  out[4] = y * a[4]
-  out[5] = y * a[5]
-
-  out[6] = a[6]
-  out[7] = a[7]
-  out[8] = a[8]
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/str.js":[function(require,module,exports) {
-module.exports = str
-
-/**
- * Returns a string representation of a mat3
- *
- * @alias mat3.str
- * @param {mat3} mat matrix to represent as a string
- * @returns {String} string representation of the matrix
- */
-function str(a) {
-  return 'mat3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' +
-                   a[3] + ', ' + a[4] + ', ' + a[5] + ', ' +
-                   a[6] + ', ' + a[7] + ', ' + a[8] + ')'
-}
-
-},{}],"../../../node_modules/gl-mat3/translate.js":[function(require,module,exports) {
-module.exports = translate
-
-/**
- * Translate a mat3 by the given vector
- *
- * @alias mat3.translate
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the matrix to translate
- * @param {vec2} v vector to translate by
- * @returns {mat3} out
- */
-function translate(out, a, v) {
-  var a00 = a[0], a01 = a[1], a02 = a[2]
-  var a10 = a[3], a11 = a[4], a12 = a[5]
-  var a20 = a[6], a21 = a[7], a22 = a[8]
-  var x = v[0], y = v[1]
-
-  out[0] = a00
-  out[1] = a01
-  out[2] = a02
-
-  out[3] = a10
-  out[4] = a11
-  out[5] = a12
-
-  out[6] = x * a00 + y * a10 + a20
-  out[7] = x * a01 + y * a11 + a21
-  out[8] = x * a02 + y * a12 + a22
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/transpose.js":[function(require,module,exports) {
-module.exports = transpose
-
-/**
- * Transpose the values of a mat3
- *
- * @alias mat3.transpose
- * @param {mat3} out the receiving matrix
- * @param {mat3} a the source matrix
- * @returns {mat3} out
- */
-function transpose(out, a) {
-  // If we are transposing ourselves we can skip a few steps but have to cache some values
-  if (out === a) {
-    var a01 = a[1], a02 = a[2], a12 = a[5]
-    out[1] = a[3]
-    out[2] = a[6]
-    out[3] = a01
-    out[5] = a[7]
-    out[6] = a02
-    out[7] = a12
+},{}],"../../../node_modules/unindex-mesh/index.js":[function(require,module,exports) {
+module.exports = unindex
+
+function unindex(positions, cells, out) {
+  if (positions.positions && positions.cells) {
+    out = cells
+    cells = positions.cells
+    positions = positions.positions
+  }
+
+  var dims = positions.length ? positions[0].length : 0
+  var points = cells.length ? cells[0].length : 0
+
+  out = out || new Float32Array(cells.length * points * dims)
+
+  if (points === 3 && dims === 2) {
+    for (var i = 0, n = 0, l = cells.length; i < l; i += 1) {
+      var cell = cells[i]
+      out[n++] = positions[cell[0]][0]
+      out[n++] = positions[cell[0]][1]
+      out[n++] = positions[cell[1]][0]
+      out[n++] = positions[cell[1]][1]
+      out[n++] = positions[cell[2]][0]
+      out[n++] = positions[cell[2]][1]
+    }
+  } else
+  if (points === 3 && dims === 3) {
+    for (var i = 0, n = 0, l = cells.length; i < l; i += 1) {
+      var cell = cells[i]
+      out[n++] = positions[cell[0]][0]
+      out[n++] = positions[cell[0]][1]
+      out[n++] = positions[cell[0]][2]
+      out[n++] = positions[cell[1]][0]
+      out[n++] = positions[cell[1]][1]
+      out[n++] = positions[cell[1]][2]
+      out[n++] = positions[cell[2]][0]
+      out[n++] = positions[cell[2]][1]
+      out[n++] = positions[cell[2]][2]
+    }
   } else {
-    out[0] = a[0]
-    out[1] = a[3]
-    out[2] = a[6]
-    out[3] = a[1]
-    out[4] = a[4]
-    out[5] = a[7]
-    out[6] = a[2]
-    out[7] = a[5]
-    out[8] = a[8]
-  }
-
-  return out
-}
-
-},{}],"../../../node_modules/gl-mat3/index.js":[function(require,module,exports) {
-module.exports = {
-  adjoint: require('./adjoint')
-  , clone: require('./clone')
-  , copy: require('./copy')
-  , create: require('./create')
-  , determinant: require('./determinant')
-  , frob: require('./frob')
-  , fromMat2: require('./fromMat2')
-  , fromMat4: require('./fromMat4')
-  , fromQuat: require('./fromQuat')
-  , identity: require('./identity')
-  , invert: require('./invert')
-  , multiply: require('./multiply')
-  , normalFromMat4: require('./normalFromMat4')
-  , rotate: require('./rotate')
-  , scale: require('./scale')
-  , str: require('./str')
-  , translate: require('./translate')
-  , transpose: require('./transpose')
-}
-
-},{"./adjoint":"../../../node_modules/gl-mat3/adjoint.js","./clone":"../../../node_modules/gl-mat3/clone.js","./copy":"../../../node_modules/gl-mat3/copy.js","./create":"../../../node_modules/gl-mat3/create.js","./determinant":"../../../node_modules/gl-mat3/determinant.js","./frob":"../../../node_modules/gl-mat3/frob.js","./fromMat2":"../../../node_modules/gl-mat3/fromMat2.js","./fromMat4":"../../../node_modules/gl-mat3/fromMat4.js","./fromQuat":"../../../node_modules/gl-mat3/fromQuat.js","./identity":"../../../node_modules/gl-mat3/identity.js","./invert":"../../../node_modules/gl-mat3/invert.js","./multiply":"../../../node_modules/gl-mat3/multiply.js","./normalFromMat4":"../../../node_modules/gl-mat3/normalFromMat4.js","./rotate":"../../../node_modules/gl-mat3/rotate.js","./scale":"../../../node_modules/gl-mat3/scale.js","./str":"../../../node_modules/gl-mat3/str.js","./translate":"../../../node_modules/gl-mat3/translate.js","./transpose":"../../../node_modules/gl-mat3/transpose.js"}],"../../../node_modules/primitive-plane/index.js":[function(require,module,exports) {
-// 3x3 plane:
-//
-//  0   1   2   3
-//  4   5   6   7
-//  8   9  10  11
-// 12  13  14  15
-function createPlane (sx, sy, nx, ny, options) {
-  sx = sx || 1
-  sy = sy || 1
-  nx = nx || 1
-  ny = ny || 1
-  var quads = (options && options.quads) ? options.quads : false
-
-  var positions = []
-  var uvs = []
-  var normals = []
-  var cells = []
-
-  for (var iy = 0; iy <= ny; iy++) {
-    for (var ix = 0; ix <= nx; ix++) {
-      var u = ix / nx
-      var v = iy / ny
-      var x = -sx / 2 + u * sx // starts on the left
-      var y = sy / 2 - v * sy // starts at the top
-      positions.push([x, y, 0])
-      uvs.push([u, 1.0 - v])
-      normals.push([0, 0, 1])
-      if (iy < ny && ix < nx) {
-        if (quads) {
-          cells.push([iy * (nx + 1) + ix, (iy + 1) * (nx + 1) + ix, (iy + 1) * (nx + 1) + ix + 1, iy * (nx + 1) + ix + 1])
-        } else {
-          cells.push([iy * (nx + 1) + ix, (iy + 1) * (nx + 1) + ix + 1, iy * (nx + 1) + ix + 1])
-          cells.push([(iy + 1) * (nx + 1) + ix + 1, iy * (nx + 1) + ix, (iy + 1) * (nx + 1) + ix])
+    for (var i = 0, n = 0, l = cells.length; i < l; i += 1) {
+      var cell = cells[i]
+      for (var c = 0; c < cell.length; c++) {
+        var C = cell[c]
+        for (var k = 0; k < dims; k++) {
+          out[n++] = positions[C][k]
         }
       }
     }
   }
 
-  return {
-    positions: positions,
-    normals: normals,
-    uvs: uvs,
-    cells: cells
-  }
+  return out
 }
 
-module.exports = createPlane
-
-},{}],"../../../node_modules/animejs/lib/anime.es.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
+},{}],"../../../node_modules/noisejs/index.js":[function(require,module,exports) {
+var global = arguments[3];
 /*
- * anime.js v3.0.0
- * (c) 2019 Julian Garnier
- * Released under the MIT license
- * animejs.com
+ * A speed-improved perlin and simplex noise algorithms for 2D.
+ *
+ * Based on example code by Stefan Gustavson (stegu@itn.liu.se).
+ * Optimisations by Peter Eastman (peastman@drizzle.stanford.edu).
+ * Better rank ordering method by Stefan Gustavson in 2012.
+ * Converted to Javascript by Joseph Gentle.
+ *
+ * Version 2012-03-09
+ *
+ * This code was placed in the public domain by its original author,
+ * Stefan Gustavson. You may use it as you see fit, but
+ * attribution is appreciated.
+ *
  */
-// Defaults
-var defaultInstanceSettings = {
-  update: null,
-  begin: null,
-  loopBegin: null,
-  changeBegin: null,
-  change: null,
-  changeComplete: null,
-  loopComplete: null,
-  complete: null,
-  loop: 1,
-  direction: 'normal',
-  autoplay: true,
-  timelineOffset: 0
-};
-var defaultTweenSettings = {
-  duration: 1000,
-  delay: 0,
-  endDelay: 0,
-  easing: 'easeOutElastic(1, .5)',
-  round: 0
-};
-var validTransforms = ['translateX', 'translateY', 'translateZ', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'skew', 'skewX', 'skewY', 'perspective']; // Caching
 
-var cache = {
-  CSS: {},
-  springs: {}
-}; // Utils
+(function(global){
 
-function minMax(val, min, max) {
-  return Math.min(Math.max(val, min), max);
-}
+  // Passing in seed will seed this Noise instance
+  function Noise(seed) {
+    function Grad(x, y, z) {
+      this.x = x; this.y = y; this.z = z;
+    }
 
-function stringContains(str, text) {
-  return str.indexOf(text) > -1;
-}
+    Grad.prototype.dot2 = function(x, y) {
+      return this.x*x + this.y*y;
+    };
 
-function applyArguments(func, args) {
-  return func.apply(null, args);
-}
+    Grad.prototype.dot3 = function(x, y, z) {
+      return this.x*x + this.y*y + this.z*z;
+    };
 
-var is = {
-  arr: function (a) {
-    return Array.isArray(a);
-  },
-  obj: function (a) {
-    return stringContains(Object.prototype.toString.call(a), 'Object');
-  },
-  pth: function (a) {
-    return is.obj(a) && a.hasOwnProperty('totalLength');
-  },
-  svg: function (a) {
-    return a instanceof SVGElement;
-  },
-  inp: function (a) {
-    return a instanceof HTMLInputElement;
-  },
-  dom: function (a) {
-    return a.nodeType || is.svg(a);
-  },
-  str: function (a) {
-    return typeof a === 'string';
-  },
-  fnc: function (a) {
-    return typeof a === 'function';
-  },
-  und: function (a) {
-    return typeof a === 'undefined';
-  },
-  hex: function (a) {
-    return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(a);
-  },
-  rgb: function (a) {
-    return /^rgb/.test(a);
-  },
-  hsl: function (a) {
-    return /^hsl/.test(a);
-  },
-  col: function (a) {
-    return is.hex(a) || is.rgb(a) || is.hsl(a);
-  },
-  key: function (a) {
-    return !defaultInstanceSettings.hasOwnProperty(a) && !defaultTweenSettings.hasOwnProperty(a) && a !== 'targets' && a !== 'keyframes';
+    this.grad3 = [new Grad(1,1,0),new Grad(-1,1,0),new Grad(1,-1,0),new Grad(-1,-1,0),
+                 new Grad(1,0,1),new Grad(-1,0,1),new Grad(1,0,-1),new Grad(-1,0,-1),
+                 new Grad(0,1,1),new Grad(0,-1,1),new Grad(0,1,-1),new Grad(0,-1,-1)];
+
+    this.p = [151,160,137,91,90,15,
+    131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
+    190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
+    88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
+    77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
+    102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
+    135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
+    5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
+    223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
+    129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
+    251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
+    49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
+    138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180];
+    // To remove the need for index wrapping, double the permutation table length
+    this.perm = new Array(512);
+    this.gradP = new Array(512);
+
+    this.seed(seed || 0);
   }
-}; // Easings
 
-function parseEasingParameters(string) {
-  var match = /\(([^)]+)\)/.exec(string);
-  return match ? match[1].split(',').map(function (p) {
-    return parseFloat(p);
-  }) : [];
-} // Spring solver inspired by Webkit Copyright © 2016 Apple Inc. All rights reserved. https://webkit.org/demos/spring/spring.js
+  // This isn't a very good seeding function, but it works ok. It supports 2^16
+  // different seed values. Write something better if you need more seeds.
+  Noise.prototype.seed = function(seed) {
+    if(seed > 0 && seed < 1) {
+      // Scale the seed out
+      seed *= 65536;
+    }
 
+    seed = Math.floor(seed);
+    if(seed < 256) {
+      seed |= seed << 8;
+    }
 
-function spring(string, duration) {
-  var params = parseEasingParameters(string);
-  var mass = minMax(is.und(params[0]) ? 1 : params[0], .1, 100);
-  var stiffness = minMax(is.und(params[1]) ? 100 : params[1], .1, 100);
-  var damping = minMax(is.und(params[2]) ? 10 : params[2], .1, 100);
-  var velocity = minMax(is.und(params[3]) ? 0 : params[3], .1, 100);
-  var w0 = Math.sqrt(stiffness / mass);
-  var zeta = damping / (2 * Math.sqrt(stiffness * mass));
-  var wd = zeta < 1 ? w0 * Math.sqrt(1 - zeta * zeta) : 0;
-  var a = 1;
-  var b = zeta < 1 ? (zeta * w0 + -velocity) / wd : -velocity + w0;
+    var p = this.p;
+    for(var i = 0; i < 256; i++) {
+      var v;
+      if (i & 1) {
+        v = p[i] ^ (seed & 255);
+      } else {
+        v = p[i] ^ ((seed>>8) & 255);
+      }
 
-  function solver(t) {
-    var progress = duration ? duration * t / 1000 : t;
+      var perm = this.perm;
+      var gradP = this.gradP;
+      perm[i] = perm[i + 256] = v;
+      gradP[i] = gradP[i + 256] = this.grad3[v % 12];
+    }
+  };
 
-    if (zeta < 1) {
-      progress = Math.exp(-progress * zeta * w0) * (a * Math.cos(wd * progress) + b * Math.sin(wd * progress));
+  /*
+  for(var i=0; i<256; i++) {
+    perm[i] = perm[i + 256] = p[i];
+    gradP[i] = gradP[i + 256] = grad3[perm[i] % 12];
+  }*/
+
+  // Skewing and unskewing factors for 2, 3, and 4 dimensions
+  var F2 = 0.5*(Math.sqrt(3)-1);
+  var G2 = (3-Math.sqrt(3))/6;
+
+  var F3 = 1/3;
+  var G3 = 1/6;
+
+  // 2D simplex noise
+  Noise.prototype.simplex2 = function(xin, yin) {
+    var n0, n1, n2; // Noise contributions from the three corners
+    // Skew the input space to determine which simplex cell we're in
+    var s = (xin+yin)*F2; // Hairy factor for 2D
+    var i = Math.floor(xin+s);
+    var j = Math.floor(yin+s);
+    var t = (i+j)*G2;
+    var x0 = xin-i+t; // The x,y distances from the cell origin, unskewed.
+    var y0 = yin-j+t;
+    // For the 2D case, the simplex shape is an equilateral triangle.
+    // Determine which simplex we are in.
+    var i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
+    if(x0>y0) { // lower triangle, XY order: (0,0)->(1,0)->(1,1)
+      i1=1; j1=0;
+    } else {    // upper triangle, YX order: (0,0)->(0,1)->(1,1)
+      i1=0; j1=1;
+    }
+    // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
+    // a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
+    // c = (3-sqrt(3))/6
+    var x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
+    var y1 = y0 - j1 + G2;
+    var x2 = x0 - 1 + 2 * G2; // Offsets for last corner in (x,y) unskewed coords
+    var y2 = y0 - 1 + 2 * G2;
+    // Work out the hashed gradient indices of the three simplex corners
+    i &= 255;
+    j &= 255;
+
+    var perm = this.perm;
+    var gradP = this.gradP;
+    var gi0 = gradP[i+perm[j]];
+    var gi1 = gradP[i+i1+perm[j+j1]];
+    var gi2 = gradP[i+1+perm[j+1]];
+    // Calculate the contribution from the three corners
+    var t0 = 0.5 - x0*x0-y0*y0;
+    if(t0<0) {
+      n0 = 0;
     } else {
-      progress = (a + b * progress) * Math.exp(-progress * w0);
+      t0 *= t0;
+      n0 = t0 * t0 * gi0.dot2(x0, y0);  // (x,y) of grad3 used for 2D gradient
     }
-
-    if (t === 0 || t === 1) {
-      return t;
-    }
-
-    return 1 - progress;
-  }
-
-  function getDuration() {
-    var cached = cache.springs[string];
-
-    if (cached) {
-      return cached;
-    }
-
-    var frame = 1 / 6;
-    var elapsed = 0;
-    var rest = 0;
-
-    while (true) {
-      elapsed += frame;
-
-      if (solver(elapsed) === 1) {
-        rest++;
-
-        if (rest >= 16) {
-          break;
-        }
-      } else {
-        rest = 0;
-      }
-    }
-
-    var duration = elapsed * frame * 1000;
-    cache.springs[string] = duration;
-    return duration;
-  }
-
-  return duration ? solver : getDuration;
-} // Elastic easing adapted from jQueryUI http://api.jqueryui.com/easings/
-
-
-function elastic(amplitude, period) {
-  if (amplitude === void 0) amplitude = 1;
-  if (period === void 0) period = .5;
-  var a = minMax(amplitude, 1, 10);
-  var p = minMax(period, .1, 2);
-  return function (t) {
-    return t === 0 || t === 1 ? t : -a * Math.pow(2, 10 * (t - 1)) * Math.sin((t - 1 - p / (Math.PI * 2) * Math.asin(1 / a)) * (Math.PI * 2) / p);
-  };
-} // Basic steps easing implementation https://developer.mozilla.org/fr/docs/Web/CSS/transition-timing-function
-
-
-function steps(steps) {
-  if (steps === void 0) steps = 10;
-  return function (t) {
-    return Math.round(t * steps) * (1 / steps);
-  };
-} // BezierEasing https://github.com/gre/bezier-easing
-
-
-var bezier = function () {
-  var kSplineTableSize = 11;
-  var kSampleStepSize = 1.0 / (kSplineTableSize - 1.0);
-
-  function A(aA1, aA2) {
-    return 1.0 - 3.0 * aA2 + 3.0 * aA1;
-  }
-
-  function B(aA1, aA2) {
-    return 3.0 * aA2 - 6.0 * aA1;
-  }
-
-  function C(aA1) {
-    return 3.0 * aA1;
-  }
-
-  function calcBezier(aT, aA1, aA2) {
-    return ((A(aA1, aA2) * aT + B(aA1, aA2)) * aT + C(aA1)) * aT;
-  }
-
-  function getSlope(aT, aA1, aA2) {
-    return 3.0 * A(aA1, aA2) * aT * aT + 2.0 * B(aA1, aA2) * aT + C(aA1);
-  }
-
-  function binarySubdivide(aX, aA, aB, mX1, mX2) {
-    var currentX,
-        currentT,
-        i = 0;
-
-    do {
-      currentT = aA + (aB - aA) / 2.0;
-      currentX = calcBezier(currentT, mX1, mX2) - aX;
-
-      if (currentX > 0.0) {
-        aB = currentT;
-      } else {
-        aA = currentT;
-      }
-    } while (Math.abs(currentX) > 0.0000001 && ++i < 10);
-
-    return currentT;
-  }
-
-  function newtonRaphsonIterate(aX, aGuessT, mX1, mX2) {
-    for (var i = 0; i < 4; ++i) {
-      var currentSlope = getSlope(aGuessT, mX1, mX2);
-
-      if (currentSlope === 0.0) {
-        return aGuessT;
-      }
-
-      var currentX = calcBezier(aGuessT, mX1, mX2) - aX;
-      aGuessT -= currentX / currentSlope;
-    }
-
-    return aGuessT;
-  }
-
-  function bezier(mX1, mY1, mX2, mY2) {
-    if (!(0 <= mX1 && mX1 <= 1 && 0 <= mX2 && mX2 <= 1)) {
-      return;
-    }
-
-    var sampleValues = new Float32Array(kSplineTableSize);
-
-    if (mX1 !== mY1 || mX2 !== mY2) {
-      for (var i = 0; i < kSplineTableSize; ++i) {
-        sampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
-      }
-    }
-
-    function getTForX(aX) {
-      var intervalStart = 0;
-      var currentSample = 1;
-      var lastSample = kSplineTableSize - 1;
-
-      for (; currentSample !== lastSample && sampleValues[currentSample] <= aX; ++currentSample) {
-        intervalStart += kSampleStepSize;
-      }
-
-      --currentSample;
-      var dist = (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
-      var guessForT = intervalStart + dist * kSampleStepSize;
-      var initialSlope = getSlope(guessForT, mX1, mX2);
-
-      if (initialSlope >= 0.001) {
-        return newtonRaphsonIterate(aX, guessForT, mX1, mX2);
-      } else if (initialSlope === 0.0) {
-        return guessForT;
-      } else {
-        return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
-      }
-    }
-
-    return function (x) {
-      if (mX1 === mY1 && mX2 === mY2) {
-        return x;
-      }
-
-      if (x === 0 || x === 1) {
-        return x;
-      }
-
-      return calcBezier(getTForX(x), mY1, mY2);
-    };
-  }
-
-  return bezier;
-}();
-
-var penner = function () {
-  var names = ['Quad', 'Cubic', 'Quart', 'Quint', 'Sine', 'Expo', 'Circ', 'Back', 'Elastic']; // Approximated Penner equations http://matthewlein.com/ceaser/
-
-  var curves = {
-    In: [[0.550, 0.085, 0.680, 0.530],
-    /* inQuad */
-    [0.550, 0.055, 0.675, 0.190],
-    /* inCubic */
-    [0.895, 0.030, 0.685, 0.220],
-    /* inQuart */
-    [0.755, 0.050, 0.855, 0.060],
-    /* inQuint */
-    [0.470, 0.000, 0.745, 0.715],
-    /* inSine */
-    [0.950, 0.050, 0.795, 0.035],
-    /* inExpo */
-    [0.600, 0.040, 0.980, 0.335],
-    /* inCirc */
-    [0.600, -0.280, 0.735, 0.045],
-    /* inBack */
-    elastic
-    /* inElastic */
-    ],
-    Out: [[0.250, 0.460, 0.450, 0.940],
-    /* outQuad */
-    [0.215, 0.610, 0.355, 1.000],
-    /* outCubic */
-    [0.165, 0.840, 0.440, 1.000],
-    /* outQuart */
-    [0.230, 1.000, 0.320, 1.000],
-    /* outQuint */
-    [0.390, 0.575, 0.565, 1.000],
-    /* outSine */
-    [0.190, 1.000, 0.220, 1.000],
-    /* outExpo */
-    [0.075, 0.820, 0.165, 1.000],
-    /* outCirc */
-    [0.175, 0.885, 0.320, 1.275],
-    /* outBack */
-    function (a, p) {
-      return function (t) {
-        return 1 - elastic(a, p)(1 - t);
-      };
-    }
-    /* outElastic */
-    ],
-    InOut: [[0.455, 0.030, 0.515, 0.955],
-    /* inOutQuad */
-    [0.645, 0.045, 0.355, 1.000],
-    /* inOutCubic */
-    [0.770, 0.000, 0.175, 1.000],
-    /* inOutQuart */
-    [0.860, 0.000, 0.070, 1.000],
-    /* inOutQuint */
-    [0.445, 0.050, 0.550, 0.950],
-    /* inOutSine */
-    [1.000, 0.000, 0.000, 1.000],
-    /* inOutExpo */
-    [0.785, 0.135, 0.150, 0.860],
-    /* inOutCirc */
-    [0.680, -0.550, 0.265, 1.550],
-    /* inOutBack */
-    function (a, p) {
-      return function (t) {
-        return t < .5 ? elastic(a, p)(t * 2) / 2 : 1 - elastic(a, p)(t * -2 + 2) / 2;
-      };
-    }
-    /* inOutElastic */
-    ]
-  };
-  var eases = {
-    linear: [0.250, 0.250, 0.750, 0.750]
-  };
-
-  var loop = function (coords) {
-    curves[coords].forEach(function (ease, i) {
-      eases['ease' + coords + names[i]] = ease;
-    });
-  };
-
-  for (var coords in curves) loop(coords);
-
-  return eases;
-}();
-
-function parseEasings(easing, duration) {
-  if (is.fnc(easing)) {
-    return easing;
-  }
-
-  var name = easing.split('(')[0];
-  var ease = penner[name];
-  var args = parseEasingParameters(easing);
-
-  switch (name) {
-    case 'spring':
-      return spring(easing, duration);
-
-    case 'cubicBezier':
-      return applyArguments(bezier, args);
-
-    case 'steps':
-      return applyArguments(steps, args);
-
-    default:
-      return is.fnc(ease) ? applyArguments(ease, args) : applyArguments(bezier, ease);
-  }
-} // Strings
-
-
-function selectString(str) {
-  try {
-    var nodes = document.querySelectorAll(str);
-    return nodes;
-  } catch (e) {
-    return;
-  }
-} // Arrays
-
-
-function filterArray(arr, callback) {
-  var len = arr.length;
-  var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
-  var result = [];
-
-  for (var i = 0; i < len; i++) {
-    if (i in arr) {
-      var val = arr[i];
-
-      if (callback.call(thisArg, val, i, arr)) {
-        result.push(val);
-      }
-    }
-  }
-
-  return result;
-}
-
-function flattenArray(arr) {
-  return arr.reduce(function (a, b) {
-    return a.concat(is.arr(b) ? flattenArray(b) : b);
-  }, []);
-}
-
-function toArray(o) {
-  if (is.arr(o)) {
-    return o;
-  }
-
-  if (is.str(o)) {
-    o = selectString(o) || o;
-  }
-
-  if (o instanceof NodeList || o instanceof HTMLCollection) {
-    return [].slice.call(o);
-  }
-
-  return [o];
-}
-
-function arrayContains(arr, val) {
-  return arr.some(function (a) {
-    return a === val;
-  });
-} // Objects
-
-
-function cloneObject(o) {
-  var clone = {};
-
-  for (var p in o) {
-    clone[p] = o[p];
-  }
-
-  return clone;
-}
-
-function replaceObjectProps(o1, o2) {
-  var o = cloneObject(o1);
-
-  for (var p in o1) {
-    o[p] = o2.hasOwnProperty(p) ? o2[p] : o1[p];
-  }
-
-  return o;
-}
-
-function mergeObjects(o1, o2) {
-  var o = cloneObject(o1);
-
-  for (var p in o2) {
-    o[p] = is.und(o1[p]) ? o2[p] : o1[p];
-  }
-
-  return o;
-} // Colors
-
-
-function rgbToRgba(rgbValue) {
-  var rgb = /rgb\((\d+,\s*[\d]+,\s*[\d]+)\)/g.exec(rgbValue);
-  return rgb ? "rgba(" + rgb[1] + ",1)" : rgbValue;
-}
-
-function hexToRgba(hexValue) {
-  var rgx = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  var hex = hexValue.replace(rgx, function (m, r, g, b) {
-    return r + r + g + g + b + b;
-  });
-  var rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  var r = parseInt(rgb[1], 16);
-  var g = parseInt(rgb[2], 16);
-  var b = parseInt(rgb[3], 16);
-  return "rgba(" + r + "," + g + "," + b + ",1)";
-}
-
-function hslToRgba(hslValue) {
-  var hsl = /hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g.exec(hslValue) || /hsla\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)/g.exec(hslValue);
-  var h = parseInt(hsl[1], 10) / 360;
-  var s = parseInt(hsl[2], 10) / 100;
-  var l = parseInt(hsl[3], 10) / 100;
-  var a = hsl[4] || 1;
-
-  function hue2rgb(p, q, t) {
-    if (t < 0) {
-      t += 1;
-    }
-
-    if (t > 1) {
-      t -= 1;
-    }
-
-    if (t < 1 / 6) {
-      return p + (q - p) * 6 * t;
-    }
-
-    if (t < 1 / 2) {
-      return q;
-    }
-
-    if (t < 2 / 3) {
-      return p + (q - p) * (2 / 3 - t) * 6;
-    }
-
-    return p;
-  }
-
-  var r, g, b;
-
-  if (s == 0) {
-    r = g = b = l;
-  } else {
-    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    var p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1 / 3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1 / 3);
-  }
-
-  return "rgba(" + r * 255 + "," + g * 255 + "," + b * 255 + "," + a + ")";
-}
-
-function colorToRgb(val) {
-  if (is.rgb(val)) {
-    return rgbToRgba(val);
-  }
-
-  if (is.hex(val)) {
-    return hexToRgba(val);
-  }
-
-  if (is.hsl(val)) {
-    return hslToRgba(val);
-  }
-} // Units
-
-
-function getUnit(val) {
-  var split = /([\+\-]?[0-9#\.]+)(%|px|pt|em|rem|in|cm|mm|ex|ch|pc|vw|vh|vmin|vmax|deg|rad|turn)?$/.exec(val);
-
-  if (split) {
-    return split[2];
-  }
-}
-
-function getTransformUnit(propName) {
-  if (stringContains(propName, 'translate') || propName === 'perspective') {
-    return 'px';
-  }
-
-  if (stringContains(propName, 'rotate') || stringContains(propName, 'skew')) {
-    return 'deg';
-  }
-} // Values
-
-
-function getFunctionValue(val, animatable) {
-  if (!is.fnc(val)) {
-    return val;
-  }
-
-  return val(animatable.target, animatable.id, animatable.total);
-}
-
-function getAttribute(el, prop) {
-  return el.getAttribute(prop);
-}
-
-function convertPxToUnit(el, value, unit) {
-  var valueUnit = getUnit(value);
-
-  if (arrayContains([unit, 'deg', 'rad', 'turn'], valueUnit)) {
-    return value;
-  }
-
-  var cached = cache.CSS[value + unit];
-
-  if (!is.und(cached)) {
-    return cached;
-  }
-
-  var baseline = 100;
-  var tempEl = document.createElement(el.tagName);
-  var parentEl = el.parentNode && el.parentNode !== document ? el.parentNode : document.body;
-  parentEl.appendChild(tempEl);
-  tempEl.style.position = 'absolute';
-  tempEl.style.width = baseline + unit;
-  var factor = baseline / tempEl.offsetWidth;
-  parentEl.removeChild(tempEl);
-  var convertedUnit = factor * parseFloat(value);
-  cache.CSS[value + unit] = convertedUnit;
-  return convertedUnit;
-}
-
-function getCSSValue(el, prop, unit) {
-  if (prop in el.style) {
-    var uppercasePropName = prop.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-    var value = el.style[prop] || getComputedStyle(el).getPropertyValue(uppercasePropName) || '0';
-    return unit ? convertPxToUnit(el, value, unit) : value;
-  }
-}
-
-function getAnimationType(el, prop) {
-  if (is.dom(el) && !is.inp(el) && (getAttribute(el, prop) || is.svg(el) && el[prop])) {
-    return 'attribute';
-  }
-
-  if (is.dom(el) && arrayContains(validTransforms, prop)) {
-    return 'transform';
-  }
-
-  if (is.dom(el) && prop !== 'transform' && getCSSValue(el, prop)) {
-    return 'css';
-  }
-
-  if (el[prop] != null) {
-    return 'object';
-  }
-}
-
-function getElementTransforms(el) {
-  if (!is.dom(el)) {
-    return;
-  }
-
-  var str = el.style.transform || '';
-  var reg = /(\w+)\(([^)]*)\)/g;
-  var transforms = new Map();
-  var m;
-
-  while (m = reg.exec(str)) {
-    transforms.set(m[1], m[2]);
-  }
-
-  return transforms;
-}
-
-function getTransformValue(el, propName, animatable, unit) {
-  var defaultVal = stringContains(propName, 'scale') ? 1 : 0 + getTransformUnit(propName);
-  var value = getElementTransforms(el).get(propName) || defaultVal;
-
-  if (animatable) {
-    animatable.transforms.list.set(propName, value);
-    animatable.transforms['last'] = propName;
-  }
-
-  return unit ? convertPxToUnit(el, value, unit) : value;
-}
-
-function getOriginalTargetValue(target, propName, unit, animatable) {
-  switch (getAnimationType(target, propName)) {
-    case 'transform':
-      return getTransformValue(target, propName, animatable, unit);
-
-    case 'css':
-      return getCSSValue(target, propName, unit);
-
-    case 'attribute':
-      return getAttribute(target, propName);
-
-    default:
-      return target[propName] || 0;
-  }
-}
-
-function getRelativeValue(to, from) {
-  var operator = /^(\*=|\+=|-=)/.exec(to);
-
-  if (!operator) {
-    return to;
-  }
-
-  var u = getUnit(to) || 0;
-  var x = parseFloat(from);
-  var y = parseFloat(to.replace(operator[0], ''));
-
-  switch (operator[0][0]) {
-    case '+':
-      return x + y + u;
-
-    case '-':
-      return x - y + u;
-
-    case '*':
-      return x * y + u;
-  }
-}
-
-function validateValue(val, unit) {
-  if (is.col(val)) {
-    return colorToRgb(val);
-  }
-
-  var originalUnit = getUnit(val);
-  var unitLess = originalUnit ? val.substr(0, val.length - originalUnit.length) : val;
-  return unit && !/\s/g.test(val) ? unitLess + unit : unitLess;
-} // getTotalLength() equivalent for circle, rect, polyline, polygon and line shapes
-// adapted from https://gist.github.com/SebLambla/3e0550c496c236709744
-
-
-function getDistance(p1, p2) {
-  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-}
-
-function getCircleLength(el) {
-  return Math.PI * 2 * getAttribute(el, 'r');
-}
-
-function getRectLength(el) {
-  return getAttribute(el, 'width') * 2 + getAttribute(el, 'height') * 2;
-}
-
-function getLineLength(el) {
-  return getDistance({
-    x: getAttribute(el, 'x1'),
-    y: getAttribute(el, 'y1')
-  }, {
-    x: getAttribute(el, 'x2'),
-    y: getAttribute(el, 'y2')
-  });
-}
-
-function getPolylineLength(el) {
-  var points = el.points;
-  var totalLength = 0;
-  var previousPos;
-
-  for (var i = 0; i < points.numberOfItems; i++) {
-    var currentPos = points.getItem(i);
-
-    if (i > 0) {
-      totalLength += getDistance(previousPos, currentPos);
-    }
-
-    previousPos = currentPos;
-  }
-
-  return totalLength;
-}
-
-function getPolygonLength(el) {
-  var points = el.points;
-  return getPolylineLength(el) + getDistance(points.getItem(points.numberOfItems - 1), points.getItem(0));
-} // Path animation
-
-
-function getTotalLength(el) {
-  if (el.getTotalLength) {
-    return el.getTotalLength();
-  }
-
-  switch (el.tagName.toLowerCase()) {
-    case 'circle':
-      return getCircleLength(el);
-
-    case 'rect':
-      return getRectLength(el);
-
-    case 'line':
-      return getLineLength(el);
-
-    case 'polyline':
-      return getPolylineLength(el);
-
-    case 'polygon':
-      return getPolygonLength(el);
-  }
-}
-
-function setDashoffset(el) {
-  var pathLength = getTotalLength(el);
-  el.setAttribute('stroke-dasharray', pathLength);
-  return pathLength;
-} // Motion path
-
-
-function getParentSvgEl(el) {
-  var parentEl = el.parentNode;
-
-  while (is.svg(parentEl)) {
-    parentEl = parentEl.parentNode;
-
-    if (!is.svg(parentEl.parentNode)) {
-      break;
-    }
-  }
-
-  return parentEl;
-}
-
-function getParentSvg(pathEl, svgData) {
-  var svg = svgData || {};
-  var parentSvgEl = svg.el || getParentSvgEl(pathEl);
-  var rect = parentSvgEl.getBoundingClientRect();
-  var viewBoxAttr = getAttribute(parentSvgEl, 'viewBox');
-  var width = rect.width;
-  var height = rect.height;
-  var viewBox = svg.viewBox || (viewBoxAttr ? viewBoxAttr.split(' ') : [0, 0, width, height]);
-  return {
-    el: parentSvgEl,
-    viewBox: viewBox,
-    x: viewBox[0] / 1,
-    y: viewBox[1] / 1,
-    w: width / viewBox[2],
-    h: height / viewBox[3]
-  };
-}
-
-function getPath(path, percent) {
-  var pathEl = is.str(path) ? selectString(path)[0] : path;
-  var p = percent || 100;
-  return function (property) {
-    return {
-      property: property,
-      el: pathEl,
-      svg: getParentSvg(pathEl),
-      totalLength: getTotalLength(pathEl) * (p / 100)
-    };
-  };
-}
-
-function getPathProgress(path, progress) {
-  function point(offset) {
-    if (offset === void 0) offset = 0;
-    var l = progress + offset >= 1 ? progress + offset : 0;
-    return path.el.getPointAtLength(l);
-  }
-
-  var svg = getParentSvg(path.el, path.svg);
-  var p = point();
-  var p0 = point(-1);
-  var p1 = point(+1);
-
-  switch (path.property) {
-    case 'x':
-      return (p.x - svg.x) * svg.w;
-
-    case 'y':
-      return (p.y - svg.y) * svg.h;
-
-    case 'angle':
-      return Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180 / Math.PI;
-  }
-} // Decompose value
-
-
-function decomposeValue(val, unit) {
-  var rgx = /-?\d*\.?\d+/g;
-  var value = validateValue(is.pth(val) ? val.totalLength : val, unit) + '';
-  return {
-    original: value,
-    numbers: value.match(rgx) ? value.match(rgx).map(Number) : [0],
-    strings: is.str(val) || unit ? value.split(rgx) : []
-  };
-} // Animatables
-
-
-function parseTargets(targets) {
-  var targetsArray = targets ? flattenArray(is.arr(targets) ? targets.map(toArray) : toArray(targets)) : [];
-  return filterArray(targetsArray, function (item, pos, self) {
-    return self.indexOf(item) === pos;
-  });
-}
-
-function getAnimatables(targets) {
-  var parsed = parseTargets(targets);
-  return parsed.map(function (t, i) {
-    return {
-      target: t,
-      id: i,
-      total: parsed.length,
-      transforms: {
-        list: getElementTransforms(t)
-      }
-    };
-  });
-} // Properties
-
-
-function normalizePropertyTweens(prop, tweenSettings) {
-  var settings = cloneObject(tweenSettings); // Override duration if easing is a spring
-
-  if (/^spring/.test(settings.easing)) {
-    settings.duration = spring(settings.easing);
-  }
-
-  if (is.arr(prop)) {
-    var l = prop.length;
-    var isFromTo = l === 2 && !is.obj(prop[0]);
-
-    if (!isFromTo) {
-      // Duration divided by the number of tweens
-      if (!is.fnc(tweenSettings.duration)) {
-        settings.duration = tweenSettings.duration / l;
-      }
+    var t1 = 0.5 - x1*x1-y1*y1;
+    if(t1<0) {
+      n1 = 0;
     } else {
-      // Transform [from, to] values shorthand to a valid tween value
-      prop = {
-        value: prop
-      };
+      t1 *= t1;
+      n1 = t1 * t1 * gi1.dot2(x1, y1);
     }
-  }
-
-  var propArray = is.arr(prop) ? prop : [prop];
-  return propArray.map(function (v, i) {
-    var obj = is.obj(v) && !is.pth(v) ? v : {
-      value: v
-    }; // Default delay value should only be applied to the first tween
-
-    if (is.und(obj.delay)) {
-      obj.delay = !i ? tweenSettings.delay : 0;
-    } // Default endDelay value should only be applied to the last tween
-
-
-    if (is.und(obj.endDelay)) {
-      obj.endDelay = i === propArray.length - 1 ? tweenSettings.endDelay : 0;
-    }
-
-    return obj;
-  }).map(function (k) {
-    return mergeObjects(k, settings);
-  });
-}
-
-function flattenKeyframes(keyframes) {
-  var propertyNames = filterArray(flattenArray(keyframes.map(function (key) {
-    return Object.keys(key);
-  })), function (p) {
-    return is.key(p);
-  }).reduce(function (a, b) {
-    if (a.indexOf(b) < 0) {
-      a.push(b);
-    }
-
-    return a;
-  }, []);
-  var properties = {};
-
-  var loop = function (i) {
-    var propName = propertyNames[i];
-    properties[propName] = keyframes.map(function (key) {
-      var newKey = {};
-
-      for (var p in key) {
-        if (is.key(p)) {
-          if (p == propName) {
-            newKey.value = key[p];
-          }
-        } else {
-          newKey[p] = key[p];
-        }
-      }
-
-      return newKey;
-    });
-  };
-
-  for (var i = 0; i < propertyNames.length; i++) loop(i);
-
-  return properties;
-}
-
-function getProperties(tweenSettings, params) {
-  var properties = [];
-  var keyframes = params.keyframes;
-
-  if (keyframes) {
-    params = mergeObjects(flattenKeyframes(keyframes), params);
-  }
-
-  for (var p in params) {
-    if (is.key(p)) {
-      properties.push({
-        name: p,
-        tweens: normalizePropertyTweens(params[p], tweenSettings)
-      });
-    }
-  }
-
-  return properties;
-} // Tweens
-
-
-function normalizeTweenValues(tween, animatable) {
-  var t = {};
-
-  for (var p in tween) {
-    var value = getFunctionValue(tween[p], animatable);
-
-    if (is.arr(value)) {
-      value = value.map(function (v) {
-        return getFunctionValue(v, animatable);
-      });
-
-      if (value.length === 1) {
-        value = value[0];
-      }
-    }
-
-    t[p] = value;
-  }
-
-  t.duration = parseFloat(t.duration);
-  t.delay = parseFloat(t.delay);
-  return t;
-}
-
-function normalizeTweens(prop, animatable) {
-  var previousTween;
-  return prop.tweens.map(function (t) {
-    var tween = normalizeTweenValues(t, animatable);
-    var tweenValue = tween.value;
-    var to = is.arr(tweenValue) ? tweenValue[1] : tweenValue;
-    var toUnit = getUnit(to);
-    var originalValue = getOriginalTargetValue(animatable.target, prop.name, toUnit, animatable);
-    var previousValue = previousTween ? previousTween.to.original : originalValue;
-    var from = is.arr(tweenValue) ? tweenValue[0] : previousValue;
-    var fromUnit = getUnit(from) || getUnit(originalValue);
-    var unit = toUnit || fromUnit;
-
-    if (is.und(to)) {
-      to = previousValue;
-    }
-
-    tween.from = decomposeValue(from, unit);
-    tween.to = decomposeValue(getRelativeValue(to, from), unit);
-    tween.start = previousTween ? previousTween.end : 0;
-    tween.end = tween.start + tween.delay + tween.duration + tween.endDelay;
-    tween.easing = parseEasings(tween.easing, tween.duration);
-    tween.isPath = is.pth(tweenValue);
-    tween.isColor = is.col(tween.from.original);
-
-    if (tween.isColor) {
-      tween.round = 1;
-    }
-
-    previousTween = tween;
-    return tween;
-  });
-} // Tween progress
-
-
-var setProgressValue = {
-  css: function (t, p, v) {
-    return t.style[p] = v;
-  },
-  attribute: function (t, p, v) {
-    return t.setAttribute(p, v);
-  },
-  object: function (t, p, v) {
-    return t[p] = v;
-  },
-  transform: function (t, p, v, transforms, manual) {
-    transforms.list.set(p, v);
-
-    if (p === transforms.last || manual) {
-      var str = '';
-      transforms.list.forEach(function (value, prop) {
-        str += prop + "(" + value + ") ";
-      });
-      t.style.transform = str;
-    }
-  }
-}; // Set Value helper
-
-function setTargetsValue(targets, properties) {
-  var animatables = getAnimatables(targets);
-  animatables.forEach(function (animatable) {
-    for (var property in properties) {
-      var value = getFunctionValue(properties[property], animatable);
-      var target = animatable.target;
-      var valueUnit = getUnit(value);
-      var originalValue = getOriginalTargetValue(target, property, valueUnit, animatable);
-      var unit = valueUnit || getUnit(originalValue);
-      var to = getRelativeValue(validateValue(value, unit), originalValue);
-      var animType = getAnimationType(target, property);
-      setProgressValue[animType](target, property, to, animatable.transforms, true);
-    }
-  });
-} // Animations
-
-
-function createAnimation(animatable, prop) {
-  var animType = getAnimationType(animatable.target, prop.name);
-
-  if (animType) {
-    var tweens = normalizeTweens(prop, animatable);
-    var lastTween = tweens[tweens.length - 1];
-    return {
-      type: animType,
-      property: prop.name,
-      animatable: animatable,
-      tweens: tweens,
-      duration: lastTween.end,
-      delay: tweens[0].delay,
-      endDelay: lastTween.endDelay
-    };
-  }
-}
-
-function getAnimations(animatables, properties) {
-  return filterArray(flattenArray(animatables.map(function (animatable) {
-    return properties.map(function (prop) {
-      return createAnimation(animatable, prop);
-    });
-  })), function (a) {
-    return !is.und(a);
-  });
-} // Create Instance
-
-
-function getInstanceTimings(animations, tweenSettings) {
-  var animLength = animations.length;
-
-  var getTlOffset = function (anim) {
-    return anim.timelineOffset ? anim.timelineOffset : 0;
-  };
-
-  var timings = {};
-  timings.duration = animLength ? Math.max.apply(Math, animations.map(function (anim) {
-    return getTlOffset(anim) + anim.duration;
-  })) : tweenSettings.duration;
-  timings.delay = animLength ? Math.min.apply(Math, animations.map(function (anim) {
-    return getTlOffset(anim) + anim.delay;
-  })) : tweenSettings.delay;
-  timings.endDelay = animLength ? timings.duration - Math.max.apply(Math, animations.map(function (anim) {
-    return getTlOffset(anim) + anim.duration - anim.endDelay;
-  })) : tweenSettings.endDelay;
-  return timings;
-}
-
-var instanceID = 0;
-
-function createNewInstance(params) {
-  var instanceSettings = replaceObjectProps(defaultInstanceSettings, params);
-  var tweenSettings = replaceObjectProps(defaultTweenSettings, params);
-  var properties = getProperties(tweenSettings, params);
-  var animatables = getAnimatables(params.targets);
-  var animations = getAnimations(animatables, properties);
-  var timings = getInstanceTimings(animations, tweenSettings);
-  var id = instanceID;
-  instanceID++;
-  return mergeObjects(instanceSettings, {
-    id: id,
-    children: [],
-    animatables: animatables,
-    animations: animations,
-    duration: timings.duration,
-    delay: timings.delay,
-    endDelay: timings.endDelay
-  });
-} // Core
-
-
-var activeInstances = [];
-var pausedInstances = [];
-var raf;
-
-var engine = function () {
-  function play() {
-    raf = requestAnimationFrame(step);
-  }
-
-  function step(t) {
-    var activeInstancesLength = activeInstances.length;
-
-    if (activeInstancesLength) {
-      var i = 0;
-
-      while (i < activeInstancesLength) {
-        var activeInstance = activeInstances[i];
-
-        if (!activeInstance.paused) {
-          activeInstance.tick(t);
-        } else {
-          var instanceIndex = activeInstances.indexOf(activeInstance);
-
-          if (instanceIndex > -1) {
-            activeInstances.splice(instanceIndex, 1);
-            activeInstancesLength = activeInstances.length;
-          }
-        }
-
-        i++;
-      }
-
-      play();
+    var t2 = 0.5 - x2*x2-y2*y2;
+    if(t2<0) {
+      n2 = 0;
     } else {
-      raf = cancelAnimationFrame(raf);
+      t2 *= t2;
+      n2 = t2 * t2 * gi2.dot2(x2, y2);
     }
-  }
+    // Add contributions from each corner to get the final noise value.
+    // The result is scaled to return values in the interval [-1,1].
+    return 70 * (n0 + n1 + n2);
+  };
 
-  return play;
-}();
+  // 3D simplex noise
+  Noise.prototype.simplex3 = function(xin, yin, zin) {
+    var n0, n1, n2, n3; // Noise contributions from the four corners
 
-function handleVisibilityChange() {
-  if (document.hidden) {
-    activeInstances.forEach(function (ins) {
-      return ins.pause();
-    });
-    pausedInstances = activeInstances.slice(0);
-    activeInstances = [];
-  } else {
-    pausedInstances.forEach(function (ins) {
-      return ins.play();
-    });
-  }
-}
+    // Skew the input space to determine which simplex cell we're in
+    var s = (xin+yin+zin)*F3; // Hairy factor for 2D
+    var i = Math.floor(xin+s);
+    var j = Math.floor(yin+s);
+    var k = Math.floor(zin+s);
 
-document.addEventListener('visibilitychange', handleVisibilityChange); // Public Instance
+    var t = (i+j+k)*G3;
+    var x0 = xin-i+t; // The x,y distances from the cell origin, unskewed.
+    var y0 = yin-j+t;
+    var z0 = zin-k+t;
 
-function anime(params) {
-  if (params === void 0) params = {};
-  var startTime = 0,
-      lastTime = 0,
-      now = 0;
-  var children,
-      childrenLength = 0;
-  var resolve = null;
-
-  function makePromise() {
-    return window.Promise && new Promise(function (_resolve) {
-      return resolve = _resolve;
-    });
-  }
-
-  var promise = makePromise();
-  var instance = createNewInstance(params);
-
-  function toggleInstanceDirection() {
-    instance.reversed = !instance.reversed;
-    children.forEach(function (child) {
-      return child.reversed = instance.reversed;
-    });
-  }
-
-  function adjustTime(time) {
-    return instance.reversed ? instance.duration - time : time;
-  }
-
-  function resetTime() {
-    startTime = 0;
-    lastTime = adjustTime(instance.currentTime) * (1 / anime.speed);
-  }
-
-  function seekCild(time, child) {
-    if (child) {
-      child.seek(time - child.timelineOffset);
-    }
-  }
-
-  function syncInstanceChildren(time) {
-    if (!instance.reversePlayback) {
-      for (var i = 0; i < childrenLength; i++) {
-        seekCild(time, children[i]);
-      }
+    // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
+    // Determine which simplex we are in.
+    var i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
+    var i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
+    if(x0 >= y0) {
+      if(y0 >= z0)      { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; }
+      else if(x0 >= z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; }
+      else              { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; }
     } else {
-      for (var i$1 = childrenLength; i$1--;) {
-        seekCild(time, children[i$1]);
-      }
+      if(y0 < z0)      { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; }
+      else if(x0 < z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; }
+      else             { i1=0; j1=1; k1=0; i2=1; j2=1; k2=0; }
     }
-  }
+    // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
+    // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
+    // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
+    // c = 1/6.
+    var x1 = x0 - i1 + G3; // Offsets for second corner
+    var y1 = y0 - j1 + G3;
+    var z1 = z0 - k1 + G3;
 
-  function setAnimationsProgress(insTime) {
-    var i = 0;
-    var animations = instance.animations;
-    var animationsLength = animations.length;
+    var x2 = x0 - i2 + 2 * G3; // Offsets for third corner
+    var y2 = y0 - j2 + 2 * G3;
+    var z2 = z0 - k2 + 2 * G3;
 
-    while (i < animationsLength) {
-      var anim = animations[i];
-      var animatable = anim.animatable;
-      var tweens = anim.tweens;
-      var tweenLength = tweens.length - 1;
-      var tween = tweens[tweenLength]; // Only check for keyframes if there is more than one tween
+    var x3 = x0 - 1 + 3 * G3; // Offsets for fourth corner
+    var y3 = y0 - 1 + 3 * G3;
+    var z3 = z0 - 1 + 3 * G3;
 
-      if (tweenLength) {
-        tween = filterArray(tweens, function (t) {
-          return insTime < t.end;
-        })[0] || tween;
-      }
+    // Work out the hashed gradient indices of the four simplex corners
+    i &= 255;
+    j &= 255;
+    k &= 255;
 
-      var elapsed = minMax(insTime - tween.start - tween.delay, 0, tween.duration) / tween.duration;
-      var eased = isNaN(elapsed) ? 1 : tween.easing(elapsed);
-      var strings = tween.to.strings;
-      var round = tween.round;
-      var numbers = [];
-      var toNumbersLength = tween.to.numbers.length;
-      var progress = void 0;
+    var perm = this.perm;
+    var gradP = this.gradP;
+    var gi0 = gradP[i+   perm[j+   perm[k   ]]];
+    var gi1 = gradP[i+i1+perm[j+j1+perm[k+k1]]];
+    var gi2 = gradP[i+i2+perm[j+j2+perm[k+k2]]];
+    var gi3 = gradP[i+ 1+perm[j+ 1+perm[k+ 1]]];
 
-      for (var n = 0; n < toNumbersLength; n++) {
-        var value = void 0;
-        var toNumber = tween.to.numbers[n];
-        var fromNumber = tween.from.numbers[n] || 0;
-
-        if (!tween.isPath) {
-          value = fromNumber + eased * (toNumber - fromNumber);
-        } else {
-          value = getPathProgress(tween.value, eased * toNumber);
-        }
-
-        if (round) {
-          if (!(tween.isColor && n > 2)) {
-            value = Math.round(value * round) / round;
-          }
-        }
-
-        numbers.push(value);
-      } // Manual Array.reduce for better performances
-
-
-      var stringsLength = strings.length;
-
-      if (!stringsLength) {
-        progress = numbers[0];
-      } else {
-        progress = strings[0];
-
-        for (var s = 0; s < stringsLength; s++) {
-          var a = strings[s];
-          var b = strings[s + 1];
-          var n$1 = numbers[s];
-
-          if (!isNaN(n$1)) {
-            if (!b) {
-              progress += n$1 + ' ';
-            } else {
-              progress += n$1 + b;
-            }
-          }
-        }
-      }
-
-      setProgressValue[anim.type](animatable.target, anim.property, progress, animatable.transforms);
-      anim.currentValue = progress;
-      i++;
-    }
-  }
-
-  function setCallback(cb) {
-    if (instance[cb] && !instance.passThrough) {
-      instance[cb](instance);
-    }
-  }
-
-  function countIteration() {
-    if (instance.remaining && instance.remaining !== true) {
-      instance.remaining--;
-    }
-  }
-
-  function setInstanceProgress(engineTime) {
-    var insDuration = instance.duration;
-    var insDelay = instance.delay;
-    var insEndDelay = insDuration - instance.endDelay;
-    var insTime = adjustTime(engineTime);
-    instance.progress = minMax(insTime / insDuration * 100, 0, 100);
-    instance.reversePlayback = insTime < instance.currentTime;
-
-    if (children) {
-      syncInstanceChildren(insTime);
-    }
-
-    if (!instance.began && instance.currentTime > 0) {
-      instance.began = true;
-      setCallback('begin');
-      setCallback('loopBegin');
-    }
-
-    if (insTime <= insDelay && instance.currentTime !== 0) {
-      setAnimationsProgress(0);
-    }
-
-    if (insTime >= insEndDelay && instance.currentTime !== insDuration || !insDuration) {
-      setAnimationsProgress(insDuration);
-    }
-
-    if (insTime > insDelay && insTime < insEndDelay) {
-      if (!instance.changeBegan) {
-        instance.changeBegan = true;
-        instance.changeCompleted = false;
-        setCallback('changeBegin');
-      }
-
-      setCallback('change');
-      setAnimationsProgress(insTime);
+    // Calculate the contribution from the four corners
+    var t0 = 0.5 - x0*x0-y0*y0-z0*z0;
+    if(t0<0) {
+      n0 = 0;
     } else {
-      if (instance.changeBegan) {
-        instance.changeCompleted = true;
-        instance.changeBegan = false;
-        setCallback('changeComplete');
-      }
-    }
-
-    instance.currentTime = minMax(insTime, 0, insDuration);
-
-    if (instance.began) {
-      setCallback('update');
-    }
-
-    if (engineTime >= insDuration) {
-      lastTime = 0;
-      countIteration();
-
-      if (instance.remaining) {
-        startTime = now;
-        setCallback('loopComplete');
-        setCallback('loopBegin');
-
-        if (instance.direction === 'alternate') {
-          toggleInstanceDirection();
-        }
-      } else {
-        instance.paused = true;
-
-        if (!instance.completed) {
-          instance.completed = true;
-          setCallback('loopComplete');
-          setCallback('complete');
-
-          if ('Promise' in window) {
-            resolve();
-            promise = makePromise();
-          }
-        }
-      }
-    }
-  }
-
-  instance.reset = function () {
-    var direction = instance.direction;
-    instance.passThrough = false;
-    instance.currentTime = 0;
-    instance.progress = 0;
-    instance.paused = true;
-    instance.began = false;
-    instance.changeBegan = false;
-    instance.completed = false;
-    instance.changeCompleted = false;
-    instance.reversePlayback = false;
-    instance.reversed = direction === 'reverse';
-    instance.remaining = instance.loop;
-    children = instance.children;
-    childrenLength = children.length;
-
-    for (var i = childrenLength; i--;) {
-      instance.children[i].reset();
-    }
-
-    if (instance.reversed && instance.loop !== true || direction === 'alternate' && instance.loop === 1) {
-      instance.remaining++;
-    }
-
-    setAnimationsProgress(0);
-  }; // Set Value helper
-
-
-  instance.set = function (targets, properties) {
-    setTargetsValue(targets, properties);
-    return instance;
-  };
-
-  instance.tick = function (t) {
-    now = t;
-
-    if (!startTime) {
-      startTime = now;
-    }
-
-    setInstanceProgress((now + (lastTime - startTime)) * anime.speed);
-  };
-
-  instance.seek = function (time) {
-    setInstanceProgress(adjustTime(time));
-  };
-
-  instance.pause = function () {
-    instance.paused = true;
-    resetTime();
-  };
-
-  instance.play = function () {
-    if (!instance.paused) {
-      return;
-    }
-
-    instance.paused = false;
-    activeInstances.push(instance);
-    resetTime();
-
-    if (!raf) {
-      engine();
-    }
-  };
-
-  instance.reverse = function () {
-    toggleInstanceDirection();
-    resetTime();
-  };
-
-  instance.restart = function () {
-    instance.reset();
-    instance.play();
-  };
-
-  instance.finished = promise;
-  instance.reset();
-
-  if (instance.autoplay) {
-    instance.play();
-  }
-
-  return instance;
-} // Remove targets from animation
-
-
-function removeTargetsFromAnimations(targetsArray, animations) {
-  for (var a = animations.length; a--;) {
-    if (arrayContains(targetsArray, animations[a].animatable.target)) {
-      animations.splice(a, 1);
-    }
-  }
-}
-
-function removeTargets(targets) {
-  var targetsArray = parseTargets(targets);
-
-  for (var i = activeInstances.length; i--;) {
-    var instance = activeInstances[i];
-    var animations = instance.animations;
-    var children = instance.children;
-    removeTargetsFromAnimations(targetsArray, animations);
-
-    for (var c = children.length; c--;) {
-      var child = children[c];
-      var childAnimations = child.animations;
-      removeTargetsFromAnimations(targetsArray, childAnimations);
-
-      if (!childAnimations.length && !child.children.length) {
-        children.splice(c, 1);
-      }
-    }
-
-    if (!animations.length && !children.length) {
-      instance.pause();
-    }
-  }
-} // Stagger helpers
-
-
-function stagger(val, params) {
-  if (params === void 0) params = {};
-  var direction = params.direction || 'normal';
-  var easing = params.easing ? parseEasings(params.easing) : null;
-  var grid = params.grid;
-  var axis = params.axis;
-  var fromIndex = params.from || 0;
-  var fromFirst = fromIndex === 'first';
-  var fromCenter = fromIndex === 'center';
-  var fromLast = fromIndex === 'last';
-  var isRange = is.arr(val);
-  var val1 = isRange ? parseFloat(val[0]) : parseFloat(val);
-  var val2 = isRange ? parseFloat(val[1]) : 0;
-  var unit = getUnit(isRange ? val[1] : val) || 0;
-  var start = params.start || 0 + (isRange ? val1 : 0);
-  var values = [];
-  var maxValue = 0;
-  return function (el, i, t) {
-    if (fromFirst) {
-      fromIndex = 0;
-    }
-
-    if (fromCenter) {
-      fromIndex = (t - 1) / 2;
-    }
-
-    if (fromLast) {
-      fromIndex = t - 1;
-    }
-
-    if (!values.length) {
-      for (var index = 0; index < t; index++) {
-        if (!grid) {
-          values.push(Math.abs(fromIndex - index));
-        } else {
-          var fromX = !fromCenter ? fromIndex % grid[0] : (grid[0] - 1) / 2;
-          var fromY = !fromCenter ? Math.floor(fromIndex / grid[0]) : (grid[1] - 1) / 2;
-          var toX = index % grid[0];
-          var toY = Math.floor(index / grid[0]);
-          var distanceX = fromX - toX;
-          var distanceY = fromY - toY;
-          var value = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-
-          if (axis === 'x') {
-            value = -distanceX;
-          }
-
-          if (axis === 'y') {
-            value = -distanceY;
-          }
-
-          values.push(value);
-        }
-
-        maxValue = Math.max.apply(Math, values);
-      }
-
-      if (easing) {
-        values = values.map(function (val) {
-          return easing(val / maxValue) * maxValue;
-        });
-      }
-
-      if (direction === 'reverse') {
-        values = values.map(function (val) {
-          return axis ? val < 0 ? val * -1 : -val : Math.abs(maxValue - val);
-        });
-      }
-    }
-
-    var spacing = isRange ? (val2 - val1) / maxValue : val1;
-    return start + spacing * (Math.round(values[i] * 100) / 100) + unit;
-  };
-} // Timeline
-
-
-function timeline(params) {
-  if (params === void 0) params = {};
-  var tl = anime(params);
-  tl.duration = 0;
-
-  tl.add = function (instanceParams, timelineOffset) {
-    var tlIndex = activeInstances.indexOf(tl);
-    var children = tl.children;
-
-    if (tlIndex > -1) {
-      activeInstances.splice(tlIndex, 1);
-    }
-
-    function passThrough(ins) {
-      ins.passThrough = true;
-    }
-
-    for (var i = 0; i < children.length; i++) {
-      passThrough(children[i]);
-    }
-
-    var insParams = mergeObjects(instanceParams, replaceObjectProps(defaultTweenSettings, params));
-    insParams.targets = insParams.targets || params.targets;
-    var tlDuration = tl.duration;
-    insParams.autoplay = false;
-    insParams.direction = tl.direction;
-    insParams.timelineOffset = is.und(timelineOffset) ? tlDuration : getRelativeValue(timelineOffset, tlDuration);
-    passThrough(tl);
-    tl.seek(insParams.timelineOffset);
-    var ins = anime(insParams);
-    passThrough(ins);
-    children.push(ins);
-    var timings = getInstanceTimings(children, params);
-    tl.delay = timings.delay;
-    tl.endDelay = timings.endDelay;
-    tl.duration = timings.duration;
-    tl.seek(0);
-    tl.reset();
-
-    if (tl.autoplay) {
-      tl.play();
-    }
-
-    return tl;
-  };
-
-  return tl;
-}
-
-anime.version = '3.0.0';
-anime.speed = 1;
-anime.running = activeInstances;
-anime.remove = removeTargets;
-anime.get = getOriginalTargetValue;
-anime.set = setTargetsValue;
-anime.convertPx = convertPxToUnit;
-anime.path = getPath;
-anime.setDashoffset = setDashoffset;
-anime.stagger = stagger;
-anime.timeline = timeline;
-anime.easing = parseEasings;
-anime.penner = penner;
-
-anime.random = function (min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-
-var _default = anime;
-exports.default = _default;
-},{}],"../../../node_modules/@thi.ng/api/mixin.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Class behavior mixin based on:
- * http://raganwald.com/2015/06/26/decorators-in-es7.html
- *
- * Additionally only injects/overwrites properties in target, which are
- * NOT marked with `@nomixin` (i.e. haven't set their `configurable`
- * property descriptor flag to `false`)
- *
- * @param behaviour to mixin
- * @param sharedBehaviour
- * @returns decorator function
- */
-function mixin(behaviour, sharedBehaviour = {}) {
-    const instanceKeys = Reflect.ownKeys(behaviour);
-    const sharedKeys = Reflect.ownKeys(sharedBehaviour);
-    const typeTag = Symbol("isa");
-    function _mixin(clazz) {
-        for (let key of instanceKeys) {
-            const existing = Object.getOwnPropertyDescriptor(clazz.prototype, key);
-            if (!existing || existing.configurable) {
-                Object.defineProperty(clazz.prototype, key, {
-                    value: behaviour[key],
-                    writable: true,
-                });
-            }
-            else {
-                console.log(`not patching: ${clazz.name}.${key.toString()}`);
-            }
-        }
-        Object.defineProperty(clazz.prototype, typeTag, { value: true });
-        return clazz;
-    }
-    for (let key of sharedKeys) {
-        Object.defineProperty(_mixin, key, {
-            value: sharedBehaviour[key],
-            enumerable: sharedBehaviour.propertyIsEnumerable(key),
-        });
-    }
-    Object.defineProperty(_mixin, Symbol.hasInstance, { value: (x) => !!x[typeTag] });
-    return _mixin;
-}
-exports.mixin = mixin;
-
-},{}],"../../../node_modules/@thi.ng/api/mixins/iwatch.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const mixin_1 = require("../mixin");
-exports.IWatch = mixin_1.mixin({
-    addWatch(id, fn) {
-        this._watches = this._watches || {};
-        if (this._watches[id]) {
-            return false;
-        }
-        this._watches[id] = fn;
-        return true;
-    },
-    removeWatch(id) {
-        if (!this._watches)
-            return;
-        if (this._watches[id]) {
-            delete this._watches[id];
-            return true;
-        }
-        return false;
-    },
-    notifyWatches(oldState, newState) {
-        if (!this._watches)
-            return;
-        const w = this._watches;
-        for (let id in w) {
-            w[id](id, oldState, newState);
-        }
-    }
-});
-
-},{"../mixin":"../../../node_modules/@thi.ng/api/mixin.js"}],"../../../node_modules/@thi.ng/errors/illegal-state.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class IllegalStateError extends Error {
-    constructor(msg) {
-        super("illegal state" + (msg !== undefined ? ": " + msg : ""));
-    }
-}
-exports.IllegalStateError = IllegalStateError;
-function illegalState(msg) {
-    throw new IllegalStateError(msg);
-}
-exports.illegalState = illegalState;
-
-},{}],"../../../node_modules/@thi.ng/paths/index.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_array_1 = require("@thi.ng/checks/is-array");
-const is_string_1 = require("@thi.ng/checks/is-string");
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-const _copy = (s) => Array.isArray(s) ? s.slice() : Object.assign({}, s);
-const compS = (k, f) => (s, v) => { s = _copy(s); s[k] = f ? f(s[k], v) : v; return s; };
-const compG = (k, f) => (s) => s ? f(s[k]) : undefined;
-/**
- * Converts the given key path to canonical form (array).
- *
- * ```
- * toPath("a.b.c");
- * // ["a", "b", "c"]
- *
- * toPath(0)
- * // [0]
- *
- * toPath(["a", "b", "c"])
- * // ["a", "b", "c"]
- * ```
- *
- * @param path
- */
-function toPath(path) {
-    return is_array_1.isArray(path) ? path : is_string_1.isString(path) ? path.length > 0 ? path.split(".") : [] : path != null ? [path] : [];
-}
-exports.toPath = toPath;
-/**
- * Takes an arbitrary object and lookup path. Descends into object along
- * path and returns true if the full path exists (even if final leaf
- * value is `null` or `undefined`). Checks are performed using
- * `hasOwnProperty()`.
- *
- * @param obj
- * @param path
- */
-exports.exists = (obj, path) => {
-    if (obj == null) {
-        return false;
-    }
-    path = toPath(path);
-    for (let n = path.length - 1, i = 0; i <= n; i++) {
-        const k = path[i];
-        if (!obj.hasOwnProperty(k)) {
-            return false;
-        }
-        obj = obj[k];
-        if (obj == null && i < n) {
-            return false;
-        }
-    }
-    return true;
-};
-/**
- * Composes a getter function for given nested lookup path. Optimized
- * fast execution paths are provided for path lengths less than 5.
- * Supports any `[]`-indexable data structure (arrays, objects,
- * strings).
- *
- * If `path` is given as string, it will be split using `.`. Returns
- * function which accepts single object and when called, returns value
- * at given path.
- *
- * If any intermediate key is not present in the given obj, descent
- * stops and the function returns `undefined`.
- *
- * If `path` is an empty string or array, the returned getter will
- * simply return the given state arg (identity function).
- *
- * Also see: `getIn()`
- *
- * ```
- * g = getter("a.b.c");
- * // or
- * g = getter(["a","b","c"]);
- *
- * g({a: {b: {c: 23}}}) // 23
- * g({x: 23}) // undefined
- * g() // undefined
- * ```
- *
- * @param path
- */
-function getter(path) {
-    const ks = toPath(path);
-    let [a, b, c, d] = ks;
-    switch (ks.length) {
-        case 0:
-            return (s) => s;
-        case 1:
-            return (s) => s ? s[a] : undefined;
-        case 2:
-            return (s) => s ? (s = s[a]) ? s[b] : undefined : undefined;
-        case 3:
-            return (s) => s ? (s = s[a]) ? (s = s[b]) ? s[c] : undefined : undefined : undefined;
-        case 4:
-            return (s) => s ? (s = s[a]) ? (s = s[b]) ? (s = s[c]) ? s[d] : undefined : undefined : undefined : undefined;
-        default:
-            const kl = ks[ks.length - 1];
-            let f = (s) => s ? s[kl] : undefined;
-            for (let i = ks.length - 2; i >= 0; i--) {
-                f = compG(ks[i], f);
-            }
-            return f;
-    }
-}
-exports.getter = getter;
-/**
- * Composes a setter function for given nested update path. Optimized
- * fast execution paths are provided for path lengths less up to 4.
- * Supports both arrays and objects and creates intermediate shallow
- * copies at each level of the path. Thus provides structural sharing
- * with the original data for any branches not being updated by the
- * setter.
- *
- * If `path` is given as string, it will be split using `.`. Returns
- * function which accepts single object and when called, **immutably**
- * updates value at given path, i.e. produces a partial deep copy of obj
- * up until given path.
- *
- * If any intermediate key is not present in the given obj, creates a
- * plain empty object for that key and descends further.
- *
- * If `path` is an empty string or array, the returned setter will
- * simply return the new value.
- *
- * Also see: `setIn()`, `updateIn()`, `deleteIn()`
- *
- * ```
- * s = setter("a.b.c");
- * // or
- * s = setter(["a","b","c"]);
- *
- * s({a: {b: {c: 23}}}, 24)
- * // {a: {b: {c: 24}}}
- *
- * s({x: 23}, 24)
- * // { x: 23, a: { b: { c: 24 } } }
- *
- * s(null, 24)
- * // { a: { b: { c: 24 } } }
- * ```
- *
- * Only keys in the path will be modified, all other keys present in the
- * given object retain their original values to provide efficient
- * structural sharing / re-use.
- *
- * ```
- * s = setter("a.b.c");
- *
- * a = {x: {y: {z: 1}}};
- * b = s(a, 2);
- * // { x: { y: { z: 1 } }, a: { b: { c: 2 } } }
- *
- * a.x === b.x // true
- * a.x.y === b.x.y // true
- * ```
- *
- * @param path
- */
-function setter(path) {
-    const ks = toPath(path);
-    let [a, b, c, d] = ks;
-    switch (ks.length) {
-        case 0:
-            return (_, v) => v;
-        case 1:
-            return (s, v) => (s = _copy(s), s[a] = v, s);
-        case 2:
-            return (s, v) => { let x; s = _copy(s); s[a] = x = _copy(s[a]); x[b] = v; return s; };
-        case 3:
-            return (s, v) => { let x, y; s = _copy(s); s[a] = x = _copy(s[a]); x[b] = y = _copy(x[b]); y[c] = v; return s; };
-        case 4:
-            return (s, v) => { let x, y, z; s = _copy(s); s[a] = x = _copy(s[a]); x[b] = y = _copy(x[b]); y[c] = z = _copy(y[c]); z[d] = v; return s; };
-        default:
-            let f;
-            for (let i = ks.length - 1; i >= 0; i--) {
-                f = compS(ks[i], f);
-            }
-            return f;
-    }
-}
-exports.setter = setter;
-/**
- * Immediate use getter, i.e. same as: `getter(path)(state)`.
- *
- * ```
- * getIn({a: {b: {c: 23}}}, "a.b.c");
- * // 23
- * ```
- *
- * @param state
- * @param path
- */
-function getIn(state, path) {
-    return getter(path)(state);
-}
-exports.getIn = getIn;
-/**
- * Immediate use setter, i.e. same as: `setter(path)(state, val)`.
- *
- * ```
- * setIn({}, "a.b.c", 23);
- * // {a: {b: {c: 23}}}
- * ```
- *
- * @param state
- * @param path
- */
-function setIn(state, path, val) {
-    return setter(path)(state, val);
-}
-exports.setIn = setIn;
-/**
- * Like `setIn()`, but takes any number of path-value pairs and applies
- * them in sequence by calling `setIn()` for each. Any key paths missing
- * in the data structure will be created. Does *not* mutate original
- * (instead use `mutInMany()` for this purpose).
- *
- * ```
- * setInMany({}, "a.b", 10, "x.y.z", 20)
- * // { a: { b: 10 }, x: { y: { z: 20 } } }
- * ```
- *
- * @param state
- * @param pairs
- */
-function setInMany(state, ...pairs) {
-    const n = pairs.length;
-    if ((n & 1)) {
-        illegal_arguments_1.illegalArgs(`require an even number of args (got ${pairs.length})`);
-    }
-    for (let i = 0; i < n; i += 2) {
-        state = setIn(state, pairs[i], pairs[i + 1]);
-    }
-    return state;
-}
-exports.setInMany = setInMany;
-/**
- * Similar to `setter()`, returns a function to update values at given
- * `path` using provided update `fn`. The returned function accepts a
- * single object / array and applies `fn` to current path value (incl.
- * any additional/optional arguments passed) and uses result as new
- * value. Does not modify original state (unless given function does so
- * itself).
- *
- * ```
- * add = updater("a.b", (x, n) => x + n);
- *
- * add({a: {b: 10}}, 13);
- * // { a: { b: 23 } }
- * ```
- *
- * @param path
- * @param fn
- */
-function updater(path, fn) {
-    const g = getter(path);
-    const s = setter(path);
-    return (state, ...args) => s(state, fn.apply(null, (args.unshift(g(state)), args)));
-}
-exports.updater = updater;
-;
-/**
- * Similar to `setIn()`, but applies given function to current path
- * value (incl. any additional/optional arguments passed to `updateIn`)
- * and uses result as new value. Does not modify original state (unless
- * given function does so itself).
- *
- * ```
- * add = (x, y) => x + y;
- * updateIn({a: {b: {c: 23}}}, "a.b.c", add, 10);
- * // {a: {b: {c: 33}}}
- * ```
- *
- * @param state
- * @param path
- */
-function updateIn(state, path, fn, ...args) {
-    return setter(path)(state, fn.apply(null, (args.unshift(getter(path)(state)), args)));
-}
-exports.updateIn = updateIn;
-/**
- * Uses `updateIn()` and returns updated state with key for given path
- * removed. Does not modify original state.
- *
- * Returns `undefined` if `path` is an empty string or array.
- *
- * ```
- * deleteIn({a:{b:{c: 23}}}, "a.b.c");
- * // {a: {b: {}}}
- * ```
- *
- * @param state
- * @param path
- */
-function deleteIn(state, path) {
-    const ks = [...toPath(path)];
-    if (ks.length > 0) {
-        const k = ks.pop();
-        return updateIn(state, ks, (x) => { x = Object.assign({}, x); delete x[k]; return x; });
-    }
-}
-exports.deleteIn = deleteIn;
-/**
- * Higher-order function, similar to `setter()`. Returns function which
- * when called mutates given object/array at given path location and
- * bails if any intermediate path values are non-indexable (only the
- * very last path element can be missing in the actual object
- * structure). If successful, returns original (mutated) object, else
- * `undefined`. This function provides optimized versions for path
- * lengths <= 4.
- *
- * @param path
- */
-function mutator(path) {
-    const ks = toPath(path);
-    let [a, b, c, d] = ks;
-    switch (ks.length) {
-        case 0:
-            return (_, x) => x;
-        case 1:
-            return (s, x) => s ? (s[a] = x, s) : undefined;
-        case 2:
-            return (s, x) => { let t; return s ? (t = s[a]) ? (t[b] = x, s) : undefined : undefined; };
-        case 3:
-            return (s, x) => { let t; return s ? (t = s[a]) ? (t = t[b]) ? (t[c] = x, s) : undefined : undefined : undefined; };
-        case 4:
-            return (s, x) => { let t; return s ? (t = s[a]) ? (t = t[b]) ? (t = t[c]) ? (t[d] = x, s) : undefined : undefined : undefined : undefined; };
-        default:
-            return (s, x) => {
-                let t = s;
-                const n = ks.length - 1;
-                for (let k = 0; k < n; k++) {
-                    if (!(t = t[ks[k]]))
-                        return;
-                }
-                t[ks[n]] = x;
-                return s;
-            };
-    }
-}
-exports.mutator = mutator;
-/**
- * Immediate use mutator, i.e. same as: `mutator(path)(state, val)`.
- *
- * ```
- * mutIn({ a: { b: [10, 20] } }, "a.b.1", 23);
- * // { a: { b: [ 10, 23 ] } }
- *
- * // fails (see `mutator` docs)
- * mutIn({}, "a.b.c", 23);
- * // undefined
- * ```
- *
- * @param state
- * @param path
- * @param val
- */
-function mutIn(state, path, val) {
-    return mutator(path)(state, val);
-}
-exports.mutIn = mutIn;
-/**
- * Like `mutIn()`, but takes any number of path-value pairs and applies
- * them in sequence. All key paths must already be present in the given
- * data structure until their penultimate key.
- *
- * ```
- * mutInMany({a: {b: 1}, x: {y: {z: 2}}}, "a.b", 10, "x.y.z", 20)
- * // { a: { b: 10 }, x: { y: { z: 20 } } }
- * ```
- *
- * @param state
- * @param pairs
- */
-function mutInMany(state, ...pairs) {
-    const n = pairs.length;
-    if ((n & 1)) {
-        illegal_arguments_1.illegalArgs(`require an even number of args (got ${pairs.length})`);
-    }
-    for (let i = 0; i < n && state; i += 2) {
-        state = mutIn(state, pairs[i], pairs[i + 1]);
-    }
-    return state;
-}
-exports.mutInMany = mutInMany;
-
-},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-string":"../../../node_modules/@thi.ng/checks/is-string.js","@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js"}],"../../../node_modules/@thi.ng/atom/view.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const equiv_1 = require("@thi.ng/equiv");
-const paths_1 = require("@thi.ng/paths");
-/**
- * This class implements readonly access to a deeply nested value with
- * in an Atom/Cursor. An optional transformer function can be supplied
- * at creation time to produce a derived/materialized view of the actual
- * value held in the atom. Views can be created directly or via the
- * `.addView()` method of the parent state. Views can be `deref()`'d
- * like atoms and polled for value changes using `changed()`. The
- * transformer is only applied once per value change and its result
- * cached until the next change.
- *
- * If the optional `lazy` is true (default), the transformer will only
- * be executed with the first `deref()` after each value change. If
- * `lazy` is false, the transformer function will be executed
- * immediately after a value change occurred and so can be used like a
- * watch which only triggers if there was an actual value change (in
- * contrast to normal watches, which execute with each update,
- * regardless of value change).
- *
- * Related, the actual value change predicate can be customized. If not
- * given, the default `@thi.ng/equiv` will be used.
- *
- * ```
- * a = new Atom({a: {b: 1}});
- * v = a.addView("a.b", (x) => x * 10);
- *
- * v.deref()
- * // 10
- *
- * // update atom state
- * a.swap((state) => setIn(state, "a.b", 2));
- * // {a: {b: 2}}
- *
- * v.changed()
- * // true
- * v.deref()
- * // 20
- *
- * v.release()
- * // remove view from parent state
- * ```
- */
-class View {
-    constructor(parent, path, tx, lazy = true, equiv = equiv_1.equiv) {
-        this.parent = parent;
-        this.id = `view-${View.NEXT_ID++}`;
-        this.tx = tx || ((x) => x);
-        this.path = paths_1.toPath(path);
-        this.isDirty = true;
-        this.isLazy = lazy;
-        const lookup = paths_1.getter(this.path);
-        const state = this.parent.deref();
-        this.unprocessed = state ? lookup(state) : undefined;
-        if (!lazy) {
-            this.state = this.tx(this.unprocessed);
-            this.unprocessed = undefined;
-        }
-        parent.addWatch(this.id, (_, prev, curr) => {
-            const pval = prev ? lookup(prev) : prev;
-            const val = curr ? lookup(curr) : curr;
-            if (!equiv(val, pval)) {
-                if (lazy) {
-                    this.unprocessed = val;
-                }
-                else {
-                    this.state = this.tx(val);
-                }
-                this.isDirty = true;
-            }
-        });
-    }
-    get value() {
-        return this.deref();
-    }
-    /**
-     * Returns view's value. If the view has a transformer, the
-     * transformed value is returned. The transformer is only run once
-     * per value change. See class comments about difference between
-     * lazy/eager behaviors.
-     */
-    deref() {
-        if (this.isDirty) {
-            if (this.isLazy) {
-                this.state = this.tx(this.unprocessed);
-                this.unprocessed = undefined;
-            }
-            this.isDirty = false;
-        }
-        return this.state;
-    }
-    /**
-     * Returns true, if the view's value has changed since last
-     * `deref()`.
-     */
-    changed() {
-        return this.isDirty;
-    }
-    /**
-     * Like `deref()`, but doesn't update view's cached state and dirty
-     * flag if value has changed. If there's an unprocessed value
-     * change, returns result of this sub's transformer or else the
-     * cached value.
-     *
-     * **Important:** Use this function only if the view has none or or
-     * a stateless transformer. Else might cause undefined/inconsistent
-     * behavior when calling `view()` or `deref()` subsequently.
-     */
-    view() {
-        return this.isDirty && this.isLazy ? this.tx(this.unprocessed) : this.state;
-    }
-    /**
-     * Disconnects this view from parent state, marks itself
-     * dirty/changed and sets its unprocessed raw value to `undefined`.
-     */
-    release() {
-        this.unprocessed = undefined;
-        if (!this.isLazy) {
-            this.state = this.tx(undefined);
-        }
-        this.isDirty = true;
-        return this.parent.removeWatch(this.id);
-    }
-}
-View.NEXT_ID = 0;
-exports.View = View;
-
-},{"@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js","@thi.ng/paths":"../../../node_modules/@thi.ng/paths/index.js"}],"../../../node_modules/@thi.ng/atom/atom.js":[function(require,module,exports) {
-"use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const iwatch_1 = require("@thi.ng/api/mixins/iwatch");
-const illegal_state_1 = require("@thi.ng/errors/illegal-state");
-const paths_1 = require("@thi.ng/paths");
-const view_1 = require("./view");
-/**
- * Mutable wrapper for an (usually) immutable value. Support for
- * watches.
- */
-let Atom = class Atom {
-    constructor(val, valid) {
-        if (valid && !valid(val)) {
-            illegal_state_1.illegalState("initial state value did not validate");
-        }
-        this._value = val;
-        this.valid = valid;
-    }
-    get value() {
-        return this._value;
-    }
-    set value(val) {
-        this.reset(val);
-    }
-    deref() {
-        return this._value;
-    }
-    equiv(o) {
-        return this === o;
-    }
-    reset(val) {
-        const old = this._value;
-        if (this.valid && !this.valid(val)) {
-            return old;
-        }
-        this._value = val;
-        this.notifyWatches(old, val);
-        return val;
-    }
-    resetIn(path, val) {
-        return this.reset(paths_1.setIn(this._value, path, val));
-    }
-    swap(fn, ...args) {
-        return this.reset(fn.apply(null, [this._value, ...args]));
-    }
-    swapIn(path, fn, ...args) {
-        return this.reset(paths_1.updateIn(this._value, path, fn, ...args));
-    }
-    // mixin stub
-    /* istanbul ignore next */
-    addWatch(id, fn) {
-        return false;
-    }
-    // mixin stub
-    /* istanbul ignore next */
-    removeWatch(id) {
-        return false;
-    }
-    // mixin stub
-    /* istanbul ignore next */
-    notifyWatches(oldState, newState) { }
-    addView(path, tx, lazy = true) {
-        return new view_1.View(this, path, tx, lazy);
-    }
-    release() {
-        delete this._watches;
-        delete this._value;
-        return true;
-    }
-};
-Atom = __decorate([
-    iwatch_1.IWatch
-], Atom);
-exports.Atom = Atom;
-
-},{"@thi.ng/api/mixins/iwatch":"../../../node_modules/@thi.ng/api/mixins/iwatch.js","@thi.ng/errors/illegal-state":"../../../node_modules/@thi.ng/errors/illegal-state.js","@thi.ng/paths":"../../../node_modules/@thi.ng/paths/index.js","./view":"../../../node_modules/@thi.ng/atom/view.js"}],"../../../node_modules/@thi.ng/atom/cursor.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const is_array_1 = require("@thi.ng/checks/is-array");
-const is_function_1 = require("@thi.ng/checks/is-function");
-const illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-const illegal_arity_1 = require("@thi.ng/errors/illegal-arity");
-const paths_1 = require("@thi.ng/paths");
-const atom_1 = require("./atom");
-const view_1 = require("./view");
-/**
- * A cursor provides read/write access to a path location within a
- * nested parent state (Atom or another Cursor). Cursors behave like
- * Atoms for all practical purposes, i.e. support `deref()`, `reset()`,
- * `swap()`, `addWatch()` etc. However, when updating a cursor's value,
- * the parent state will be updated at the cursor's path as well (incl.
- * triggering any watches and/or validators) attached to the parent.
- * Likewise, when the parent state is modified externally, the cursor's
- * value will automatically update as well. The update order of cursor's
- * sharing a common parent is undefined, but can be overridden by
- * extending this class with a custom `notifyWatches()` implementation.
- *
- * If creating multiple cursors w/ a shared parent and each cursor
- * configured with a custom ID (provided via config object to ctor),
- * it's the user's responsibility to ensure the given IDs are unique.
- * Cursors are implemented by attaching a watch to the parent and the ID
- * is used to identify each watch.
- *
- * When using the optional validator predicate (also specified via
- * config object to ctor), the cursor's validator MUST NOT conflict with
- * the one assigned to the parent or else both will go out-of-sync.
- * Therefore, when requiring validation and updating values via cursors
- * it's recommended to only specify validators for leaf-level cursors in
- * the hierarchy.
- */
-class Cursor {
-    constructor(...args) {
-        let parent, id, lookup, update, validate, opts;
-        switch (args.length) {
-            case 1:
-                opts = args[0];
-                id = opts.id;
-                parent = opts.parent;
-                validate = opts.validate;
-                if (opts.path) {
-                    if (is_array_1.isArray(opts.path) && is_function_1.isFunction(opts.path[0])) {
-                        [lookup, update] = opts.path;
-                    }
-                    else {
-                        lookup = paths_1.getter(opts.path);
-                        update = paths_1.setter(opts.path);
-                    }
-                }
-                else {
-                    illegal_arguments_1.illegalArgs("missing path config");
-                }
-                break;
-            case 2:
-                parent = args[0];
-                lookup = paths_1.getter(args[1]);
-                update = paths_1.setter(args[1]);
-                break;
-            case 3:
-                [parent, lookup, update] = args;
-                break;
-            default:
-                illegal_arity_1.illegalArity(args.length);
-        }
-        this.parent = parent;
-        this.id = id || `cursor-${Cursor.NEXT_ID++}`;
-        this.selfUpdate = false;
-        if (!lookup || !update) {
-            illegal_arguments_1.illegalArgs();
-        }
-        this.local = new atom_1.Atom(lookup(parent.deref()), validate);
-        this.local.addWatch(this.id, (_, prev, curr) => {
-            if (prev !== curr) {
-                this.selfUpdate = true;
-                parent.swap((state) => update(state, curr));
-                this.selfUpdate = false;
-            }
-        });
-        parent.addWatch(this.id, (_, prev, curr) => {
-            if (!this.selfUpdate) {
-                const cval = lookup(curr);
-                if (cval !== lookup(prev)) {
-                    this.local.reset(cval);
-                }
-            }
-        });
-    }
-    get value() {
-        return this.deref();
-    }
-    set value(val) {
-        this.reset(val);
-    }
-    deref() {
-        return this.local.deref();
-    }
-    release() {
-        this.local.release();
-        this.parent.removeWatch(this.id);
-        delete this.local;
-        delete this.parent;
-        return true;
-    }
-    reset(val) {
-        return this.local.reset(val);
-    }
-    resetIn(path, val) {
-        return this.local.resetIn(path, val);
-    }
-    swap(fn, ...args) {
-        return this.local.swap(fn, ...args);
-    }
-    swapIn(path, fn, ...args) {
-        return this.local.swapIn(path, fn, ...args);
-    }
-    addWatch(id, fn) {
-        return this.local.addWatch(id, fn);
-    }
-    removeWatch(id) {
-        return this.local.removeWatch(id);
-    }
-    /* istanbul ignore next */
-    notifyWatches(oldState, newState) {
-        return this.local.notifyWatches(oldState, newState);
-    }
-    addView(path, tx, lazy = true) {
-        return new view_1.View(this, path, tx, lazy);
-    }
-}
-Cursor.NEXT_ID = 0;
-exports.Cursor = Cursor;
-
-},{"@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js","@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","@thi.ng/errors/illegal-arity":"../../../node_modules/@thi.ng/errors/illegal-arity.js","@thi.ng/paths":"../../../node_modules/@thi.ng/paths/index.js","./atom":"../../../node_modules/@thi.ng/atom/atom.js","./view":"../../../node_modules/@thi.ng/atom/view.js"}],"../../../node_modules/@thi.ng/api/mixins/inotify.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const api = require("../api");
-const mixin_1 = require("../mixin");
-function inotify_dispatch(listeners, e) {
-    if (!listeners)
-        return;
-    const n = listeners.length;
-    let i = 0, l;
-    for (i = 0; i < n; i++) {
-        l = listeners[i];
-        l[0].call(l[1], e);
-        if (e.canceled) {
-            return;
-        }
-    }
-}
-exports.inotify_dispatch = inotify_dispatch;
-/**
- * Mixin class decorator, injects INotify default implementation, incl.
- * a lazily instantiated `_listeners` property object, storing
- * registered listeners.
- */
-exports.INotify = mixin_1.mixin({
-    addListener(id, fn, scope) {
-        let l = (this._listeners = this._listeners || {})[id];
-        if (!l) {
-            l = this._listeners[id] = [];
-        }
-        if (this.__listener(l, fn, scope) === -1) {
-            l.push([fn, scope]);
-            return true;
-        }
-        return false;
-    },
-    removeListener(id, fn, scope) {
-        if (!this._listeners)
-            return false;
-        const l = this._listeners[id];
-        if (l) {
-            const idx = this.__listener(l, fn, scope);
-            if (idx !== -1) {
-                l.splice(idx, 1);
-                return true;
-            }
-        }
-        return false;
-    },
-    notify(e) {
-        if (!this._listeners)
-            return;
-        e.target === undefined && (e.target = this);
-        inotify_dispatch(this._listeners[e.id], e);
-        inotify_dispatch(this._listeners[api.EVENT_ALL], e);
-    },
-    __listener(listeners, f, scope) {
-        let i = listeners.length;
-        while (--i >= 0) {
-            const l = listeners[i];
-            if (l[0] === f && l[1] === scope) {
-                break;
-            }
-        }
-        return i;
-    }
-});
-
-},{"../api":"../../../node_modules/@thi.ng/api/api.js","../mixin":"../../../node_modules/@thi.ng/api/mixin.js"}],"../../../node_modules/@thi.ng/atom/history.js":[function(require,module,exports) {
-"use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-var History_1;
-const mixin = require("@thi.ng/api/mixins/inotify");
-const equiv_1 = require("@thi.ng/equiv");
-const paths_1 = require("@thi.ng/paths");
-const view_1 = require("./view");
-/**
- * Undo/redo history stack wrapper for atoms and cursors. Implements
- * `IAtom` interface and so can be used directly in place and delegates
- * to wrapped atom/cursor. Value changes are only recorded in history if
- * `changed` predicate returns truthy value, or else by calling
- * `record()` directly. This class too implements the @thi.ng/api
- * `INotify` interface to support event listeners for `undo()`, `redo()`
- * and `record()`.
- */
-let History = History_1 = class History {
-    /**
-     * @param state parent state
-     * @param maxLen max size of undo stack
-     * @param changed predicate to determine changed values (default `!equiv(a,b)`)
-     */
-    constructor(state, maxLen = 100, changed) {
-        this.state = state;
-        this.maxLen = maxLen;
-        this.changed = changed || ((a, b) => !equiv_1.equiv(a, b));
-        this.clear();
-    }
-    get value() {
-        return this.deref();
-    }
-    set value(val) {
-        this.reset(val);
-    }
-    canUndo() {
-        return this.history.length > 0;
-    }
-    canRedo() {
-        return this.future.length > 0;
-    }
-    /**
-     * Clears history & future stacks
-     */
-    clear() {
-        this.history = [];
-        this.future = [];
-    }
-    /**
-     * Attempts to re-apply most recent historical value to atom and
-     * returns it if successful (i.e. there's a history). Before the
-     * switch, first records the atom's current value into the future
-     * stack (to enable `redo()` feature). Returns `undefined` if
-     * there's no history.
-     *
-     * If undo was possible, the `History.EVENT_UNDO` event is emitted
-     * after the restoration with both the `prev` and `curr` (restored)
-     * states provided as event value (and object with these two keys).
-     * This allows for additional state handling to be executed, e.g.
-     * application of the "Command pattern". See `addListener()` for
-     * registering event listeners.
-     */
-    undo() {
-        if (this.history.length) {
-            const prev = this.state.deref();
-            this.future.push(prev);
-            const curr = this.state.reset(this.history.pop());
-            this.notify({ id: History_1.EVENT_UNDO, value: { prev, curr } });
-            return curr;
-        }
-    }
-    /**
-     * Attempts to re-apply most recent value from future stack to atom
-     * and returns it if successful (i.e. there's a future). Before the
-     * switch, first records the atom's current value into the history
-     * stack (to enable `undo()` feature). Returns `undefined` if
-     * there's no future (so sad!).
-     *
-     * If redo was possible, the `History.EVENT_REDO` event is emitted
-     * after the restoration with both the `prev` and `curr` (restored)
-     * states provided as event value (and object with these two keys).
-     * This allows for additional state handling to be executed, e.g.
-     * application of the "Command pattern". See `addListener()` for
-     * registering event listeners.
-     */
-    redo() {
-        if (this.future.length) {
-            const prev = this.state.deref();
-            this.history.push(prev);
-            const curr = this.state.reset(this.future.pop());
-            this.notify({ id: History_1.EVENT_REDO, value: { prev, curr } });
-            return curr;
-        }
-    }
-    /**
-     * `IAtom.reset()` implementation. Delegates to wrapped atom/cursor,
-     * but too applies `changed` predicate to determine if there was a
-     * change and if the previous value should be recorded.
-     *
-     * @param val
-     */
-    reset(val) {
-        const prev = this.state.deref();
-        this.state.reset(val);
-        const changed = this.changed(prev, this.state.deref());
-        if (changed) {
-            this.record(prev);
-        }
-        return val;
-    }
-    resetIn(path, val) {
-        const prev = this.state.deref();
-        const prevV = paths_1.getIn(prev, path);
-        const curr = paths_1.setIn(prev, path, val);
-        this.state.reset(curr);
-        this.changed(prevV, paths_1.getIn(curr, path)) && this.record(prev);
-        return curr;
-    }
-    /**
-     * `IAtom.swap()` implementation. Delegates to wrapped atom/cursor,
-     * but too applies `changed` predicate to determine if there was a
-     * change and if the previous value should be recorded.
-     *
-     * @param val
-     */
-    swap(fn, ...args) {
-        return this.reset(fn(this.state.deref(), ...args));
-    }
-    swapIn(path, fn, ...args) {
-        const prev = this.state.deref();
-        const prevV = paths_1.getIn(prev, path);
-        const curr = paths_1.updateIn(this.state.deref(), path, fn, ...args);
-        this.state.reset(curr);
-        this.changed(prevV, paths_1.getIn(curr, path)) && this.record(prev);
-        return curr;
-    }
-    /**
-     * Records given state in history. This method is only needed when
-     * manually managing snapshots, i.e. when applying multiple swaps on
-     * the wrapped atom directly, but not wanting to create an history
-     * entry for each change. **DO NOT call this explicitly if using
-     * `History.reset()` / `History.swap()` etc.**
-     *
-     * If no `state` is given, uses the wrapped atom's current state
-     * value (user code SHOULD always call without arg).
-     *
-     * If recording succeeded, the `History.EVENT_RECORD` event is
-     * emitted with the recorded state provided as event value.
-     *
-     * @param state
-     */
-    record(state) {
-        const history = this.history;
-        const n = history.length;
-        let ok = true;
-        // check for arg given and not if `state == null` we want to
-        // allow null/undefined as possible values
-        if (!arguments.length) {
-            state = this.state.deref();
-            ok = (!n || this.changed(history[n - 1], state));
-        }
-        if (ok) {
-            if (n >= this.maxLen) {
-                history.shift();
-            }
-            history.push(state);
-            this.notify({ id: History_1.EVENT_RECORD, value: state });
-            this.future.length = 0;
-        }
-    }
-    /**
-     * Returns wrapped atom's **current** value.
-     */
-    deref() {
-        return this.state.deref();
-    }
-    /**
-     * `IWatch.addWatch()` implementation. Delegates to wrapped
-     * atom/cursor.
-     *
-     * @param id
-     * @param fn
-     */
-    addWatch(id, fn) {
-        return this.state.addWatch(id, fn);
-    }
-    /**
-     * `IWatch.removeWatch()` implementation. Delegates to wrapped
-     * atom/cursor.
-     *
-     * @param id
-     */
-    removeWatch(id) {
-        return this.state.removeWatch(id);
-    }
-    /**
-     * `IWatch.notifyWatches()` implementation. Delegates to wrapped
-     * atom/cursor.
-     *
-     * @param oldState
-     * @param newState
-     */
-    notifyWatches(oldState, newState) {
-        return this.state.notifyWatches(oldState, newState);
-    }
-    addView(path, tx, lazy = true) {
-        return new view_1.View(this, path, tx, lazy);
-    }
-    release() {
-        this.state.release();
-        delete this.state;
-        return true;
-    }
-    addListener(id, fn, scope) {
-        return false;
-    }
-    removeListener(id, fn, scope) {
-        return false;
-    }
-    notify(event) {
-    }
-};
-History.EVENT_UNDO = "undo";
-History.EVENT_REDO = "redo";
-History.EVENT_RECORD = "record";
-History = History_1 = __decorate([
-    mixin.INotify
-], History);
-exports.History = History;
-
-},{"@thi.ng/api/mixins/inotify":"../../../node_modules/@thi.ng/api/mixins/inotify.js","@thi.ng/equiv":"../../../node_modules/@thi.ng/equiv/index.js","@thi.ng/paths":"../../../node_modules/@thi.ng/paths/index.js","./view":"../../../node_modules/@thi.ng/atom/view.js"}],"../../../node_modules/@thi.ng/atom/index.js":[function(require,module,exports) {
-"use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./atom"));
-__export(require("./cursor"));
-__export(require("./history"));
-__export(require("./view"));
-
-},{"./atom":"../../../node_modules/@thi.ng/atom/atom.js","./cursor":"../../../node_modules/@thi.ng/atom/cursor.js","./history":"../../../node_modules/@thi.ng/atom/history.js","./view":"../../../node_modules/@thi.ng/atom/view.js"}],"../../../node_modules/@thi.ng/checks/is-promise.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function isPromise(x) {
-    return x instanceof Promise;
-}
-exports.isPromise = isPromise;
-
-},{}],"interceptors/api.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-}); // Built-in event ID constants
-
-exports.EV_SET_VALUE = '--set-value';
-exports.EV_UPDATE_VALUE = '--update-value';
-exports.EV_TOGGLE_VALUE = '--toggle-value'; // Built-in side effect ID constants
-
-exports.FX_CANCEL = '--cancel';
-exports.FX_DISPATCH = '--dispatch';
-exports.FX_DISPATCH_ASYNC = '--dispatch-async';
-exports.FX_DISPATCH_NOW = '--dispatch-now';
-exports.FX_DELAY = '--delay';
-exports.FX_FETCH = '--fetch';
-exports.FX_STATE = '--state';
-/**
- * Event ID to trigger redo action.
- * See `EventBus.addBuiltIns()` for further details.
- * Also see `snapshot()` interceptor docs.
- */
-
-exports.EV_REDO = '--redo';
-/**
- * Event ID to trigger undo action.
- * See `EventBus.addBuiltIns()` for further details.
- * Also see `snapshot()` interceptor docs.
- */
-
-exports.EV_UNDO = '--undo';
-},{}],"interceptors/event-bus.ts":[function(require,module,exports) {
-"use strict";
-
-var __extends = this && this.__extends || function () {
-  var extendStatics = function (d, b) {
-    extendStatics = Object.setPrototypeOf || {
-      __proto__: []
-    } instanceof Array && function (d, b) {
-      d.__proto__ = b;
-    } || function (d, b) {
-      for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    };
-
-    return extendStatics(d, b);
-  };
-
-  return function (d, b) {
-    extendStatics(d, b);
-
-    function __() {
-      this.constructor = d;
-    }
-
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-  };
-}();
-
-var __assign = this && this.__assign || function () {
-  __assign = Object.assign || function (t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-      s = arguments[i];
-
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-
-    return t;
-  };
-
-  return __assign.apply(this, arguments);
-};
-
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
-
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
-  }
-
-  return ar;
-};
-
-var __values = this && this.__values || function (o) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator],
-      i = 0;
-  if (m) return m.call(o);
-  return {
-    next: function () {
-      if (o && i >= o.length) o = void 0;
-      return {
-        value: o && o[i++],
-        done: !o
-      };
-    }
-  };
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-  result["default"] = mod;
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var atom_1 = require("@thi.ng/atom/atom");
-
-var is_array_1 = require("@thi.ng/checks/is-array");
-
-var is_function_1 = require("@thi.ng/checks/is-function");
-
-var is_promise_1 = require("@thi.ng/checks/is-promise");
-
-var illegal_arguments_1 = require("@thi.ng/errors/illegal-arguments");
-
-var paths_1 = require("@thi.ng/paths");
-
-var api = __importStar(require("./api"));
-
-var FX_CANCEL = api.FX_CANCEL;
-var FX_DISPATCH_NOW = api.FX_DISPATCH_NOW;
-var FX_STATE = api.FX_STATE;
-/**
- * Batched event processor for using composable interceptors for event
- * handling and side effects to execute the result of handled events.
- *
- * Events processed by this class are simple 2-element tuples/arrays of
- * this form: `["event-id", payload?]`, where the `payload` is optional
- * and can be of any type.
- *
- * Events are processed by registered handlers which transform each
- * event into a number of side effect descriptions to be executed later.
- * This separation ensures event handlers themselves are pure functions
- * and leads to more efficient reuse of side effecting operations. The
- * pure data nature until the last stage of processing (the application
- * side effects) too means that event flow can be much easier inspected
- * and debugged.
- *
- * In this model a single event handler itself is an array of objects
- * with `pre` and/or `post` keys and functions attached to each key.
- * These functions are called interceptors, since each intercepts the
- * processing of an event and can contribute their own side effects.
- * Each event's interceptor chain is processed bi-directionally (`pre`
- * in forward, `post` in reverse order) and the effects returned from
- * each interceptor are merged/collected. The outcome of this setup is a
- * more aspect-oriented, composable approach to event handling and
- * allows to inject common, re-usable behaviors for multiple event types
- * (logging, validation, undo/redo triggers etc.).
- *
- * Side effects are only processed after all event handlers have run.
- * Furthermore, their order of execution can be configured with optional
- * priorities.
- *
- * See for further details:
- *
- * - `processQueue()`
- * - `processEvent()`
- * - `processEffects()`
- * - `mergeEffects()`
- *
- * The overall approach of this type of event processing is heavily
- * based on the pattern initially pioneered by @Day8/re-frame, with the
- * following differences:
- *
- * - stateless (see `EventBus` for the more common stateful alternative)
- * - standalone implementation (no assumptions about surrounding
- *   context/framework)
- * - manual control over event queue processing
- * - supports event cancellation (via FX_CANCEL side effect)
- * - side effect collection (multiple side effects for same effect type
- *   per frame)
- * - side effect priorities (to control execution order)
- * - dynamic addition/removal of handlers & effects
- */
-
-var StatelessEventBus =
-/** @class */
-function () {
-  /**
-   * Creates a new event bus instance with given handler and effect
-   * definitions (all optional).
-   *
-   * In addition to the user provided handlers & effects, a number of
-   * built-ins are added automatically. See `addBuiltIns()`. User
-   * handlers can override built-ins.
-   *
-   * @param handlers
-   * @param effects
-   */
-  function StatelessEventBus(handlers, effects) {
-    this.handlers = {};
-    this.effects = {};
-    this.eventQueue = [];
-    this.priorities = [];
-    this.addBuiltIns();
-
-    if (handlers) {
-      this.addHandlers(handlers);
-    }
-
-    if (effects) {
-      this.addEffects(effects);
-    }
-  }
-  /**
-   * Adds built-in event & side effect handlers. Also see additional
-   * built-ins defined by the stateful `EventBus` extension of this
-   * class, as well as comments for these class methods:
-   *
-   * - `mergeEffects()`
-   * - `processEvent()`
-   *
-   * ### Handlers
-   *
-   * currently none...
-   *
-   * ### Side effects
-   *
-   * #### `FX_CANCEL`
-   *
-   * If assigned `true`, cancels processing of current event, though
-   * still applies any side effects already accumulated.
-   *
-   * #### `FX_DISPATCH`
-   *
-   * Dispatches assigned events to be processed in next frame.
-   *
-   * #### `FX_DISPATCH_ASYNC`
-   *
-   * Async wrapper for promise based side effects.
-   *
-   * #### `FX_DISPATCH_NOW`
-   *
-   * Dispatches assigned events as part of currently processed event
-   * queue (no delay).
-   *
-   * #### `FX_DELAY`
-   *
-   * Async side effect. Only to be used in conjunction with
-   * `FX_DISPATCH_ASYNC`. Triggers given event after `x` milliseconds.
-   *
-   * ```
-   * // this triggers `[EV_SUCCESS, "ok"]` event after 1000 ms
-   * { [FX_DISPATCH_ASYNC]: [FX_DELAY, [1000, "ok"], EV_SUCCESS, EV_ERROR] }
-   * ```
-   *
-   * #### `FX_FETCH`
-   *
-   * Async side effect. Only to be used in conjunction with
-   * `FX_DISPATCH_ASYNC`. Performs `fetch()` HTTP request and triggers
-   * success with received response, or if there was an error with
-   * response's `statusText`. The error event is only triggered if the
-   * fetched response's `ok` field is non-truthy.
-   *
-   * - https://developer.mozilla.org/en-US/docs/Web/API/Response/ok
-   * - https://developer.mozilla.org/en-US/docs/Web/API/Response/statusText
-   *
-   * ```
-   * // fetches "foo.json" and then dispatches EV_SUCCESS or EV_ERROR event
-   * { [FX_DISPATCH_ASYNC]: [FX_FETCH, "foo.json", EV_SUCCESS, EV_ERROR] }
-   * ```
-   */
-
-
-  StatelessEventBus.prototype.addBuiltIns = function () {
-    var _this = this;
-
-    var _a;
-
-    this.addEffects((_a = {}, _a[api.FX_DISPATCH] = [function (e) {
-      return _this.dispatch(e);
-    }, -999], _a[api.FX_DISPATCH_ASYNC] = [function (_a) {
-      var _b = __read(_a, 4),
-          id = _b[0],
-          arg = _b[1],
-          success = _b[2],
-          err = _b[3];
-
-      var fx = _this.effects[id];
-
-      if (fx) {
-        var p = fx(arg, _this);
-
-        if (is_promise_1.isPromise(p)) {
-          p.then(function (res) {
-            return _this.dispatch([success, res]);
-          }).catch(function (e) {
-            return _this.dispatch([err, e]);
-          });
-        } else {
-          console.warn('async effect did not return Promise');
-        }
-      } else {
-        console.warn("skipping invalid async effect: " + id);
-      }
-    }, -999], _a[api.FX_DELAY] = [function (_a) {
-      var _b = __read(_a, 2),
-          x = _b[0],
-          body = _b[1];
-
-      return new Promise(function (res) {
-        return setTimeout(function () {
-          return res(body);
-        }, x);
-      });
-    }, 1000], _a[api.FX_FETCH] = [function (req) {
-      return fetch(req).then(function (resp) {
-        if (!resp.ok) {
-          throw new Error(resp.statusText);
-        }
-
-        return resp;
-      });
-    }, 1000], _a));
-  };
-
-  StatelessEventBus.prototype.addHandler = function (id, spec) {
-    var iceps = is_array_1.isArray(spec) ? spec.map(asInterceptor) : is_function_1.isFunction(spec) ? [{
-      pre: spec
-    }] : [spec];
-
-    if (iceps.length > 0) {
-      if (this.handlers[id]) {
-        this.removeHandler(id);
-        console.warn("overriding handler for ID: " + id);
-      }
-
-      this.handlers[id] = iceps;
+      t0 *= t0;
+      n0 = t0 * t0 * gi0.dot3(x0, y0, z0);  // (x,y) of grad3 used for 2D gradient
+    }
+    var t1 = 0.5 - x1*x1-y1*y1-z1*z1;
+    if(t1<0) {
+      n1 = 0;
     } else {
-      illegal_arguments_1.illegalArgs("no handlers in spec for ID: " + id);
+      t1 *= t1;
+      n1 = t1 * t1 * gi1.dot3(x1, y1, z1);
     }
+    var t2 = 0.5 - x2*x2-y2*y2-z2*z2;
+    if(t2<0) {
+      n2 = 0;
+    } else {
+      t2 *= t2;
+      n2 = t2 * t2 * gi2.dot3(x2, y2, z2);
+    }
+    var t3 = 0.5 - x3*x3-y3*y3-z3*z3;
+    if(t3<0) {
+      n3 = 0;
+    } else {
+      t3 *= t3;
+      n3 = t3 * t3 * gi3.dot3(x3, y3, z3);
+    }
+    // Add contributions from each corner to get the final noise value.
+    // The result is scaled to return values in the interval [-1,1].
+    return 32 * (n0 + n1 + n2 + n3);
+
   };
 
-  StatelessEventBus.prototype.addHandlers = function (specs) {
-    for (var id in specs) {
-      this.addHandler(id, specs[id]);
-    }
-  };
+  // ##### Perlin noise stuff
 
-  StatelessEventBus.prototype.addEffect = function (id, fx, priority) {
-    if (priority === void 0) {
-      priority = 1;
-    }
-
-    if (this.effects[id]) {
-      this.removeEffect(id);
-      console.warn("overriding effect for ID: " + id);
-    }
-
-    this.effects[id] = fx;
-    var p = [id, priority];
-    var priors = this.priorities;
-
-    for (var i = 0; i < priors.length; i++) {
-      if (p[1] < priors[i][1]) {
-        priors.splice(i, 0, p);
-        return;
-      }
-    }
-
-    priors.push(p);
-  };
-
-  StatelessEventBus.prototype.addEffects = function (specs) {
-    for (var id in specs) {
-      var fx = specs[id];
-
-      if (is_array_1.isArray(fx)) {
-        this.addEffect(id, fx[0], fx[1]);
-      } else {
-        this.addEffect(id, fx);
-      }
-    }
-  };
-  /**
-   * Prepends given interceptors (or interceptor functions) to
-   * selected handlers. If no handler IDs are given, applies
-   * instrumentation to all currently registered handlers.
-   *
-   * @param inject
-   * @param ids
-   */
-
-
-  StatelessEventBus.prototype.instrumentWith = function (inject, ids) {
-    var e_1, _a;
-
-    var iceps = inject.map(asInterceptor);
-    var handlers = this.handlers;
-
-    try {
-      for (var _b = __values(ids || Object.keys(handlers)), _c = _b.next(); !_c.done; _c = _b.next()) {
-        var id = _c.value;
-        var h = handlers[id];
-
-        if (h) {
-          handlers[id] = iceps.concat(h);
-        }
-      }
-    } catch (e_1_1) {
-      e_1 = {
-        error: e_1_1
-      };
-    } finally {
-      try {
-        if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-      } finally {
-        if (e_1) throw e_1.error;
-      }
-    }
-  };
-
-  StatelessEventBus.prototype.removeHandler = function (id) {
-    delete this.handlers[id];
-  };
-
-  StatelessEventBus.prototype.removeHandlers = function (ids) {
-    var e_2, _a;
-
-    try {
-      for (var ids_1 = __values(ids), ids_1_1 = ids_1.next(); !ids_1_1.done; ids_1_1 = ids_1.next()) {
-        var id = ids_1_1.value;
-        this.removeHandler(id);
-      }
-    } catch (e_2_1) {
-      e_2 = {
-        error: e_2_1
-      };
-    } finally {
-      try {
-        if (ids_1_1 && !ids_1_1.done && (_a = ids_1.return)) _a.call(ids_1);
-      } finally {
-        if (e_2) throw e_2.error;
-      }
-    }
-  };
-
-  StatelessEventBus.prototype.removeEffect = function (id) {
-    delete this.effects[id];
-    var p = this.priorities;
-
-    for (var i = p.length - 1; i >= 0; i--) {
-      if (id === p[i][0]) {
-        p.splice(i, 1);
-        return;
-      }
-    }
-  };
-
-  StatelessEventBus.prototype.removeEffects = function (ids) {
-    var e_3, _a;
-
-    try {
-      for (var ids_2 = __values(ids), ids_2_1 = ids_2.next(); !ids_2_1.done; ids_2_1 = ids_2.next()) {
-        var id = ids_2_1.value;
-        this.removeEffect(id);
-      }
-    } catch (e_3_1) {
-      e_3 = {
-        error: e_3_1
-      };
-    } finally {
-      try {
-        if (ids_2_1 && !ids_2_1.done && (_a = ids_2.return)) _a.call(ids_2);
-      } finally {
-        if (e_3) throw e_3.error;
-      }
-    }
-  };
-  /**
-   * If called during event processing, returns current side effect
-   * accumulator / interceptor context. Otherwise returns nothing.
-   */
-
-
-  StatelessEventBus.prototype.context = function () {
-    return this.currCtx;
-  };
-  /**
-   * Adds given events to event queue to be processed by
-   * `processQueue()` later on. It's the user's responsibility to call
-   * that latter function repeatedly in a timely manner, preferably
-   * via `requestAnimationFrame()` or similar.
-   *
-   * @param e
-   */
-
-
-  StatelessEventBus.prototype.dispatch = function () {
-    var e = [];
-
-    for (var _i = 0; _i < arguments.length; _i++) {
-      e[_i] = arguments[_i];
-    }
-
-    var _a;
-
-    (_a = this.eventQueue).push.apply(_a, __spread(e));
-  };
-  /**
-   * Adds given events to whatever is the current event queue. If
-   * triggered via the `FX_DISPATCH_NOW` side effect from an event
-   * handler / interceptor, the event will still be executed in the
-   * currently active batch / frame. If called from elsewhere, the
-   * result is the same as calling `dispatch()`.
-   *
-   * @param e
-   */
-
-
-  StatelessEventBus.prototype.dispatchNow = function () {
-    var e = [];
-
-    for (var _i = 0; _i < arguments.length; _i++) {
-      e[_i] = arguments[_i];
-    }
-
-    var _a;
-
-    ;
-
-    (_a = this.currQueue || this.eventQueue).push.apply(_a, __spread(e));
-  };
-  /**
-   * Dispatches given event after `delay` milliseconds (by default
-   * 17). Note: Since events are only processed by calling
-   * `processQueue()`, it's the user's responsibility to call that
-   * latter function repeatedly in a timely manner, preferably via
-   * `requestAnimationFrame()` or similar.
-   *
-   * @param e
-   * @param delay
-   */
-
-
-  StatelessEventBus.prototype.dispatchLater = function (e, delay) {
-    var _this = this;
-
-    if (delay === void 0) {
-      delay = 17;
-    }
-
-    setTimeout(function () {
-      return _this.dispatch(e);
-    }, delay);
-  };
-  /**
-   * Triggers processing of current event queue and returns `true` if
-   * any events have been processed.
-   *
-   * If an event handler triggers the `FX_DISPATCH_NOW` side effect,
-   * the new event will be added to the currently processed batch and
-   * therefore executed in the same frame. Also see `dispatchNow()`.
-   *
-   * An optional `ctx` (context) object can be provided, which is used
-   * to collect any side effect definitions during processing. This
-   * can be useful for debugging, inspection or post-processing
-   * purposes.
-   *
-   * @param ctx
-   */
-
-
-  StatelessEventBus.prototype.processQueue = function (ctx) {
-    var e_4, _a;
-
-    console.log('-- processQueue', this.eventQueue.length);
-
-    if (this.eventQueue.length > 0) {
-      this.currQueue = __spread(this.eventQueue);
-      this.eventQueue.length = 0;
-      ctx = this.currCtx = ctx || {};
-
-      try {
-        for (var _b = __values(this.currQueue), _c = _b.next(); !_c.done; _c = _b.next()) {
-          var e = _c.value;
-          this.processEvent(ctx, e);
-        }
-      } catch (e_4_1) {
-        e_4 = {
-          error: e_4_1
-        };
-      } finally {
-        try {
-          if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-        } finally {
-          if (e_4) throw e_4.error;
-        }
-      }
-
-      this.currQueue = this.currCtx = undefined;
-      this.processEffects(ctx);
-      return true;
-    }
-
-    return false;
-  };
-  /**
-   * Processes a single event using its configured handler/interceptor
-   * chain. Logs warning message and skips processing if no handler is
-   * available for the event type.
-   *
-   * The array of interceptors is processed in bi-directional order.
-   * First any `pre` interceptors are processed in forward order. Then
-   * `post` interceptors are processed in reverse.
-   *
-   * Each interceptor can return a result object of side effects,
-   * which are being merged and collected for `processEffects()`.
-   *
-   * Any interceptor can trigger zero or more known side effects, each
-   * (side effect) will be collected in an array to support multiple
-   * invocations of the same effect type per frame. If no side effects
-   * are requested, an interceptor can return `undefined`.
-   *
-   * Processing of the current event stops immediately, if an
-   * interceptor sets the `FX_CANCEL` side effect key to `true`.
-   * However, the results of any previous interceptors (incl. the one
-   * which cancelled) are kept and processed further as usual.
-   *
-   * @param ctx
-   * @param e
-   */
-
-
-  StatelessEventBus.prototype.processEvent = function (ctx, e) {
-    var iceps = this.handlers[e[0]]; // console.log('processEvent -- ', iceps)
-
-    if (!iceps) {
-      console.warn("missing handler for event type: " + e[0].toString());
-      return;
-    }
-
-    var n = iceps.length - 1;
-    var hasPost = false;
-
-    for (var i = 0; i <= n && !ctx[FX_CANCEL]; i++) {
-      var icep = iceps[i];
-
-      if (icep.pre) {
-        this.mergeEffects(ctx, icep.pre(ctx[FX_STATE], e, this, ctx));
-      }
-
-      hasPost = hasPost || !!icep.post;
-    }
-
-    if (!hasPost) {
-      return;
-    }
-
-    for (var i = n; i >= 0 && !ctx[FX_CANCEL]; i--) {
-      var icep = iceps[i];
-
-      if (icep.post) {
-        this.mergeEffects(ctx, icep.post(ctx[FX_STATE], e, this, ctx));
-      }
-    }
-  };
-  /**
-   * Takes a collection of side effects generated during event
-   * processing and applies them in order of configured priorities.
-   *
-   * @param ctx
-   */
-
-
-  StatelessEventBus.prototype.processEffects = function (ctx) {
-    var e_5, _a, e_6, _b;
-
-    var effects = this.effects;
-
-    try {
-      for (var _c = __values(this.priorities), _d = _c.next(); !_d.done; _d = _c.next()) {
-        var p = _d.value;
-        var id = p[0];
-        var val = ctx[id];
-
-        if (val !== undefined) {
-          var fn = effects[id];
-
-          if (id !== FX_STATE) {
-            try {
-              for (var val_1 = __values(val), val_1_1 = val_1.next(); !val_1_1.done; val_1_1 = val_1.next()) {
-                var v = val_1_1.value;
-                fn(v, this, ctx);
-              }
-            } catch (e_6_1) {
-              e_6 = {
-                error: e_6_1
-              };
-            } finally {
-              try {
-                if (val_1_1 && !val_1_1.done && (_b = val_1.return)) _b.call(val_1);
-              } finally {
-                if (e_6) throw e_6.error;
-              }
-            }
-          } else {
-            fn(val, this, ctx);
-          }
-        }
-      }
-    } catch (e_5_1) {
-      e_5 = {
-        error: e_5_1
-      };
-    } finally {
-      try {
-        if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
-      } finally {
-        if (e_5) throw e_5.error;
-      }
-    }
-  };
-  /**
-   * Merges the new side effects returned from an interceptor into the
-   * internal effect accumulator.
-   *
-   * Any events assigned to the `FX_DISPATCH_NOW` effect key are
-   * immediately added to the currently active event batch.
-   *
-   * If an interceptor wishes to cause multiple invocations of a
-   * single side effect type (e.g. dispatch multiple other events), it
-   * MUST return an array of these values. The only exceptions to this
-   * are the following effects, which for obvious reasons can only
-   * accept a single value.
-   *
-   * **Note:** the `FX_STATE` effect is not actually defined by this
-   * class here, but is supported to avoid code duplication in
-   * `StatefulEventBus`.
-   *
-   * - `FX_CANCEL`
-   * - `FX_STATE`
-   *
-   * Because of this support (multiple values), the value of a single
-   * side effect MUST NOT be a nested array itself, or rather its
-   * first item can't be an array.
-   *
-   * For example:
-   *
-   * ```
-   * // interceptor result map to dispatch a single event
-   * { [FX_DISPATCH]: ["foo", "bar"]}
-   *
-   * // result map format to dispatch multiple events
-   * { [FX_DISPATCH]: [ ["foo", "bar"], ["baz", "beep"] ]}
-   * ```
-   *
-   * Any `null` / `undefined` values directly assigned to a side
-   * effect are ignored and will not trigger the effect.
-   *
-   * @param fx
-   * @param ret
-   */
-
-
-  StatelessEventBus.prototype.mergeEffects = function (ctx, ret) {
-    var e_7, _a, e_8, _b;
-
-    if (!ret) {
-      return;
-    }
-
-    for (var k in ret) {
-      var v = ret[k];
-
-      if (v == null) {
-        continue;
-      }
-
-      if (k === FX_STATE || k === FX_CANCEL) {
-        ctx[k] = v;
-      } else if (k === FX_DISPATCH_NOW) {
-        if (is_array_1.isArray(v[0])) {
-          try {
-            for (var v_1 = __values(v), v_1_1 = v_1.next(); !v_1_1.done; v_1_1 = v_1.next()) {
-              var e = v_1_1.value;
-              e && this.dispatchNow(e);
-            }
-          } catch (e_7_1) {
-            e_7 = {
-              error: e_7_1
-            };
-          } finally {
-            try {
-              if (v_1_1 && !v_1_1.done && (_a = v_1.return)) _a.call(v_1);
-            } finally {
-              if (e_7) throw e_7.error;
-            }
-          }
-        } else {
-          this.dispatchNow(v);
-        }
-      } else {
-        ctx[k] || (ctx[k] = []);
-
-        if (is_array_1.isArray(v[0])) {
-          try {
-            for (var v_2 = __values(v), v_2_1 = v_2.next(); !v_2_1.done; v_2_1 = v_2.next()) {
-              var e = v_2_1.value;
-              e !== undefined && ctx[k].push(e);
-            }
-          } catch (e_8_1) {
-            e_8 = {
-              error: e_8_1
-            };
-          } finally {
-            try {
-              if (v_2_1 && !v_2_1.done && (_b = v_2.return)) _b.call(v_2);
-            } finally {
-              if (e_8) throw e_8.error;
-            }
-          }
-        } else {
-          ctx[k].push(v);
-        }
-      }
-    }
-  };
-
-  return StatelessEventBus;
-}();
-
-exports.StatelessEventBus = StatelessEventBus;
-/**
- * Stateful version of `StatelessEventBus`. Wraps an `IAtom` state
- * container (Atom/Cursor) and provides additional pre-defined event
- * handlers and side effects to manipulate wrapped state. Prefer this
- * as the default implementation for most use cases.
- */
-
-var EventBus =
-/** @class */
-function (_super) {
-  __extends(EventBus, _super);
-  /**
-   * Creates a new event bus instance with given parent state, handler
-   * and effect definitions (all optional). If no state is given,
-   * automatically creates an `Atom` with empty state object.
-   *
-   * In addition to the user provided handlers & effects, a number of
-   * built-ins are added automatically. See `addBuiltIns()`. User
-   * handlers can override built-ins.
-   *
-   * @param state
-   * @param handlers
-   * @param effects
-   */
-
-
-  function EventBus(state, handlers, effects) {
-    var _this = _super.call(this, handlers, effects) || this;
-
-    _this.state = state || new atom_1.Atom({});
-    return _this;
-  }
-  /**
-   * Returns value of internal state. Shorthand for:
-   * `bus.state.deref()`
-   */
-
-
-  EventBus.prototype.deref = function () {
-    return this.state.deref();
-  };
-  /**
-   * Adds same built-in event & side effect handlers as in
-   * `StatelessEventBus.addBuiltIns()` and the following additions:
-   *
-   * ### Handlers
-   *
-   * #### `EV_SET_VALUE`
-   *
-   * Resets state path to provided value. See `setIn()`.
-   *
-   * Example event definition:
-   * ```
-   * [EV_SET_VALUE, ["path.to.value", val]]
-   * ```
-   *
-   * #### `EV_UPDATE_VALUE`
-   *
-   * Updates a state path's value with provided function and optional
-   * extra arguments. See `updateIn()`.
-   *
-   * Example event definition:
-   * ```
-   * [EV_UPDATE_VALUE, ["path.to.value", (x, y) => x + y, 1]]
-   * ```
-   *
-   * #### `EV_TOGGLE_VALUE`
-   *
-   * Negates a boolean state value at given path.
-   *
-   * Example event definition:
-   * ```
-   * [EV_TOGGLE_VALUE, "path.to.value"]
-   * ```
-   *
-   * #### `EV_UNDO`
-   *
-   * Calls `ctx[id].undo()` and uses return value as new state.
-   * Assumes `ctx[id]` is a @thi.ng/atom `History` instance, provided
-   * via e.g. `processQueue({ history })`. The event can be triggered
-   * with or without ID. By default `"history"` is used as default key
-   * to lookup the `History` instance. Furthermore, an additional
-   * event can be triggered based on if a previous state has been
-   * restored or not (basically, if the undo was successful). This is
-   * useful for resetting/re-initializing stateful resources after a
-   * successful undo action or to notify the user that no more undo's
-   * are possible. The new event will be processed in the same frame
-   * and has access to the (possibly) restored state. The event
-   * structure for these options is shown below:
-   *
-   * ```
-   * // using default ID
-   * bus.dispatch([EV_UNDO]);
-   *
-   * // using custom history ID
-   * bus.dispatch([EV_UNDO, ["custom"]]);
-   *
-   * // using custom ID and dispatch another event after undo
-   * bus.dispatch([EV_UNDO, ["custom", ["ev-undo-success"], ["ev-undo-fail"]]]);
-   * ```
-   *
-   * #### `EV_REDO`
-   *
-   * Similar to `EV_UNDO`, but for redo actions.
-   *
-   * ### Side effects
-   *
-   * #### `FX_STATE`
-   *
-   * Resets state atom to provided value (only a single update per
-   * processing frame).
-   */
-
-
-  EventBus.prototype.addBuiltIns = function () {
-    var _this = this;
-
-    var _a, _b;
-
-    _super.prototype.addBuiltIns.call(this); // handlers
-
-
-    this.addHandlers((_a = {}, _a[api.EV_SET_VALUE] = function (state, _a) {
-      var _b = __read(_a, 2),
-          _ = _b[0],
-          _c = __read(_b[1], 2),
-          path = _c[0],
-          val = _c[1];
-
-      var _d;
-
-      return _d = {}, _d[FX_STATE] = paths_1.setIn(state, path, val), _d;
-    }, _a[api.EV_UPDATE_VALUE] = function (state, _a) {
-      var _b = __read(_a, 2),
-          _ = _b[0],
-          _c = __read(_b[1]),
-          path = _c[0],
-          fn = _c[1],
-          args = _c.slice(2);
-
-      var _d;
-
-      return _d = {}, _d[FX_STATE] = paths_1.updateIn.apply(void 0, __spread([state, path, fn], args)), _d;
-    }, _a[api.EV_TOGGLE_VALUE] = function (state, _a) {
-      var _b = __read(_a, 2),
-          _ = _b[0],
-          path = _b[1];
-
-      var _c;
-
-      return _c = {}, _c[FX_STATE] = paths_1.updateIn(state, path, function (x) {
-        return !x;
-      }), _c;
-    }, _a)); // effects
-
-    this.addEffects((_b = {}, _b[FX_STATE] = [function (state) {
-      return _this.state.reset(state);
-    }, -1000], _b));
-  };
-  /**
-   * Triggers processing of current event queue and returns `true` if
-   * the any of the processed events caused a state change.
-   *
-   * If an event handler triggers the `FX_DISPATCH_NOW` side effect,
-   * the new event will be added to the currently processed batch and
-   * therefore executed in the same frame. Also see `dispatchNow()`.
-   *
-   * If the optional `ctx` arg is provided it will be merged into the
-   * `InterceptorContext` object passed to each interceptor. Since the
-   * merged object is also used to collect triggered side effects,
-   * care must be taken that there're no key name clashes.
-   *
-   * In order to use the built-in `EV_UNDO`, `EV_REDO` events, users
-   * MUST provide a @thi.ng/atom History (or compatible undo history
-   * instance) via the `ctx` arg, e.g.
-   *
-   * ```
-   * bus.processQueue({ history });
-   * ```
-   */
-
-
-  EventBus.prototype.processQueue = function (ctx) {
-    var _a, e_9, _b;
-
-    if (this.eventQueue.length > 0) {
-      var prev = this.state.deref();
-      this.currQueue = __spread(this.eventQueue);
-      this.eventQueue.length = 0;
-      ctx = this.currCtx = __assign({}, ctx, (_a = {}, _a[FX_STATE] = prev, _a));
-
-      try {
-        for (var _c = __values(this.currQueue), _d = _c.next(); !_d.done; _d = _c.next()) {
-          var e = _d.value;
-          this.processEvent(ctx, e);
-        }
-      } catch (e_9_1) {
-        e_9 = {
-          error: e_9_1
-        };
-      } finally {
-        try {
-          if (_d && !_d.done && (_b = _c.return)) _b.call(_c);
-        } finally {
-          if (e_9) throw e_9.error;
-        }
-      }
-
-      this.currQueue = this.currCtx = undefined;
-      this.processEffects(ctx);
-      return this.state.deref() !== prev;
-    }
-
-    return false;
-  };
-
-  return EventBus;
-}(StatelessEventBus);
-
-exports.EventBus = EventBus;
-
-var asInterceptor = function (i) {
-  return is_function_1.isFunction(i) ? {
-    pre: i
-  } : i;
-}; // const undoHandler = (action: string) =>
-//     (_, [__, ev], bus, ctx) => {
-//         let id = ev ? ev[0] : "history";
-//         if (implementsFunction(ctx[id], action)) {
-//             const ok = ctx[id][action]();
-//             return {
-//                 [FX_STATE]: bus.state.deref(),
-//                 [FX_DISPATCH_NOW]: ev ?
-//                     ok !== undefined ? ev[1] : ev[2] :
-//                     undefined,
-//             };
-//         } else {
-//             console.warn("no history in context");
-//         }
-//     };
-},{"@thi.ng/atom/atom":"../../../node_modules/@thi.ng/atom/atom.js","@thi.ng/checks/is-array":"../../../node_modules/@thi.ng/checks/is-array.js","@thi.ng/checks/is-function":"../../../node_modules/@thi.ng/checks/is-function.js","@thi.ng/checks/is-promise":"../../../node_modules/@thi.ng/checks/is-promise.js","@thi.ng/errors/illegal-arguments":"../../../node_modules/@thi.ng/errors/illegal-arguments.js","@thi.ng/paths":"../../../node_modules/@thi.ng/paths/index.js","./api":"interceptors/api.ts"}],"interceptors/interceptors.ts":[function(require,module,exports) {
-"use strict";
-
-var __assign = this && this.__assign || function () {
-  __assign = Object.assign || function (t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-      s = arguments[i];
-
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-
-    return t;
-  };
-
-  return __assign.apply(this, arguments);
-};
-
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
-
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
+  function fade(t) {
+    return t*t*t*(t*(t*6-15)+10);
   }
 
-  return ar;
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var paths_1 = require("@thi.ng/paths");
-
-var api_1 = require("./api");
-/**
- * Debug interceptor to log the current event to the console.
- */
-
-
-exports.trace = function (_, e) {
-  return console.log('event:', e);
-};
-/**
- * Higher-order interceptor. Returns interceptor which unpacks payload
- * from event and assigns it as is to given side effect ID. Assigns
- * `true` to side effect if event has no payload.
- *
- * @param fxID side effect ID
- */
-
-
-exports.forwardSideFx = function (fxID) {
-  return function (_, _a) {
-    var _b = __read(_a, 2),
-        __ = _b[0],
-        body = _b[1];
-
-    var _c;
-
-    return _c = {}, _c[fxID] = body !== undefined ? body : true, _c;
-  };
-};
-/**
- * Higher-order interceptor. Returns interceptor which assigns given
- * event to `FX_DISPATCH` side effect.
- *
- * @param event
- */
-
-
-exports.dispatch = function (event) {
-  return function () {
-    var _a;
-
-    return _a = {}, _a[api_1.FX_DISPATCH] = event, _a;
-  };
-};
-/**
- * Higher-order interceptor. Returns interceptor which assigns given
- * event to `FX_DISPATCH_NOW` side effect.
- *
- * @param event
- */
-
-
-exports.dispatchNow = function (event) {
-  return function () {
-    var _a;
-
-    return _a = {}, _a[api_1.FX_DISPATCH_NOW] = event, _a;
-  };
-};
-/**
- * Higher-order interceptor. Returns interceptor which calls
- * `ctx[id].record()`, where `ctx` is the currently active
- * `InterceptorContext` passed to all event handlers and `ctx[id]` is
- * assumed to be a @thi.ng/atom `History` instance, passed to
- * `processQueue()`. The default ID for the history instance is
- * `"history"`.
- *
- * Example usage:
- *
- * ```
- * state = new Atom({});
- * history = new History(state);
- * bus = new EventBus(state);
- * // register event handler
- * // each time the `foo` event is triggered, a snapshot of
- * // current app state is recorded first
- * bus.addHandlers({
- *  foo: [snapshot(), valueSetter("foo")]
- * });
- * ...
- * // trigger event
- * bus.dispatch(["foo", 23]);
- *
- * // pass history instance via interceptor context to handlers
- * bus.processQueue({ history });
- * ```
- *
- * @param id
- */
-
-
-exports.snapshot = function (id) {
-  if (id === void 0) {
-    id = 'history';
+  function lerp(a, b, t) {
+    return (1-t)*a + t*b;
   }
 
-  return function (_, __, ___, ctx) {
-    return ctx[id].record();
+  // 2D Perlin Noise
+  Noise.prototype.perlin2 = function(x, y) {
+    // Find unit grid cell containing point
+    var X = Math.floor(x), Y = Math.floor(y);
+    // Get relative xy coordinates of point within that cell
+    x = x - X; y = y - Y;
+    // Wrap the integer cells at 255 (smaller integer period can be introduced here)
+    X = X & 255; Y = Y & 255;
+
+    // Calculate noise contributions from each of the four corners
+    var perm = this.perm;
+    var gradP = this.gradP;
+    var n00 = gradP[X+perm[Y]].dot2(x, y);
+    var n01 = gradP[X+perm[Y+1]].dot2(x, y-1);
+    var n10 = gradP[X+1+perm[Y]].dot2(x-1, y);
+    var n11 = gradP[X+1+perm[Y+1]].dot2(x-1, y-1);
+
+    // Compute the fade curve value for x
+    var u = fade(x);
+
+    // Interpolate the four results
+    return lerp(
+        lerp(n00, n10, u),
+        lerp(n01, n11, u),
+       fade(y));
   };
-};
-/**
- * Higher-order interceptor for validation purposes. Takes a predicate
- * function and an optional interceptor function, which will only be
- * called if the predicate fails for a given event. By default the
- * `FX_CANCEL` side effect is triggered if the predicate failed, thus
- * ensuring the actual event handler for the failed event will not be
- * executed anymore. However, this can be overridden using the error
- * interceptor's result, which is merged into the result of this
- * interceptor.
- *
- * The error interceptor can return any number of other side effects and
- * so be used to dispatch alternative events instead, for example:
- *
- * ```
- * // this interceptor will cause cancellation of current event
- * // and trigger an "error" event instead
- * ensurePred(
- *   // a dummy predicate which always fails
- *   () => false
- *   // error interceptor fn
- *   () => ({[FX_DISPATCH_NOW]: ["error", "reason"]})
- * )
- * ```
- *
- * Note: For this interceptor to work as expected, it needs to be
- * provided BEFORE the main handler in the interceptor list for a given
- * event, i.e.
- *
- * ```
- * [
- *    ensurePred((state, e) => false),
- *    // actual event handler
- *    (state, e) => console.log("no one never calls me")
- * ]
- * ```
- *
- * @param pred predicate applied to given state & event
- * @param err interceptor triggered on predicate failure
- */
 
+  // 3D Perlin Noise
+  Noise.prototype.perlin3 = function(x, y, z) {
+    // Find unit grid cell containing point
+    var X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
+    // Get relative xyz coordinates of point within that cell
+    x = x - X; y = y - Y; z = z - Z;
+    // Wrap the integer cells at 255 (smaller integer period can be introduced here)
+    X = X & 255; Y = Y & 255; Z = Z & 255;
 
-exports.ensurePred = function (pred, err) {
-  return function (state, e, bus) {
-    var _a;
+    // Calculate noise contributions from each of the eight corners
+    var perm = this.perm;
+    var gradP = this.gradP;
+    var n000 = gradP[X+  perm[Y+  perm[Z  ]]].dot3(x,   y,     z);
+    var n001 = gradP[X+  perm[Y+  perm[Z+1]]].dot3(x,   y,   z-1);
+    var n010 = gradP[X+  perm[Y+1+perm[Z  ]]].dot3(x,   y-1,   z);
+    var n011 = gradP[X+  perm[Y+1+perm[Z+1]]].dot3(x,   y-1, z-1);
+    var n100 = gradP[X+1+perm[Y+  perm[Z  ]]].dot3(x-1,   y,   z);
+    var n101 = gradP[X+1+perm[Y+  perm[Z+1]]].dot3(x-1,   y, z-1);
+    var n110 = gradP[X+1+perm[Y+1+perm[Z  ]]].dot3(x-1, y-1,   z);
+    var n111 = gradP[X+1+perm[Y+1+perm[Z+1]]].dot3(x-1, y-1, z-1);
 
-    return !pred(state, e, bus) ? __assign((_a = {}, _a[api_1.FX_CANCEL] = true, _a), err ? err(state, e, bus) : null) : undefined;
+    // Compute the fade curve value for x, y, z
+    var u = fade(x);
+    var v = fade(y);
+    var w = fade(z);
+
+    // Interpolate
+    return lerp(
+        lerp(
+          lerp(n000, n100, u),
+          lerp(n001, n101, u), w),
+        lerp(
+          lerp(n010, n110, u),
+          lerp(n011, n111, u), w),
+       v);
   };
-};
-/**
- * Specialization of `ensurePred()` to ensure a state value is less than
- * given max at the time when the event is being processed. The optional
- * `path` fn is used to extract or produce the path for the state value
- * to be validated. If omitted, the event's payload item is interpreted
- * as the value path.
- *
- * For example, without a provided `path` function and for an event of
- * this form: `["event-id", "foo.bar"]`, the term `"foo.bar"` would be
- * interpreted as path.
- *
- * If the event has this shape: `["event-id", ["foo.bar", 23]]`, we must
- * provide `(e) => e[1][0]` as path function to extract `"foo.bar"` from
- * the event.
- *
- * @param max
- * @param path path extractor
- * @param err error interceptor
- */
 
+  global.Noise = Noise;
 
-exports.ensureStateLessThan = function (max, path, err) {
-  return exports.ensurePred(function (state, e) {
-    return paths_1.getIn(state, path ? path(e) : e[1]) < max;
-  }, err);
-};
-/**
- * Specialization of `ensurePred()` to ensure a state value is greater
- * than given min. See `ensureStateLessThan()` for further details.
- *
- * @param min
- * @param path path extractor
- * @param err error interceptor
- */
+})(typeof module === "undefined" ? this : module.exports);
 
+},{}],"../../../node_modules/angle-normals/angle-normals.js":[function(require,module,exports) {
+'use strict'
 
-exports.ensureStateGreaterThan = function (min, path, err) {
-  return exports.ensurePred(function (state, e) {
-    return paths_1.getIn(state, path ? path(e) : e[1]) > min;
-  }, err);
-};
-/**
- * Specialization of `ensurePred()` to ensure a state value is within
- * given `min` / `max` closed interval. See `ensureStateLessThan()` for
- * further details.
- *
- * @param min
- * @param max
- * @param path path extractor
- * @param err error interceptor
- */
+module.exports = angleNormals
 
+function hypot(x, y, z) {
+  return Math.sqrt(Math.pow(x,2) + Math.pow(y,2) + Math.pow(z,2))
+}
 
-exports.ensureStateRange = function (min, max, path, err) {
-  return exports.ensurePred(function (state, e) {
-    var x = paths_1.getIn(state, path ? path(e) : e[1]);
-    return x >= min && x <= max;
-  }, err);
-};
-/**
- * Specialization of `ensurePred()` to ensure an event's payload value
- * is within given `min` / `max` closed interval. By default, assumes
- * event format like: `[event-id, value]`. However if `value` is given,
- * the provided function can be used to extract the value to be
- * validated from any event. If the value is outside the given interval,
- * triggers `FX_CANCEL` side effect and if `err` is given, the error
- * interceptor can return any number of other side effects and so be
- * used to dispatch alternative events instead.
- *
- * @param min
- * @param max
- * @param value event value extractor
- * @param err error interceptor
- */
+function weight(s, r, a) {
+  return Math.atan2(r, (s - a))
+}
 
+function mulAdd(dest, s, x, y, z) {
+  dest[0] += s * x
+  dest[1] += s * y
+  dest[2] += s * z
+}
 
-exports.ensureParamRange = function (min, max, value, err) {
-  return exports.ensurePred(function (_, e) {
-    var x = value ? value(e) : e[1];
-    return x >= min && x <= max;
-  }, err);
-};
-/**
- * Higher-order interceptor. Returns new interceptor to set state value
- * at provided path. This allows for dedicated events to set state
- * values more concisely, e.g. given this event definition:
- *
- * ```
- * setFoo: valueSetter("foo.bar")
- * ```
- *
- * ...the `setFoo` event then can be triggered like so to update the
- * state value at `foo.bar`:
- *
- * ```
- * bus.dispatch(["setFoo", 23])
- * ```
- *
- * @param path
- * @param tx
- */
+function angleNormals(cells, positions) {
+  var numVerts = positions.length
+  var numCells = cells.length
 
-
-exports.valueSetter = function (path, tx) {
-  var $ = paths_1.setter(path);
-  return function (state, _a) {
-    var _b = __read(_a, 2),
-        _ = _b[0],
-        val = _b[1];
-
-    var _c;
-
-    return _c = {}, _c[api_1.FX_STATE] = $(state, tx ? tx(val) : val), _c;
-  };
-};
-/**
- * Higher-order interceptor. Returns new interceptor to update state
- * value at provided path with given function. This allows for dedicated
- * events to update state values more concisely, e.g. given this event
- * definition:
- *
- * ```
- * incFoo: valueUpdater("foo.bar", (x, y) => x + y)
- * ```
- *
- * ...the `incFoo` event then can be triggered like so to update the
- * state value at `foo.bar` (where `1` is the extra arg provided to the
- * update fn:
- *
- * ```
- * bus.dispatch(["incFoo", 1]) // results in value = value + 1
- * ```
- *
- * @param path
- * @param fn
- */
-
-
-exports.valueUpdater = function (path, fn) {
-  var $ = paths_1.updater(path, fn);
-  return function (state, _a) {
-    var _b = __read(_a),
-        _ = _b[0],
-        args = _b.slice(1);
-
-    var _c;
-
-    return _c = {}, _c[api_1.FX_STATE] = $.apply(void 0, __spread([state], args)), _c;
-  };
-};
-},{"@thi.ng/paths":"../../../node_modules/@thi.ng/paths/index.js","./api":"interceptors/api.ts"}],"state.ts":[function(require,module,exports) {
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _a;
-
-var animejs_1 = __importDefault(require("animejs"));
-
-var gl_vec3_1 = __importDefault(require("gl-vec3"));
-
-var atom_1 = require("@thi.ng/atom");
-
-var event_bus_1 = require("./interceptors/event-bus");
-
-var interceptors_1 = require("./interceptors/interceptors");
-
-exports.color = [1, 0.4, 0.0];
-exports.Event = {
-  UPDATE_UI: 'UPDATE_UI',
-  TOGGLE_PANEL_SINGLE: 'TOGGLE_PANEL_SINGLE',
-  UPDATE_ANIMATION_TIME: 'UPDATE_ANIMATION_TIME',
-  UPDATE_LIGHT_PARAM: 'UPDATE_LIGHT_PARAM'
-};
-var lightParamStartState = {
-  unicolor: {},
-  normal: {},
-  lambert: {},
-  attenuation: {
-    radius: 25,
-    falloff: 0.5
-  },
-  orenNayar: {
-    roughness: 0.3,
-    albedo: 0.9
-  },
-  specularPhong: {
-    shiness: 0.3
-  },
-  specularBlinnPhong: {
-    shiness: 0.3
-  },
-  specularWard: {
-    shinyPar: 0.1,
-    shinyPerp: 0.3
-  },
-  specularBeckmann: {
-    roughness: 0.3
-  },
-  specularGaussian: {
-    shiness: 0.4
-  },
-  specularCookTorrance: {
-    roughness: 0.4,
-    fresnel: 1.0
-  }
-};
-exports.lightParamsMinMax = {
-  attenuation: {
-    radius: {
-      min: 0,
-      max: 100,
-      step: 0.1
-    },
-    falloff: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    }
-  },
-  orenNayar: {
-    roughness: {
-      min: 0,
-      max: 2,
-      step: 0.1
-    },
-    albedo: {
-      min: 0,
-      max: 2,
-      step: 0.1
-    }
-  },
-  specularPhong: {
-    shiness: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    }
-  },
-  specularBlinnPhong: {
-    shiness: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    }
-  },
-  specularWard: {
-    shinyPar: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    },
-    shinyPerp: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    }
-  },
-  specularBeckmann: {
-    roughness: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    }
-  },
-  specularGaussian: {
-    shiness: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    }
-  },
-  specularCookTorrance: {
-    roughness: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    },
-    fresnel: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    }
-  }
-};
-var state = new atom_1.Atom({
-  dirty: true,
-  panels: new Array(11).fill(false),
-  animationTime: 0,
-  lightParams: lightParamStartState
-});
-exports.lightParams = new atom_1.Cursor(state, 'lightParams');
-window.lightParams = exports.lightParams;
-exports.animationTime = new atom_1.Cursor(state, 'animationTime');
-exports.dirty = new atom_1.Cursor(state, 'dirty');
-window.dirty = exports.dirty;
-exports.openLightIndex = state.addView('panels', function (panels) {
-  return panels.findIndex(function (x) {
-    return x;
-  });
-});
-exports.BUS = new event_bus_1.EventBus(state, (_a = {}, _a[exports.Event.UPDATE_UI] = [interceptors_1.valueUpdater('dirty', function () {
-  return true;
-})], _a[exports.Event.TOGGLE_PANEL_SINGLE] = [interceptors_1.valueUpdater('panels', function (panels, id) {
-  var res = new Array(panels.length).fill(false);
-  !panels[id] && (res[id] = true);
-  exports.BUS.dispatch([exports.Event.UPDATE_UI]);
-  return res;
-})], _a[exports.Event.UPDATE_ANIMATION_TIME] = [interceptors_1.valueUpdater('animationTime', function (animationTime, newAnimationTime) {
-  if (animationTime !== newAnimationTime) {
-    exports.BUS.dispatch([exports.Event.UPDATE_UI]);
+  //Allocate normal array
+  var normals = new Array(numVerts)
+  for(var i=0; i<numVerts; ++i) {
+    normals[i] = [0,0,0]
   }
 
-  return newAnimationTime;
-})], _a[exports.Event.UPDATE_LIGHT_PARAM] = [interceptors_1.valueUpdater('lightParams', function (param, _a) {
-  var value = _a.value,
-      path = _a.path,
-      key = _a.key;
-  exports.lightParams.swap(function (x) {
-    x[path][key] = value;
-    return x;
-  });
-  exports.BUS.dispatch([exports.Event.UPDATE_UI]);
-  return param;
-})], _a));
+  //Scan cells, and
+  for(var i=0; i<numCells; ++i) {
+    var cell = cells[i]
+    var a = positions[cell[0]]
+    var b = positions[cell[1]]
+    var c = positions[cell[2]]
 
-var _lightPosition = gl_vec3_1.default.create();
+    var abx = a[0] - b[0]
+    var aby = a[1] - b[1]
+    var abz = a[2] - b[2]
+    var ab = hypot(abx, aby, abz)
 
-exports.lightPosition = exports.BUS.state.addView('animationTime', function (t) {
-  gl_vec3_1.default.set(_lightPosition, animationObj.value * 20 - 10, Math.sin(Math.PI / 2 + animationObj.value * TWO_PI) * 5, Math.cos(Math.PI / 2 + animationObj.value * TWO_PI) * 5);
-  return _lightPosition;
-}); //------------------------------------------------------------------ light animation
+    var bcx = b[0] - c[0]
+    var bcy = b[1] - c[1]
+    var bcz = b[2] - c[2]
+    var bc = hypot(bcx, bcy, bcz)
 
-var animationObj = {
-  value: 0
-};
-var TWO_PI = Math.PI * 2;
-var timeline = animejs_1.default.timeline({
-  loop: true,
-  update: function () {
-    if (exports.animationTime.deref() !== animationObj.value) {
-      exports.BUS.dispatch([exports.Event.UPDATE_ANIMATION_TIME, animationObj.value]);
+    var cax = c[0] - a[0]
+    var cay = c[1] - a[1]
+    var caz = c[2] - a[2]
+    var ca = hypot(cax, cay, caz)
+
+    if(Math.min(ab, bc, ca) < 1e-6) {
+      continue
     }
-  },
-  easing: 'easeInOutSine'
-}).add({
-  targets: animationObj,
-  value: 1,
-  duration: 3000
-}).add({
-  targets: animationObj,
-  value: 1,
-  duration: 2000
-}).add({
-  targets: animationObj,
-  value: 0,
-  duration: 3000
-}).add({
-  targets: animationObj,
-  value: 0,
-  duration: 2000
-});
-timeline.play();
-},{"animejs":"../../../node_modules/animejs/lib/anime.es.js","gl-vec3":"../../../node_modules/gl-vec3/index.js","@thi.ng/atom":"../../../node_modules/@thi.ng/atom/index.js","./interceptors/event-bus":"interceptors/event-bus.ts","./interceptors/interceptors":"interceptors/interceptors.ts"}],"draw-wireframe.ts":[function(require,module,exports) {
-"use strict";
 
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
+    var s = 0.5 * (ab + bc + ca)
+    var r = Math.sqrt((s - ab)*(s - bc)*(s - ca)/s)
 
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
+    var nx = aby * bcz - abz * bcy
+    var ny = abz * bcx - abx * bcz
+    var nz = abx * bcy - aby * bcx
+    var nl = hypot(nx, ny, nz)
+    nx /= nl
+    ny /= nl
+    nz /= nl
+
+    mulAdd(normals[cell[0]], weight(s, r, bc), nx, ny, nz)
+    mulAdd(normals[cell[1]], weight(s, r, ca), nx, ny, nz)
+    mulAdd(normals[cell[2]], weight(s, r, ab), nx, ny, nz)
   }
 
-  return ar;
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var transducers_1 = require("@thi.ng/transducers");
-
-var vert = "\nprecision mediump float;\nuniform mat4 projection, view, model;\nattribute vec3 position;\nvoid main () {\n  vec4 mpos = projection * view * model * vec4(position, 1.0);\n  gl_Position = mpos;\n}";
-var frag = "\nprecision mediump float;\nuniform vec3 color;\nvoid main () {\n  gl_FragColor = vec4(color, 1.0);\n}";
-
-function createWireframe(regl, mesh) {
-  // const input: Vec3[] = [[1, 0, 3], [3, 2, 1], [5, 4, 7]]
-  // const expected = [[[1, 0], [0, 3], [3, 1]], [[3, 2], [2, 1], [1, 3]], [[5, 4], [4, 7], [7, 5]]]
-  var triangleToSegments = function (_a) {
-    var _b = __read(_a, 3),
-        a = _b[0],
-        b = _b[1],
-        c = _b[2];
-
-    return [[a, b], [b, c], [c, a]];
-  };
-
-  var wireframeCells = __spread(transducers_1.map(triangleToSegments, mesh.cells));
-
-  var draw = regl({
-    frag: frag,
-    vert: vert,
-    attributes: {
-      position: function () {
-        return mesh.positions;
-      }
-    },
-    uniforms: {
-      color: regl.prop('color'),
-      model: regl.prop('model')
-    },
-    elements: wireframeCells,
-    primitive: 'lines'
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createWireframe = createWireframe;
-},{"@thi.ng/transducers":"../../../node_modules/@thi.ng/transducers/index.js"}],"draw-unicolor/draw-unicolor.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var vert = "\nprecision mediump float;\n\nattribute vec3 position;\n\nuniform mat4 projection, view, model;\n\nvoid main () {\n  vec4 mpos = projection * view * model * vec4(position, 1.0);\n  gl_Position = mpos;\n}";
-var frag = "\nprecision mediump float;\nuniform vec3 color;\nvoid main () {\n  gl_FragColor = vec4(color, 1.0);\n}"; //------------------------------------------- regl draw command
-
-function createUnicolor(regl, mesh) {
-  var draw = regl({
-    frag: frag,
-    vert: vert,
-    attributes: {
-      position: function () {
-        return mesh.positions;
-      }
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      color: regl.prop('color')
-    },
-    elements: function () {
-      return mesh.cells;
+  //Normalize all the normals
+  for(var i=0; i<numVerts; ++i) {
+    var n = normals[i]
+    var l = Math.sqrt(
+      Math.pow(n[0], 2) +
+      Math.pow(n[1], 2) +
+      Math.pow(n[2], 2))
+    if(l < 1e-8) {
+      n[0] = 1
+      n[1] = 0
+      n[2] = 0
+      continue
     }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createUnicolor = createUnicolor;
-},{}],"draw-unicolor/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-unicolor"));
-},{"./draw-unicolor":"draw-unicolor/draw-unicolor.ts"}],"draw-normal/normal.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\n// #pragma glslify: transpose = require('glsl-transpose')\n// #pragma glslify: inverse = require('glsl-inverse')\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\n\nvarying vec3 vNormal;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  // mat3 normalMatrix = transpose(inverse(mat3(modelViewMatrix)));\n  vNormal = normalMatrix * normal;\n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-normal/normal.frag":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nvarying vec3 vNormal;\n\nvoid main () {\n  vec3 color = vNormal * 0.5 + 0.5; \n   gl_FragColor  = vec4(color, 1.0);\n}";
-},{}],"draw-normal/draw-normal.ts":[function(require,module,exports) {
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var normal_vert_1 = __importDefault(require("./normal.vert"));
-
-var normal_frag_1 = __importDefault(require("./normal.frag"));
-
-function createNormalMesh(regl, mesh) {
-  var draw = regl({
-    vert: normal_vert_1.default,
-    frag: normal_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createNormalMesh = createNormalMesh;
-},{"./normal.vert":"draw-normal/normal.vert","./normal.frag":"draw-normal/normal.frag"}],"draw-normal/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-normal"));
-},{"./draw-normal":"draw-normal/draw-normal.ts"}],"draw-diffuse-lambert/diffuse-lambert.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vPos;\nvarying vec3 vLightDirection;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n  vNormal = normalMatrix * normal;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n\n  gl_Position = projection * viewPosition;\n}";
-},{}],"draw-diffuse-lambert/diffuse-lambert.frag":[function(require,module,exports) {
-module.exports = "// see https://github.com/glslify/glsl-diffuse-lambert\n\nprecision mediump float;\n#define GLSLIFY 1\n\nuniform vec3 diffuseColor;\nuniform vec3 ambientColor;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\n\nvoid main () {\n  float brightness = max(\n    dot(\n      normalize(vLightDirection),\n      normalize(vNormal)\n    ), 0.0);\n  vec3 lightColor = ambientColor + diffuseColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-},{}],"draw-diffuse-lambert/draw-diffuse-lambert.ts":[function(require,module,exports) {
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var diffuse_lambert_vert_1 = __importDefault(require("./diffuse-lambert.vert"));
-
-var diffuse_lambert_frag_1 = __importDefault(require("./diffuse-lambert.frag")); //------------------------------------------- regl draw command
-
-
-function createDiffuseLambert(regl, mesh) {
-  var draw = regl({
-    vert: diffuse_lambert_vert_1.default,
-    frag: diffuse_lambert_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      diffuseColor: regl.prop('diffuseColor'),
-      ambientColor: regl.prop('ambientColor'),
-      lightPosition: regl.prop('lightPosition')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createDiffuseLambert = createDiffuseLambert;
-},{"./diffuse-lambert.vert":"draw-diffuse-lambert/diffuse-lambert.vert","./diffuse-lambert.frag":"draw-diffuse-lambert/diffuse-lambert.frag"}],"draw-diffuse-lambert/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-diffuse-lambert"));
-},{"./draw-diffuse-lambert":"draw-diffuse-lambert/draw-diffuse-lambert.ts"}],"draw-diffuse-oren-nayar/diffuse-oren-nayar.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vNormal = normalMatrix * normal;\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-diffuse-oren-nayar/diffuse-oren-nayar.frag":[function(require,module,exports) {
-module.exports = "// see https://github.com/glslify/glsl-diffuse-oren-nayar\n\nprecision mediump float;\n#define GLSLIFY 1\n\n#define PI 3.14159265\n\nuniform vec3 eyePosition;\nuniform vec3 diffuseColor;\nuniform vec3 ambientColor;\nuniform float roughness;\nuniform float albedo;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nfloat orenNayarDiffuse(\n  vec3 _lightDirection,\n  vec3 _viewDirection,\n  vec3 _surfaceNormal,\n  float _roughness,\n  float _albedo) {\n  \n  float LdotV = dot(_lightDirection, _viewDirection);\n  float NdotL = dot(_lightDirection, _surfaceNormal);\n  float NdotV = dot(_surfaceNormal, _viewDirection);\n\n  float s = LdotV - NdotL * NdotV;\n  float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));\n\n  float sigma2 = _roughness * _roughness;\n  float A = 1.0 + sigma2 * (_albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));\n  float B = 0.45 * sigma2 / (sigma2 + 0.09);\n\n  return _albedo * max(0.0, NdotL) * (A + B * s / t) / PI;\n}\n\nvoid main () {\n  vec3 viewDirection = normalize(eyePosition - vPos);\n\n  float brightness = orenNayarDiffuse(vLightDirection, viewDirection, vNormal, roughness, albedo);\n  vec3 lightColor = ambientColor + diffuseColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-},{}],"draw-diffuse-oren-nayar/draw-diffuse-oren-nayar.ts":[function(require,module,exports) {
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var diffuse_oren_nayar_vert_1 = __importDefault(require("./diffuse-oren-nayar.vert"));
-
-var diffuse_oren_nayar_frag_1 = __importDefault(require("./diffuse-oren-nayar.frag")); //------------------------------------------- regl draw command
-
-
-function createDiffuseOrenNayar(regl, mesh) {
-  var draw = regl({
-    vert: diffuse_oren_nayar_vert_1.default,
-    frag: diffuse_oren_nayar_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      eyePosition: regl.prop('eyePosition'),
-      lightPosition: regl.prop('lightPosition'),
-      diffuseColor: regl.prop('diffuseColor'),
-      ambientColor: regl.prop('ambientColor'),
-      roughness: regl.prop('roughness'),
-      albedo: regl.prop('albedo')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createDiffuseOrenNayar = createDiffuseOrenNayar;
-},{"./diffuse-oren-nayar.vert":"draw-diffuse-oren-nayar/diffuse-oren-nayar.vert","./diffuse-oren-nayar.frag":"draw-diffuse-oren-nayar/diffuse-oren-nayar.frag"}],"draw-diffuse-oren-nayar/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-diffuse-oren-nayar"));
-},{"./draw-diffuse-oren-nayar":"draw-diffuse-oren-nayar/draw-diffuse-oren-nayar.ts"}],"draw-specular-phong/specular-phong.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vNormal = normalMatrix * normal;\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-specular-phong/specular-phong.frag":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nuniform vec3 eyePosition;\nuniform vec3 specularColor;\nuniform vec3 ambientColor;\nuniform float shiness;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nfloat phongSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float shininess) {\n\n  //Calculate Phong power\n  vec3 R = -reflect(lightDirection, surfaceNormal);\n  return pow(max(0.0, dot(viewDirection, R)), shininess);\n}\n\nvoid main () {\n  vec3 viewDirection = normalize(eyePosition - vPos);\n\n  float brightness = phongSpecular(vLightDirection, viewDirection, vNormal, shiness);\n  vec3 lightColor = ambientColor + specularColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-},{}],"draw-specular-phong/draw-specular-phong.ts":[function(require,module,exports) {
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var specular_phong_vert_1 = __importDefault(require("./specular-phong.vert"));
-
-var specular_phong_frag_1 = __importDefault(require("./specular-phong.frag")); //------------------------------------------- regl draw command
-
-
-function createSpecularPhong(regl, mesh) {
-  var draw = regl({
-    vert: specular_phong_vert_1.default,
-    frag: specular_phong_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      eyePosition: regl.prop('eyePosition'),
-      lightPosition: regl.prop('lightPosition'),
-      specularColor: regl.prop('specularColor'),
-      ambientColor: regl.prop('ambientColor'),
-      shiness: regl.prop('shiness')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createSpecularPhong = createSpecularPhong;
-},{"./specular-phong.vert":"draw-specular-phong/specular-phong.vert","./specular-phong.frag":"draw-specular-phong/specular-phong.frag"}],"draw-specular-phong/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-specular-phong"));
-},{"./draw-specular-phong":"draw-specular-phong/draw-specular-phong.ts"}],"draw-specular-blinn-phong/specular-blinn-phong.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vNormal = normalMatrix * normal;\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-specular-blinn-phong/specular-blinn-phong.frag":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nuniform vec3 eyePosition;\nuniform vec3 specularColor;\nuniform vec3 ambientColor;\nuniform float shiness;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nfloat phongSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float shininess) {\n\n  //Calculate Phong power\n  vec3 R = -reflect(lightDirection, surfaceNormal);\n  return pow(max(0.0, dot(viewDirection, R)), shininess);\n}\n\nvoid main () {\n  vec3 viewDirection = normalize(eyePosition - vPos);\n\n  float brightness = phongSpecular(vLightDirection, viewDirection, vNormal, shiness);\n  vec3 lightColor = ambientColor + specularColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-},{}],"draw-specular-blinn-phong/draw-specular-blinn-phong.ts":[function(require,module,exports) {
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var specular_blinn_phong_vert_1 = __importDefault(require("./specular-blinn-phong.vert"));
-
-var specular_blinn_phong_frag_1 = __importDefault(require("./specular-blinn-phong.frag")); //------------------------------------------- regl draw command
-
-
-function createSpecularBlinnPhong(regl, mesh) {
-  var draw = regl({
-    vert: specular_blinn_phong_vert_1.default,
-    frag: specular_blinn_phong_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      eyePosition: regl.prop('eyePosition'),
-      lightPosition: regl.prop('lightPosition'),
-      specularColor: regl.prop('specularColor'),
-      ambientColor: regl.prop('ambientColor'),
-      shiness: regl.prop('shiness')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createSpecularBlinnPhong = createSpecularBlinnPhong;
-},{"./specular-blinn-phong.vert":"draw-specular-blinn-phong/specular-blinn-phong.vert","./specular-blinn-phong.frag":"draw-specular-blinn-phong/specular-blinn-phong.frag"}],"draw-specular-blinn-phong/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-specular-blinn-phong"));
-},{"./draw-specular-blinn-phong":"draw-specular-blinn-phong/draw-specular-blinn-phong.ts"}],"draw-attenuation/draw-attenuation.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var vert = "\nprecision mediump float;\n\nattribute vec3 position;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\n\nvarying vec3 vViewPosition;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vec4 viewModelPosition = modelViewMatrix * vec4(position, 1.0);\n\n  vViewPosition = viewModelPosition.xyz;\n\n  gl_Position = projection * viewModelPosition;\n}";
-var frag = "\nprecision mediump float;\n\n// by Tom Madams\n// Simple:\n// https://imdoingitwrong.wordpress.com/2011/01/31/light-attenuation/\n// \n// Improved\n// https://imdoingitwrong.wordpress.com/2011/02/10/improved-light-attenuation/\nfloat attenuation(float r, float f, float d) {\n  float denom = d / r + 1.0;\n  float attenuation = 1.0 / (denom*denom);\n  float t = (attenuation - f) / (1.0 - f);\n  return max(t, 0.0);\n}\n\nuniform mat4 view;\nuniform vec3 color;\nuniform vec3 lightPosition;\nuniform float radius;\nuniform float falloff;\n\nvarying vec3 vViewPosition;\n\nvoid main () {\n\n  vec4 lightViewPosition = view * vec4(lightPosition, 1.0);\n  vec3 lightVector = lightViewPosition.xyz - vViewPosition;\n  float lightDistance = length(lightVector);\n  float lightFalloff = attenuation(radius, falloff, lightDistance);\n\n  vec3 lightAttenuated = color * lightFalloff;\n\n  gl_FragColor = vec4(lightAttenuated, 1.0);\n}"; //------------------------------------------- regl draw command
-
-function createAttenuation(regl, mesh) {
-  var draw = regl({
-    frag: frag,
-    vert: vert,
-    attributes: {
-      position: function () {
-        return mesh.positions;
-      }
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      lightPosition: regl.prop('lightPosition'),
-      radius: regl.prop('radius'),
-      falloff: regl.prop('falloff'),
-      color: regl.prop('color')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createAttenuation = createAttenuation;
-},{}],"draw-attenuation/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-attenuation"));
-},{"./draw-attenuation":"draw-attenuation/draw-attenuation.ts"}],"draw-specular-ward/specular-ward.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\nvarying vec3 vFiberDirection;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vNormal = normalMatrix * normal;\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n  vFiberDirection = normalize(vec3(uv,0) - dot(vec3(uv,0), normal)*normal);\n\n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-specular-ward/specular-ward.frag":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nuniform vec3 eyePosition;\nuniform vec3 specularColor;\nuniform vec3 ambientColor;\n\nuniform float shinyPar;\nuniform float shinyPerp;\n \nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\nvarying vec3 vFiberDirection;\n\n#define PI 3.141592653589793\n\nfloat wardSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  vec3 fiberParallel,\n  vec3 fiberPerpendicular,\n  float shinyParallel,\n  float shinyPerpendicular) {\n\n  float NdotL = dot(surfaceNormal, lightDirection);\n  float NdotR = dot(surfaceNormal, viewDirection);\n\n  if(NdotL < 0.0 || NdotR < 0.0) {\n    return 0.0;\n  }\n\n  vec3 H = normalize(lightDirection + viewDirection);\n\n  float NdotH = dot(surfaceNormal, H);\n  float XdotH = dot(fiberParallel, H);\n  float YdotH = dot(fiberPerpendicular, H);\n\n  float coeff = sqrt(NdotL/NdotR) / (4.0 * PI * shinyParallel * shinyPerpendicular); \n  float theta = (pow(XdotH/shinyParallel, 2.0) + pow(YdotH/shinyPerpendicular, 2.0)) / (1.0 + NdotH);\n\n  return coeff * exp(-2.0 * theta);\n}\n\nvoid main () {\n  vec3 viewDirection = normalize(eyePosition - vPos);\n\n  vec3 normal = normalize(vNormal);\n  vec3 fiberPar = normalize(vFiberDirection);\n  vec3 fiberPerp = normalize(cross(vPos, vFiberDirection));\n \n  //Compute specular power \n  float power = wardSpecular(\n    vLightDirection, \n    viewDirection, \n    normal, \n    fiberPar,\n    fiberPerp,\n    shinyPar,\n    shinyPerp);\n \n  gl_FragColor = vec4(specularColor * power,1.0);\n\n}\n";
-},{}],"draw-specular-ward/draw-specular-ward.ts":[function(require,module,exports) {
-"use strict";
-/**
- * More on Ward specular:
- * https://gamedev.stackexchange.com/questions/67679/how-can-i-create-a-shader-that-will-reproduce-this-lighting-effect-on-terrain
- * http://www.cs.utah.edu/~premoze/brdf/
- *
- */
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var specular_ward_vert_1 = __importDefault(require("./specular-ward.vert"));
-
-var specular_ward_frag_1 = __importDefault(require("./specular-ward.frag")); //------------------------------------------- regl draw command
-
-
-function createSpecularWard(regl, mesh) {
-  if (!mesh.uvs) {
-    throw new Error('specular ward model need uv!');
+    n[0] /= l
+    n[1] /= l
+    n[2] /= l
   }
 
-  var draw = regl({
-    vert: specular_ward_vert_1.default,
-    frag: specular_ward_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals,
-      uv: mesh.uvs
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      eyePosition: regl.prop('eyePosition'),
-      lightPosition: regl.prop('lightPosition'),
-      specularColor: regl.prop('specularColor'),
-      ambientColor: regl.prop('ambientColor'),
-      shinyPar: regl.prop('shinyPar'),
-      shinyPerp: regl.prop('shinyPerp')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
+  return normals
 }
 
-exports.createSpecularWard = createSpecularWard;
-},{"./specular-ward.vert":"draw-specular-ward/specular-ward.vert","./specular-ward.frag":"draw-specular-ward/specular-ward.frag"}],"draw-specular-ward/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-specular-ward"));
-},{"./draw-specular-ward":"draw-specular-ward/draw-specular-ward.ts"}],"draw-specular-beckmann/specular-beckmann.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vNormal = normalMatrix * normal;\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-specular-beckmann/specular-beckmann.frag":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nuniform vec3 eyePosition;\nuniform vec3 specularColor;\nuniform vec3 ambientColor;\nuniform float roughness;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nfloat beckmannDistribution(float x, float roughness) {\n  float NdotH = max(x, 0.0001);\n  float cos2Alpha = NdotH * NdotH;\n  float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;\n  float roughness2 = roughness * roughness;\n  float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;\n  return exp(tan2Alpha / roughness2) / denom;\n}\n\nfloat beckmannSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float roughness) {\n  return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);\n}\n\nvoid main () {\n  vec3 viewDirection = normalize(eyePosition - vPos);\n  vec3 eyeDir = normalize(-vPos);\n  float brightness = beckmannSpecular(vLightDirection, eyeDir, vNormal, roughness);\n  vec3 lightColor = ambientColor + specularColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-},{}],"draw-specular-beckmann/draw-specular-beckmann.ts":[function(require,module,exports) {
+},{}],"draw-outline.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -26187,55 +20810,26 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var specular_beckmann_vert_1 = __importDefault(require("./specular-beckmann.vert"));
+var angle_normals_1 = __importDefault(require("angle-normals"));
 
-var specular_beckmann_frag_1 = __importDefault(require("./specular-beckmann.frag")); //------------------------------------------- regl draw command
-
-
-function createSpecularBeckmann(regl, mesh) {
-  var draw = regl({
-    vert: specular_beckmann_vert_1.default,
-    frag: specular_beckmann_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      eyePosition: regl.prop('eyePosition'),
-      lightPosition: regl.prop('lightPosition'),
-      specularColor: regl.prop('specularColor'),
-      ambientColor: regl.prop('ambientColor'),
-      roughness: regl.prop('roughness')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
+exports.createDrawOutline = function (regl, mesh, uniforms, positionsCount) {
   return {
-    draw: draw
+    draw: regl({
+      frag: "\n  precision highp float;\n  uniform vec4 color;\n  uniform float time;\n  varying vec2 vuv;\n  varying vec3 vposition;\n  \n  void main () {\n    gl_FragColor = vec4(0.1, 0.1, 0.1, 1.0);\n  }",
+      vert: "\n  precision highp float;\n  uniform mat4 projection;\n  uniform mat4 model;\n  uniform mat4 view;\n  uniform sampler2D displacement;\n  uniform float time;\n  attribute vec3 position;\n  attribute vec3 normal;\n  attribute vec2 uv;\n  varying vec2 vuv;\n  varying vec3 vposition;\n  void main () {\n    vuv = uv;\n    vposition = position;\n    vec3 displaced = position + normal * texture2D(displacement, uv).rgb * abs(sin(0.005 * time) * 5.0);\n    displaced = displaced - normal * 0.04;\n    gl_Position = projection * view * model * vec4(displaced, 1.0);\n  }",
+      attributes: {
+        position: regl.buffer(mesh.positions),
+        normal: regl.buffer(angle_normals_1.default(mesh.cells, mesh.positions)),
+        uv: regl.buffer(mesh.uvs)
+      },
+      elements: regl.elements(mesh.cells),
+      primitive: 'triangles',
+      uniforms: uniforms,
+      count: positionsCount
+    })
   };
-}
-
-exports.createSpecularBeckmann = createSpecularBeckmann;
-},{"./specular-beckmann.vert":"draw-specular-beckmann/specular-beckmann.vert","./specular-beckmann.frag":"draw-specular-beckmann/specular-beckmann.frag"}],"draw-specular-beckmann/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-specular-beckmann"));
-},{"./draw-specular-beckmann":"draw-specular-beckmann/draw-specular-beckmann.ts"}],"draw-specular-gaussian/specular-gaussian.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vNormal = normalMatrix * normal;\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-specular-gaussian/specular-gaussian.frag":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nuniform vec3 eyePosition;\nuniform vec3 specularColor;\nuniform vec3 ambientColor;\nuniform float shiness;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nfloat gaussianSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float shininess) {\n  vec3 H = normalize(lightDirection + viewDirection);\n  float theta = acos(dot(H, surfaceNormal));\n  float w = theta / shininess;\n  return exp(-w*w);\n}\n\nvoid main () {\n  vec3 viewDirection = normalize(eyePosition - vPos);\n  vec3 eyeDir = normalize(-vPos);\n  float brightness = gaussianSpecular(vLightDirection, eyeDir, vNormal, shiness);\n  vec3 lightColor = ambientColor + specularColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-},{}],"draw-specular-gaussian/draw-specular-gaussian.ts":[function(require,module,exports) {
+};
+},{"angle-normals":"../../../node_modules/angle-normals/angle-normals.js"}],"draw-triangles.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -26248,414 +20842,32 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var specular_gaussian_vert_1 = __importDefault(require("./specular-gaussian.vert"));
+var angle_normals_1 = __importDefault(require("angle-normals"));
 
-var specular_gaussian_frag_1 = __importDefault(require("./specular-gaussian.frag")); //------------------------------------------- regl draw command
-
-
-function createSpecularGaussian(regl, mesh) {
-  var draw = regl({
-    vert: specular_gaussian_vert_1.default,
-    frag: specular_gaussian_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      eyePosition: regl.prop('eyePosition'),
-      lightPosition: regl.prop('lightPosition'),
-      specularColor: regl.prop('specularColor'),
-      ambientColor: regl.prop('ambientColor'),
-      shiness: regl.prop('shiness')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
+exports.createDrawTriangles = function (regl, mesh, uniforms, positionsCount) {
   return {
-    draw: draw
+    draw: regl({
+      frag: "\n  precision highp float;\n  uniform vec4 color;\n  uniform float time;\n  varying vec2 vuv;\n  varying vec3 vposition;\n  varying vec3 vnormal;\n  vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {\n    return a + b*cos( 6.28318*(c*t+d) );\n  }\n  void main () {\n    vec3 a = vec3(0.5, 0.5, 0.5);\n    vec3 b = vec3(0.5, 0.5, 0.5);\n    vec3 c = abs(vnormal);\n    vec3 d = (0.05 * abs(vposition));\n    gl_FragColor = vec4(palette(sin(0.005 * time + 0.5), a, d, b, c), 1.0) * 1.0;\n  }",
+      vert: "\n  precision highp float;\n  uniform mat4 projection;\n  uniform mat4 model;\n  uniform mat4 view;\n  uniform sampler2D displacement;\n  uniform float time;\n  attribute vec3 position;\n  attribute vec3 normal;\n  attribute vec2 uv;\n  varying vec2 vuv;\n  varying vec3 vposition;\n  varying vec3 vnormal;\n  void main () {\n    vuv = uv;\n    vposition = position;\n    vnormal = normal;\n    vec3 displaced = position + normal * texture2D(displacement, uv).rgb * abs(sin(0.005 * time) * 5.0);\n    gl_Position = projection * view * model * vec4(displaced, 1.0);\n  }",
+      attributes: {
+        position: regl.buffer(mesh.positions),
+        normal: regl.buffer(angle_normals_1.default(mesh.cells, mesh.positions)),
+        uv: regl.buffer(mesh.uvs)
+      },
+      uniforms: uniforms,
+      elements: regl.elements(mesh.cells),
+      primitive: 'triangles',
+      count: positionsCount
+    })
   };
-}
-
-exports.createSpecularGaussian = createSpecularGaussian;
-},{"./specular-gaussian.vert":"draw-specular-gaussian/specular-gaussian.vert","./specular-gaussian.frag":"draw-specular-gaussian/specular-gaussian.frag"}],"draw-specular-gaussian/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-specular-gaussian"));
-},{"./draw-specular-gaussian":"draw-specular-gaussian/draw-specular-gaussian.ts"}],"draw-specular-cook-torrance/specular-cook-torrance.vert":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 position;\nattribute vec3 normal;\n\nuniform mat4 projection;\nuniform mat4 view;\nuniform mat4 model;\nuniform mat3 normalMatrix;\nuniform vec3 lightPosition;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nvoid main () {\n  mat4 modelViewMatrix = view * model;\n  vNormal = normalMatrix * normal;\n  vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n\n  vec3 lightViewPosition =  (view * vec4(lightPosition, 1.0)).xyz;\n  vLightDirection = normalize(lightViewPosition - vPos);\n  \n  gl_Position = projection * modelViewMatrix * vec4(position, 1.0);\n}";
-},{}],"draw-specular-cook-torrance/specular-cook-torrance.frag":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nuniform vec3 eyePosition;\nuniform vec3 specularColor;\nuniform vec3 ambientColor;\nuniform float roughness;\nuniform float fresnel;\n\nvarying vec3 vNormal;\nvarying vec3 vLightDirection;\nvarying vec3 vPos;\n\nfloat beckmannDistribution(float x, float roughness) {\n  float NdotH = max(x, 0.0001);\n  float cos2Alpha = NdotH * NdotH;\n  float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;\n  float roughness2 = roughness * roughness;\n  float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;\n  return exp(tan2Alpha / roughness2) / denom;\n}\n\nfloat cookTorranceSpecular(\n  vec3 lightDirection,\n  vec3 viewDirection,\n  vec3 surfaceNormal,\n  float roughness,\n  float fresnel) {\n\n  float VdotN = max(dot(viewDirection, surfaceNormal), 0.0);\n  float LdotN = max(dot(lightDirection, surfaceNormal), 0.0);\n\n  //Half angle vector\n  vec3 H = normalize(lightDirection + viewDirection);\n\n  //Geometric term\n  float NdotH = max(dot(surfaceNormal, H), 0.0);\n  float VdotH = max(dot(viewDirection, H), 0.000001);\n  float LdotH = max(dot(lightDirection, H), 0.000001);\n  float G1 = (2.0 * NdotH * VdotN) / VdotH;\n  float G2 = (2.0 * NdotH * LdotN) / LdotH;\n  float G = min(1.0, min(G1, G2));\n  \n  //Distribution term\n  float D = beckmannDistribution(NdotH, roughness);\n\n  //Fresnel term\n  float F = pow(1.0 - VdotN, fresnel);\n\n  //Multiply terms and done\n  return  G * F * D / max(3.14159265 * VdotN, 0.000001);\n}\n\nvoid main () {\n  vec3 viewDirection = normalize(eyePosition - vPos);\n\n  float brightness = cookTorranceSpecular(\n    vLightDirection, \n    viewDirection, \n    vNormal, \n    roughness,\n    fresnel);\n  vec3 lightColor = ambientColor + specularColor * brightness;\n  gl_FragColor = vec4(lightColor, 1.0);\n}\n";
-},{}],"draw-specular-cook-torrance/draw-specular-cook-torrance.ts":[function(require,module,exports) {
+};
+},{"angle-normals":"../../../node_modules/angle-normals/angle-normals.js"}],"scene.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
     "default": mod
   };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var specular_cook_torrance_vert_1 = __importDefault(require("./specular-cook-torrance.vert"));
-
-var specular_cook_torrance_frag_1 = __importDefault(require("./specular-cook-torrance.frag")); //------------------------------------------- regl draw command
-
-
-function createSpecularCookTorrance(regl, mesh) {
-  var draw = regl({
-    vert: specular_cook_torrance_vert_1.default,
-    frag: specular_cook_torrance_frag_1.default,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals
-    },
-    uniforms: {
-      model: regl.prop('model'),
-      normalMatrix: regl.prop('normalMatrix'),
-      eyePosition: regl.prop('eyePosition'),
-      lightPosition: regl.prop('lightPosition'),
-      specularColor: regl.prop('specularColor'),
-      ambientColor: regl.prop('ambientColor'),
-      roughness: regl.prop('roughness'),
-      fresnel: regl.prop('fresnel')
-    },
-    elements: function () {
-      return mesh.cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createSpecularCookTorrance = createSpecularCookTorrance;
-},{"./specular-cook-torrance.vert":"draw-specular-cook-torrance/specular-cook-torrance.vert","./specular-cook-torrance.frag":"draw-specular-cook-torrance/specular-cook-torrance.frag"}],"draw-specular-cook-torrance/index.ts":[function(require,module,exports) {
-"use strict";
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(require("./draw-specular-cook-torrance"));
-},{"./draw-specular-cook-torrance":"draw-specular-cook-torrance/draw-specular-cook-torrance.ts"}],"materials.ts":[function(require,module,exports) {
-"use strict";
-
-var __assign = this && this.__assign || function () {
-  __assign = Object.assign || function (t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-      s = arguments[i];
-
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-
-    return t;
-  };
-
-  return __assign.apply(this, arguments);
-};
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var gl_vec3_1 = __importDefault(require("gl-vec3"));
-
-var gl_mat3_1 = __importDefault(require("gl-mat3"));
-
-var gl_mat4_1 = __importDefault(require("gl-mat4"));
-
-var draw_unicolor_1 = require("./draw-unicolor");
-
-var draw_normal_1 = require("./draw-normal");
-
-var draw_diffuse_lambert_1 = require("./draw-diffuse-lambert");
-
-var draw_diffuse_oren_nayar_1 = require("./draw-diffuse-oren-nayar");
-
-var draw_specular_phong_1 = require("./draw-specular-phong");
-
-var draw_specular_blinn_phong_1 = require("./draw-specular-blinn-phong");
-
-var draw_attenuation_1 = require("./draw-attenuation");
-
-var draw_specular_ward_1 = require("./draw-specular-ward");
-
-var draw_specular_beckmann_1 = require("./draw-specular-beckmann");
-
-var draw_specular_gaussian_1 = require("./draw-specular-gaussian");
-
-var draw_specular_cook_torrance_1 = require("./draw-specular-cook-torrance");
-
-var state_1 = require("./state");
-
-var unicolorProps = {
-  model: gl_mat4_1.default.create(),
-  color: state_1.color
-};
-
-var attenuation = __assign({
-  color: state_1.color
-}, state_1.lightParams.deref().attenuation, {
-  lightPosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create()
-});
-
-var normalProps = __assign({}, state_1.lightParams.deref().normal, {
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-var lambertProps = {
-  diffuseColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08],
-  lightPosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-};
-
-var orenNayar = __assign({
-  diffuseColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08]
-}, state_1.lightParams.deref().orenNayar, {
-  lightPosition: gl_vec3_1.default.create(),
-  eyePosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-var specularPhong = __assign({
-  specularColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08]
-}, state_1.lightParams.deref().specularPhong, {
-  lightPosition: gl_vec3_1.default.create(),
-  eyePosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-var specularBlinnPhong = __assign({
-  specularColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08]
-}, state_1.lightParams.deref().specularBlinnPhong, {
-  lightPosition: gl_vec3_1.default.create(),
-  eyePosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-var specularWard = __assign({
-  specularColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08]
-}, state_1.lightParams.deref().specularWard, {
-  lightPosition: gl_vec3_1.default.create(),
-  eyePosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-var specularBeckmann = __assign({
-  specularColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08]
-}, state_1.lightParams.deref().specularBeckmann, {
-  lightPosition: gl_vec3_1.default.create(),
-  eyePosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-var specularGaussian = __assign({
-  specularColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08]
-}, state_1.lightParams.deref().specularGaussian, {
-  lightPosition: gl_vec3_1.default.create(),
-  eyePosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-var specularCookTorrance = __assign({
-  specularColor: state_1.color,
-  ambientColor: [0.08, 0.08, 0.08]
-}, state_1.lightParams.deref().specularCookTorrance, {
-  lightPosition: gl_vec3_1.default.create(),
-  eyePosition: gl_vec3_1.default.create(),
-  model: gl_mat4_1.default.create(),
-  normalMatrix: gl_mat3_1.default.create()
-});
-
-exports.createCommandAndProps = [{
-  path: 'unicolor',
-  name: 'Unicolor',
-  create: draw_unicolor_1.createUnicolor,
-  props: unicolorProps
-}, {
-  path: 'attenuation',
-  name: 'Light attenuation',
-  create: draw_attenuation_1.createAttenuation,
-  props: attenuation
-}, {
-  path: 'normal',
-  name: 'Normals',
-  create: draw_normal_1.createNormalMesh,
-  props: normalProps
-}, {
-  path: 'lambert',
-  name: 'Diffuse Lambert',
-  create: draw_diffuse_lambert_1.createDiffuseLambert,
-  props: lambertProps
-}, {
-  path: 'orenNayar',
-  name: 'Diffuse Oren Nayar',
-  create: draw_diffuse_oren_nayar_1.createDiffuseOrenNayar,
-  props: orenNayar
-}, {
-  path: 'specularPhong',
-  name: 'Specular Phong',
-  create: draw_specular_phong_1.createSpecularPhong,
-  props: specularPhong
-}, {
-  path: 'specularBlinnPhong',
-  name: 'Specular Blinn Phong',
-  create: draw_specular_blinn_phong_1.createSpecularBlinnPhong,
-  props: specularBlinnPhong
-}, {
-  path: 'specularWard',
-  name: 'Specular Ward',
-  create: draw_specular_ward_1.createSpecularWard,
-  props: specularWard
-}, {
-  path: 'specularBeckmann',
-  name: 'Specular Beckmann',
-  create: draw_specular_beckmann_1.createSpecularBeckmann,
-  props: specularBeckmann
-}, {
-  path: 'specularGaussian',
-  name: 'Specular Gaussian',
-  create: draw_specular_gaussian_1.createSpecularGaussian,
-  props: specularGaussian
-}, {
-  path: 'specularCookTorrance',
-  name: 'Specular Cook Torrance',
-  create: draw_specular_cook_torrance_1.createSpecularCookTorrance,
-  props: specularCookTorrance
-}];
-},{"gl-vec3":"../../../node_modules/gl-vec3/index.js","gl-mat3":"../../../node_modules/gl-mat3/index.js","gl-mat4":"../../../node_modules/gl-mat4/index.js","./draw-unicolor":"draw-unicolor/index.ts","./draw-normal":"draw-normal/index.ts","./draw-diffuse-lambert":"draw-diffuse-lambert/index.ts","./draw-diffuse-oren-nayar":"draw-diffuse-oren-nayar/index.ts","./draw-specular-phong":"draw-specular-phong/index.ts","./draw-specular-blinn-phong":"draw-specular-blinn-phong/index.ts","./draw-attenuation":"draw-attenuation/index.ts","./draw-specular-ward":"draw-specular-ward/index.ts","./draw-specular-beckmann":"draw-specular-beckmann/index.ts","./draw-specular-gaussian":"draw-specular-gaussian/index.ts","./draw-specular-cook-torrance":"draw-specular-cook-torrance/index.ts","./state":"state.ts"}],"draw-quad.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var vert = "\nprecision mediump float;\nuniform mat4 projection, view, model;\nattribute vec3 position;\nvoid main () {\n  vec4 mpos = projection * view * model * vec4(position, 1.0);\n  gl_Position = mpos;\n}";
-var frag = "\nprecision mediump float;\nuniform vec3 color;\nvoid main () {\n  gl_FragColor = vec4(color, 1.0);\n}";
-
-function createUnicolorQuad(regl, quad) {
-  var cells = [[0, 1, 2], [1, 2, 3]]; // TODO: test normals
-
-  var draw = regl({
-    frag: frag,
-    vert: vert,
-    attributes: {
-      position: function () {
-        return quad.positions;
-      }
-    },
-    uniforms: {
-      color: regl.prop('color'),
-      model: regl.prop('model')
-    },
-    elements: function () {
-      return cells;
-    }
-  });
-  return {
-    draw: draw
-  };
-}
-
-exports.createUnicolorQuad = createUnicolorQuad;
-},{}],"scene.ts":[function(require,module,exports) {
-"use strict";
-
-var __assign = this && this.__assign || function () {
-  __assign = Object.assign || function (t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-      s = arguments[i];
-
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-
-    return t;
-  };
-
-  return __assign.apply(this, arguments);
-};
-
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
-
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
-  }
-
-  return ar;
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-  result["default"] = mod;
-  return result;
 };
 
 Object.defineProperty(exports, "__esModule", {
@@ -26668,122 +20880,80 @@ var canvas_1 = require("@thi.ng/hdom-components/canvas");
 
 var regl_draw_1 = require("@tstackgl/regl-draw");
 
-var regl_camera_1 = __importDefault(require("regl-camera"));
+var primitive_icosphere_1 = __importDefault(require("primitive-icosphere"));
 
-var primitive_torus_1 = __importDefault(require("primitive-torus"));
+var mesh_reindex_1 = __importDefault(require("mesh-reindex"));
 
-var tx = __importStar(require("@thi.ng/transducers"));
+var unindex_mesh_1 = __importDefault(require("unindex-mesh"));
+
+var noisejs_1 = require("noisejs");
 
 var gl_mat4_1 = __importDefault(require("gl-mat4"));
 
-var gl_mat3_1 = __importDefault(require("gl-mat3"));
+var draw_outline_1 = require("./draw-outline");
 
-var primitive_plane_1 = __importDefault(require("primitive-plane"));
-
-var state_1 = require("./state");
-
-var draw_wireframe_1 = require("./draw-wireframe");
-
-var materials_1 = require("./materials");
-
-var draw_quad_1 = require("./draw-quad");
+var draw_triangles_1 = require("./draw-triangles");
 
 var loop = {
   cancel: function () {}
 };
 
 function createReglScene() {
+  // canvas init hook
   var init = function (canvas, __) {
     var width = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerHeight;
     var height = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight;
     canvas_1.adaptDPI(canvas, width, height);
     var regl = regl_1.default({
-      canvas: canvas,
-      extensions: ['OES_standard_derivatives']
+      canvas: canvas
     });
-    var frameCatch = regl_draw_1.createFrameCatch(regl);
-    var camera = regl_camera_1.default(regl, {
-      distance: 25,
-      phi: 0.4,
-      theta: 1.2
+    var mesh = primitive_icosphere_1.default(7, {
+      subdivisions: 2
     });
-    var axes = regl_draw_1.createXYZ(regl, 10);
-    var lightDebugPoint = regl_draw_1.createDrawPointDebug(regl, 0.2);
-    var mesh = primitive_torus_1.default();
-    var numRow = 3;
-    var xform = tx.comp(tx.mapIndexed(function (i, _a) {
-      var create = _a.create,
-          props = _a.props,
-          path = _a.path;
-      var model = gl_mat4_1.default.create();
-      var translation = [7.5 - Math.floor(i / numRow) * 5, 1.5, 5 - i % numRow * 5];
-      gl_mat4_1.default.translate(model, model, translation);
-      return {
-        model: model,
-        drawCommand: create(regl, mesh),
-        props: props,
-        path: path
-      };
-    }));
+    var positionsCount = mesh.positions.length;
+    var uvs = mesh.uvs;
+    var ns = mesh.normals;
+    mesh = mesh_reindex_1.default(unindex_mesh_1.default(mesh.positions, mesh.cells));
+    mesh.uvs = uvs;
+    mesh.normals = ns;
+    var n = new noisejs_1.Noise(Math.random());
+    var dx = [];
+    var rnd;
 
-    var commandsAndProps = __spread(tx.iterator1(xform, materials_1.createCommandAndProps));
+    for (var x = 0; x < 200; x++) {
+      dx[x] = [];
 
-    var floor = primitive_plane_1.default(20, 15, Math.ceil(commandsAndProps.length / 3), 3);
-    var drawFloor = draw_wireframe_1.createWireframe(regl, floor);
-    var floorProps = {
-      color: [0.2, 0.2, 0.2],
-      model: gl_mat4_1.default.fromRotation(gl_mat4_1.default.create(), Math.PI / 2, [1, 0, 0])
+      for (var y = 0; y < 200; y++) {
+        rnd = n.simplex2((x + 1) / 2, (y + 1) / 2);
+        dx[x][y] = [rnd * 255, rnd * 255, rnd * 255];
+      }
+    }
+
+    var uniforms = {
+      color: [1, 0, 0, 1],
+      model: gl_mat4_1.default.scale(gl_mat4_1.default.identity(gl_mat4_1.default.create()), gl_mat4_1.default.identity(gl_mat4_1.default.create()), [2, 1, 2]),
+      view: function (context) {
+        var t = 0.005 * context.tick / 2;
+        return gl_mat4_1.default.lookAt(gl_mat4_1.default.create(), [30 * Math.cos(t), 5, 30 * Math.sin(t)], [0, 2.5, 0], [0, 1, 0]);
+      },
+      projection: function (context) {
+        return gl_mat4_1.default.perspective(gl_mat4_1.default.create(), Math.PI / 4, context.viewportWidth / context.viewportHeight, 0.01, 1000);
+      },
+      time: function (context) {
+        return context.tick;
+      },
+      displacement: regl.texture(dx)
     };
-    var activePlane = primitive_plane_1.default(5, 5, 1, 1);
-    var unicolorQuad = draw_quad_1.createUnicolorQuad(regl, activePlane);
-    var activePlaneModelMatrix = gl_mat4_1.default.create();
-    var activePlaneRotation = gl_mat4_1.default.fromRotation(gl_mat4_1.default.create(), Math.PI / 2, [1, 0, 0]);
-    var modelViewMatrix = gl_mat4_1.default.create();
-    var normalMatrix = gl_mat3_1.default.create();
-    var inverseModelViewMatrix = gl_mat4_1.default.create();
+    var frameCatch = regl_draw_1.createFrameCatch(regl);
+    var drawOutline = draw_outline_1.createDrawOutline(regl, mesh, uniforms, positionsCount);
+    var drawTriangles = draw_triangles_1.createDrawTriangles(regl, mesh, uniforms, positionsCount);
     loop = frameCatch(function (_a) {
-      camera(function (cameraState) {
-        if (!cameraState.dirty && !state_1.dirty.deref()) {
-          return;
-        } // console.log('draw loop')
-
-
-        regl.clear({
-          color: [0, 0, 0, 0]
-        }); // axes.draw()
-
-        var activePosition = state_1.openLightIndex.deref() !== -1 ? [7.5 - Math.floor(state_1.openLightIndex.deref() / numRow) * 5, 0, 5 - state_1.openLightIndex.deref() % numRow * 5] : null;
-        var lp = state_1.lightPosition.deref();
-        lightDebugPoint.draw({
-          color: [1, 1, 0],
-          translate: lp
-        });
-        commandsAndProps.forEach(function (_a, i) {
-          var drawCommand = _a.drawCommand,
-              model = _a.model,
-              props = _a.props,
-              path = _a.path;
-          gl_mat4_1.default.multiply(modelViewMatrix, cameraState.view, model);
-          gl_mat4_1.default.invert(inverseModelViewMatrix, modelViewMatrix);
-          gl_mat3_1.default.fromMat4(normalMatrix, inverseModelViewMatrix);
-          gl_mat3_1.default.transpose(normalMatrix, normalMatrix);
-          props.model = model;
-          props.normalMatrix = normalMatrix;
-          props.eyePosition = cameraState.eye;
-          props.lightPosition = lp;
-          drawCommand.draw(__assign({}, props, state_1.lightParams.deref()[path]));
-        });
-        drawFloor.draw(floorProps);
-
-        if (activePosition) {
-          unicolorQuad.draw({
-            color: [0.2, 0.2, 0.2],
-            model: gl_mat4_1.default.multiply(activePlaneModelMatrix, gl_mat4_1.default.fromTranslation(activePlaneModelMatrix, activePosition), activePlaneRotation)
-          });
-        }
-
-        state_1.dirty.reset(false);
+      regl.clear({
+        depth: 1,
+        color: [0, 0, 0, 1]
       });
+      drawOutline.draw();
+      drawTriangles.draw();
     });
   };
 
@@ -26803,270 +20973,8 @@ if (module.hot) {
     loop.cancel();
   });
 }
-},{"regl":"../../../node_modules/regl/dist/regl.js","@thi.ng/hdom-components/canvas":"../../../node_modules/@thi.ng/hdom-components/canvas.js","@tstackgl/regl-draw":"../../../node_modules/@tstackgl/regl-draw/dist/index.js","regl-camera":"../../../node_modules/regl-camera/regl-camera.js","primitive-torus":"../../../node_modules/primitive-torus/index.js","@thi.ng/transducers":"../../../node_modules/@thi.ng/transducers/index.js","gl-mat4":"../../../node_modules/gl-mat4/index.js","gl-mat3":"../../../node_modules/gl-mat3/index.js","primitive-plane":"../../../node_modules/primitive-plane/index.js","./state":"state.ts","./draw-wireframe":"draw-wireframe.ts","./materials":"materials.ts","./draw-quad":"draw-quad.ts"}],"../../../node_modules/@thi.ng/hiccup-carbon-icons/header-chevron.js":[function(require,module,exports) {
+},{"regl":"../../../node_modules/regl/dist/regl.js","@thi.ng/hdom-components/canvas":"../../../node_modules/@thi.ng/hdom-components/canvas.js","@tstackgl/regl-draw":"../../../node_modules/@tstackgl/regl-draw/dist/index.js","primitive-icosphere":"../../../node_modules/primitive-icosphere/index.js","mesh-reindex":"../../../node_modules/mesh-reindex/index.js","unindex-mesh":"../../../node_modules/unindex-mesh/index.js","noisejs":"../../../node_modules/noisejs/index.js","gl-mat4":"../../../node_modules/gl-mat4/index.js","./draw-outline":"draw-outline.ts","./draw-triangles":"draw-triangles.ts"}],"index.ts":[function(require,module,exports) {
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.HEADER_CHEVRON = ["svg", { viewBox: "0 0 20 20" },
-    ["path",
-        {
-            d: "M6.542 4.945l.707-.707 6.004 6.004-6.004 6.02-.708-.707 5.298-5.312z",
-            "fill-rule": "nonzero",
-        }]];
-
-},{}],"../../../node_modules/@thi.ng/hiccup-carbon-icons/header-close.js":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.HEADER_CLOSE = ["svg", { viewBox: "0 0 20 20" },
-    ["path",
-        {
-            "fill-rule": "nonzero",
-            d: "M10 9.293l4.146-4.147.708.708L10.707 10l4.147 4.146-.708.708L10 10.707l-4.146 4.147-.708-.708L9.293 10 5.146 5.854l.708-.708L10 9.293z",
-        }]];
-
-},{}],"accordion/icon-wrapper.ts":[function(require,module,exports) {
-"use strict";
-
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
-
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
-  }
-
-  return ar;
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-/**
- * Not a component. Wraps given SVG icon in a fixed size span and
- * customizes fill color.
- *
- * @param icon
- * @param fill
- * @param width
- * @param attribs
- */
-
-exports.iconWrapper = function (icon, fill, width, attribs) {
-  if (attribs === void 0) {
-    attribs = {
-      class: 'mr2'
-    };
-  }
-
-  return ['span.dib.w1.h1', attribs, __spread(['svg', {
-    viewBox: icon[1].viewBox,
-    fill: fill,
-    width: width,
-    height: width
-  }], icon.slice(2))];
-};
-},{}],"accordion/accordion.ts":[function(require,module,exports) {
-"use strict";
-
-var __assign = this && this.__assign || function () {
-  __assign = Object.assign || function (t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-      s = arguments[i];
-
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-
-    return t;
-  };
-
-  return __assign.apply(this, arguments);
-};
-
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
-
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
-  }
-
-  return ar;
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var header_chevron_1 = require("@thi.ng/hiccup-carbon-icons/header-chevron");
-
-var header_close_1 = require("@thi.ng/hiccup-carbon-icons/header-close");
-
-var icon_wrapper_1 = require("./icon-wrapper");
-/**
- * Context-themed accordion component. Takes an `onclick` event handler
- * and `panelOpen` predicate (both of which are only being given a panel
- * ID) and any number of panel objects of `{ title, body }`.
- *
- * @param ctx
- * @param onclick
- * @param panelOpen
- * @param sections
- */
-
-
-exports.accordion = function (ctx, onclick, panelOpen) {
-  var sections = [];
-
-  for (var _i = 3; _i < arguments.length; _i++) {
-    sections[_i - 3] = arguments[_i];
-  }
-
-  if (!ctx.theme) {
-    var themeExample = {
-      accordion: {
-        root: {
-          class: 'string'
-        },
-        title: {
-          class: 'string'
-        },
-        bodyOpen: {
-          class: 'string'
-        },
-        bodyClosed: {
-          class: 'string'
-        }
-      }
-    };
-    throw new Error("Accordion component needs theme as object: " + JSON.stringify(themeExample, null, 2));
-  }
-
-  return ['div', ctx.theme.accordion.root, sections.map(function (panel, i) {
-    return [accordionPanel, onclick, i, panelOpen(i), panel];
-  })];
-};
-
-var accordionPanel = function (ctx, onclick, id, open, _a) {
-  var title = _a.title,
-      body = _a.body;
-  return ['div', ['h4', __assign({}, ctx.theme.accordion.title, {
-    onclick: function () {
-      return onclick(id);
-    }
-  }), icon_wrapper_1.iconWrapper(open ? header_close_1.HEADER_CLOSE : header_chevron_1.HEADER_CHEVRON, '#555', '80%'), title], open ? ['div.panel.panel-active', __spread(['div.content', ctx.theme.accordion.bodyOpen], body)] : ['div.panel', ['div.content', ctx.theme.accordion.bodyClosed]]];
-};
-},{"@thi.ng/hiccup-carbon-icons/header-chevron":"../../../node_modules/@thi.ng/hiccup-carbon-icons/header-chevron.js","@thi.ng/hiccup-carbon-icons/header-close":"../../../node_modules/@thi.ng/hiccup-carbon-icons/header-close.js","./icon-wrapper":"accordion/icon-wrapper.ts"}],"slider.ts":[function(require,module,exports) {
-"use strict";
-
-var __assign = this && this.__assign || function () {
-  __assign = Object.assign || function (t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-      s = arguments[i];
-
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-
-    return t;
-  };
-
-  return __assign.apply(this, arguments);
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-function slider(label, value, onChange, opts) {
-  return ['div', ['div', label], ['input', __assign({
-    type: 'range',
-    value: value,
-    oninput: function (e) {
-      return onChange(parseFloat(e.target.value));
-    }
-  }, opts)]];
-}
-
-exports.slider = slider;
-},{}],"background.png":[function(require,module,exports) {
-module.exports = "/background.e3ad310f.png";
-},{}],"index.ts":[function(require,module,exports) {
-"use strict";
-
-var __read = this && this.__read || function (o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o),
-      r,
-      ar = [],
-      e;
-
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = {
-      error: error
-    };
-  } finally {
-    try {
-      if (r && !r.done && (m = i["return"])) m.call(i);
-    } finally {
-      if (e) throw e.error;
-    }
-  }
-
-  return ar;
-};
-
-var __spread = this && this.__spread || function () {
-  for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-
-  return ar;
-};
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -27076,102 +20984,32 @@ var hdom_1 = require("@thi.ng/hdom");
 
 var canvas_1 = require("@thi.ng/hdom-components/canvas");
 
+var checks_1 = require("@thi.ng/checks");
+
 var scene_1 = require("./scene");
 
-var materials_1 = require("./materials");
-
-var accordion_1 = require("./accordion/accordion");
-
-var state_1 = require("./state");
-
-var slider_1 = require("./slider");
-
-var background_png_1 = __importDefault(require("./background.png"));
-
-var noParams = ['div', 'no parameter'];
-
-var params = function (keys, path) {
-  return keys.map(function (key, i) {
-    var item = state_1.lightParams.deref()[path];
-    return ["div" + (i !== 0 ? '.mv2' : ''), [slider_1.slider(key + ": " + item[key], item[key], function (value) {
-      state_1.BUS.dispatch([state_1.Event.UPDATE_LIGHT_PARAM, {
-        value: value,
-        path: path,
-        key: key
-      }]);
-    }, state_1.lightParamsMinMax[path][key])]];
-  });
+var loop = {
+  cancel: function () {}
 };
-
-var panels = function () {
-  return materials_1.createCommandAndProps.map(function (_a) {
-    var name = _a.name,
-        path = _a.path;
-    var pathKeys = state_1.lightParams.deref()[path];
-    var keys = pathKeys ? Object.keys(pathKeys) : [];
-    return {
-      title: name,
-      body: [keys.length === 0 ? noParams : params(keys, path)]
-    };
-  });
-};
-
-var materialPanel = function (ctx) {
-  return accordion_1.accordion.apply(void 0, __spread([ctx, function (id) {
-    return ctx.bus.dispatch([state_1.Event.TOGGLE_PANEL_SINGLE, id]);
-  }, function (id) {
-    return ctx.bus.state.value.panels[id];
-  }], panels()));
-};
-
-var canvas = canvas_1.canvasWebGL(scene_1.createReglScene());
 
 var app = function () {
-  var processed = ctx.bus.processQueue();
-  var content = processed ? ['div.f7.code', ['div.w-100.h-100', ['p.ma0.pa2', 'light study'], ['div.vw-100.vh-100.flex',
-  /* */
-  ['div.w5.pa2.pt3', materialPanel],
-  /* */
-  ['div.w-100.vh-100', {
-    style: {
-      'background-image': "url(\"" + background_png_1.default + "\")"
-    }
-  }, [canvas]]]]] : null;
-  return content;
+  if (!checks_1.hasWebGL()) {
+    return ['p', 'Your browser does not support WebGL :- ('];
+  }
+
+  var canvas = canvas_1.canvasWebGL(scene_1.createReglScene());
+  return ['div.h-100.flex.flex-column', ['p.ma0.pa2.code', 'regl splash screen'], ['div.h-100', [canvas]]];
 };
 
-var ctx = {
-  bus: state_1.BUS,
-  theme: {
-    accordion: {
-      root: {
-        class: 'mv3'
-      },
-      title: {
-        class: 'pointer fw6 ma0 mt2 pv2 ph3 bb b--gray dim'
-      },
-      bodyOpen: {
-        class: 'gray pa3 mt2 bb'
-      },
-      bodyClosed: {
-        class: 'ph3'
-      }
-    }
-  }
-};
-window.ctx = ctx;
-var hdomDispose = hdom_1.start(app, {
-  ctx: ctx
-});
-state_1.BUS.dispatch([state_1.Event.UPDATE_UI]);
+hdom_1.start(app());
 
 if (module.hot) {
   ;
   module.hot.dispose(function () {
-    hdomDispose();
+    loop.cancel();
   });
 }
-},{"@thi.ng/hdom":"../../../node_modules/@thi.ng/hdom/index.js","@thi.ng/hdom-components/canvas":"../../../node_modules/@thi.ng/hdom-components/canvas.js","./scene":"scene.ts","./materials":"materials.ts","./accordion/accordion":"accordion/accordion.ts","./state":"state.ts","./slider":"slider.ts","./background.png":"background.png"}],"../../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"@thi.ng/hdom":"../../../node_modules/@thi.ng/hdom/index.js","@thi.ng/hdom-components/canvas":"../../../node_modules/@thi.ng/hdom-components/canvas.js","@thi.ng/checks":"../../../node_modules/@thi.ng/checks/index.js","./scene":"scene.ts"}],"../../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -27198,7 +21036,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60816" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53739" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
