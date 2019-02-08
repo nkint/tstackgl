@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/regl-draw",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "regl draw command and utility",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
