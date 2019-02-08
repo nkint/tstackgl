@@ -10,5 +10,6 @@
     "@tstackgl/types": "^0.0.0"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "gitHead": "d5d0a0c730914ab904195c89c3423786e4a7fbdb"
 }
