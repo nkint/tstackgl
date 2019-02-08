@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 1.0.5 (2019-02-08)
+
+**Note:** Version bump only for package @tstackgl/types
+
+
+
+
+
 ## [1.0.4](https://github.com/nkint/tstackgl/compare/@tstackgl/types@1.0.4...@tstackgl/types@1.0.4) (2019-02-08)
 
 **Note:** Version bump only for package @tstackgl/types

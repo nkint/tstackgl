@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/stackgl-types",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "internal and external tstackgl types",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -12,7 +12,7 @@
     "build-not-working": "yarn run clean && tsc --declaration && find . -type f -name '*.d.ts' -exec cat {} + >> ./dist/index.d.ts"
   },
   "dependencies": {
-    "@tstackgl/types": "^1.0.4"
+    "@tstackgl/types": "^1.0.5"
   },
   "devDependencies": {
     "typescript": "^3.2.2"
