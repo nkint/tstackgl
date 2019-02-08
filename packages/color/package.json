@@ -1,15 +1,15 @@
 {
   "name": "@tstackgl/color",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "description": "color utility",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@tstackgl/types": "^1.0.4"
+    "@tstackgl/types": "^1.0.0"
   },
   "author": "",
   "license": "ISC",
-  "gitHead": "83452c8ca419e500fd01ea7facb87eea269b895f"
+  "gitHead": "229fcfd505a4cce68d1086350fbea2fba0d5fd01"
 }
