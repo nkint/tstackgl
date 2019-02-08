@@ -9,7 +9,7 @@
     "bootstrap": "lerna bootstrap",
     "build": "yarn install && lerna -v && lerna bootstrap && lerna run build --sort",
     "clean": "rm -rf node_modules; rm -rf packages/*/node_modules; rm yarn.lock; yarn cache clean",
-    "pub": "is-git-status-clean && lerna publish --registry https://registry.npmjs.org/ --no-commit"
+    "pub": "is-git-status-clean && lerna publish --registry https://registry.npmjs.org/"
   },
   "engines": {
     "node": ">=8.6",
