@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@thi.ng/transducers": "^2.2.7",
-    "@tstackgl/stackgl-types": "^0.0.0",
-    "@tstackgl/types": "^0.0.0",
+    "@tstackgl/stackgl-types": "^1.0.2",
+    "@tstackgl/types": "^1.0.2",
     "angle-normals": "^1.0.0",
     "earcut": "^2.1.4",
     "gl-mat3": "^2.0.0",
@@ -26,5 +26,5 @@
   "devDependencies": {
     "@types/earcut": "^2.1.0"
   },
-  "gitHead": "d5d0a0c730914ab904195c89c3423786e4a7fbdb"
+  "gitHead": "7d88c4a0127a0f021a799272f1703d2005814e0c"
 }
