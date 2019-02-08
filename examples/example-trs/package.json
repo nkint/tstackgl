@@ -47,5 +47,6 @@
   ],
   "browser": {
     "process": false
-  }
+  },
+  "private": true
 }
