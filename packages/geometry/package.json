@@ -26,5 +26,8 @@
   "devDependencies": {
     "@types/earcut": "^2.1.0"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "gitHead": "229fcfd505a4cce68d1086350fbea2fba0d5fd01"
 }
