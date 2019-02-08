@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/examples-primitives",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "3d primitive lists",
   "author": "nkint <nootropic.kint@gmail.com>",
   "license": "MIT",
