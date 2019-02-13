@@ -4,20 +4,19 @@ import mat3 from 'gl-mat3'
 import mat4 from 'gl-mat4'
 import { Mesh, Vec3 } from '@tstackgl/types'
 
-import { createUnicolor, PropsUnicolor } from './draw-unicolor'
-import { createNormalMesh as createNormal, PropsNormal } from './draw-normal'
-import { createDiffuseLambert, PropsDiffuseLambert } from './draw-diffuse-lambert'
-import { createDiffuseOrenNayar, PropsDiffuseOrenNayar } from './draw-diffuse-oren-nayar'
-import { PropsSpecularPhong, createSpecularPhong } from './draw-specular-phong'
-import { createSpecularBlinnPhong } from './draw-specular-blinn-phong'
-import { createAttenuation, PropsAttenuation } from './draw-attenuation'
-import { createSpecularWard, PropsSpecularWard } from './draw-specular-ward'
-import { createSpecularBeckmann, PropsSpecularBeckmann } from './draw-specular-beckmann'
-import { createSpecularGaussian, PropsSpecularGaussian } from './draw-specular-gaussian'
-import {
-  createSpecularCookTorrance,
-  PropsSpecularCookTorrance,
-} from './draw-specular-cook-torrance'
+import { createUnicolor, PropsUnicolor } from '@tstackgl/regl-draw'
+import { createNormalMesh as createNormal, PropsNormal } from '@tstackgl/regl-draw'
+import { createDiffuseLambert, PropsDiffuseLambert } from '@tstackgl/regl-draw'
+import { createDiffuseOrenNayar, PropsDiffuseOrenNayar } from '@tstackgl/regl-draw'
+import { PropsSpecularPhong, createSpecularPhong } from '@tstackgl/regl-draw'
+import { createSpecularBlinnPhong } from '@tstackgl/regl-draw'
+import { createAttenuation, PropsAttenuation } from '@tstackgl/regl-draw'
+import { createSpecularWard, PropsSpecularWard } from '@tstackgl/regl-draw'
+import { createSpecularBeckmann, PropsSpecularBeckmann } from '@tstackgl/regl-draw'
+import { createSpecularGaussian, PropsSpecularGaussian } from '@tstackgl/regl-draw'
+import { createSpecularCookTorrance, PropsSpecularCookTorrance } from '@tstackgl/regl-draw'
+
+console.log({ createUnicolor })
 
 import { color, lightParams, LightParams } from './state'
 
@@ -185,3 +184,5 @@ export const createCommandAndProps: Array<{
     props: specularCookTorrance,
   },
 ]
+
+console.log({ createCommandAndProps })

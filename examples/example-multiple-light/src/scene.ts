@@ -36,6 +36,7 @@ export function createReglScene() {
         const model = mat4.create()
         const translation: Vec3 = [7.5 - Math.floor(i / numRow) * 5, 1.5, 5 - (i % numRow) * 5]
         mat4.translate(model, model, translation)
+        mat4.rotateX(model, model, Math.PI / 2)
         return { model, drawCommand: create(regl, mesh), props, path }
       }),
     )

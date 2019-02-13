@@ -133,12 +133,13 @@ export const BUS = new EventBus(state, {
 
 const _lightPosition = vec3.create()
 export const lightPosition = BUS.state.addView('animationTime', (t: Number) => {
-  vec3.set(
-    _lightPosition,
-    animationObj.value * 20 - 10,
-    Math.sin(Math.PI / 2 + animationObj.value * TWO_PI) * 5,
-    Math.cos(Math.PI / 2 + animationObj.value * TWO_PI) * 5,
-  )
+  // vec3.set(
+  //   _lightPosition,
+  //   animationObj.value * 20 - 10,
+  //   Math.sin(Math.PI / 2 + animationObj.value * TWO_PI) * 5,
+  //   Math.cos(Math.PI / 2 + animationObj.value * TWO_PI) * 5,
+  // )
+  vec3.set(_lightPosition, 10, 5, 0)
   return _lightPosition
 })
 
@@ -150,35 +151,35 @@ const animationObj = {
 
 const TWO_PI = Math.PI * 2
 
-const timeline = anime
-  .timeline({
-    loop: true,
-    update: () => {
-      if (animationTime.deref() !== animationObj.value) {
-        BUS.dispatch([Event.UPDATE_ANIMATION_TIME, animationObj.value])
-      }
-    },
-    easing: 'easeInOutSine',
-  })
-  .add({
-    targets: animationObj,
-    value: 1,
-    duration: 3000,
-  })
-  .add({
-    targets: animationObj,
-    value: 1,
-    duration: 2000,
-  })
-  .add({
-    targets: animationObj,
-    value: 0,
-    duration: 3000,
-  })
-  .add({
-    targets: animationObj,
-    value: 0,
-    duration: 2000,
-  })
+// const timeline = anime
+//   .timeline({
+//     loop: true,
+//     update: () => {
+//       if (animationTime.deref() !== animationObj.value) {
+//         BUS.dispatch([Event.UPDATE_ANIMATION_TIME, animationObj.value])
+//       }
+//     },
+//     easing: 'easeInOutSine',
+//   })
+//   .add({
+//     targets: animationObj,
+//     value: 1,
+//     duration: 3000,
+//   })
+//   .add({
+//     targets: animationObj,
+//     value: 1,
+//     duration: 2000,
+//   })
+//   .add({
+//     targets: animationObj,
+//     value: 0,
+//     duration: 3000,
+//   })
+//   .add({
+//     targets: animationObj,
+//     value: 0,
+//     duration: 2000,
+//   })
 
-timeline.play()
+// timeline.play()
