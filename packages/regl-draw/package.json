@@ -6,7 +6,8 @@
   "typings": "./dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "yarn run clean && tsc --declaration",
+    "copy-shaders": "rsync -rv --include=\"*/\" --include='*.'{vert,frag} --exclude=\"*\" ./src/* ./dist",
+    "build": "yarn run clean && tsc --declaration && yarn run copy-shaders",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
