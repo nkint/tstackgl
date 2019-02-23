@@ -3,12 +3,12 @@
   "version": "1.0.9",
   "description": "stackgl ecosystem types",
   "main": "",
-  "typings": "./dist/index.d.ts",
+  "typings": "index.d.ts",
   "author": "",
   "license": "MIT",
   "scripts": {
-    "clean": "rm -rf dist",
-    "build": "yarn run clean && mkdir dist && cat ./src/*.d.ts >> ./dist/index.d.ts"
+    "clean": "rm index.d.ts",
+    "build": "yarn run clean && cat ./src/*.d.ts >> index.d.ts"
   },
   "dependencies": {
     "@tstackgl/types": "^1.0.7"
