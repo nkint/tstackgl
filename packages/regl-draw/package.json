@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/regl-draw",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "regl draw command and utility",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@thi.ng/transducers": "^2.2.7",
-    "@tstackgl/geometry": "^1.0.7",
-    "@tstackgl/stackgl-types": "^1.0.7",
+    "@tstackgl/geometry": "^1.0.8",
+    "@tstackgl/stackgl-types": "^1.0.8",
     "@tstackgl/types": "^1.0.7",
     "gl-mat4": "^1.2.0",
     "gl-vec3": "^1.1.3",

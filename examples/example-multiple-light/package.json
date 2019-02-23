@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/examples-multiple-light",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "light study",
   "author": "nkint <nootropic.kint@gmail.com>",
   "license": "MIT",
@@ -23,8 +23,8 @@
     "@thi.ng/hiccup-carbon-icons": "^0.1.2",
     "@thi.ng/interceptors": "^1.9.2",
     "@thi.ng/transducers": "latest",
-    "@tstackgl/geometry": "^1.0.7",
-    "@tstackgl/regl-draw": "^1.0.8",
+    "@tstackgl/geometry": "^1.0.8",
+    "@tstackgl/regl-draw": "^1.0.9",
     "@tstackgl/types": "^1.0.7",
     "animejs": "^3.0.0",
     "glsl-inverse": "^1.0.0",
