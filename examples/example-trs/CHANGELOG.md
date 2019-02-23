@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.13](https://github.com/nkint/tstackgl/compare/@tstackgl/examples-trs@0.0.12...@tstackgl/examples-trs@0.0.13) (2019-02-23)
+
+**Note:** Version bump only for package @tstackgl/examples-trs
+
+
+
+
+
 ## [0.0.12](https://github.com/nkint/tstackgl/compare/@tstackgl/examples-trs@0.0.11...@tstackgl/examples-trs@0.0.12) (2019-02-23)
 
 **Note:** Version bump only for package @tstackgl/examples-trs

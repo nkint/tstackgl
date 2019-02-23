@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/stackgl-types",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "stackgl ecosystem types",
   "main": "",
   "typings": "./dist/index.d.ts",
