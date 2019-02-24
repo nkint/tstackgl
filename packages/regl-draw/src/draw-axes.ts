@@ -87,6 +87,5 @@ export function createXYZ(regl: createRegl.Regl, scale = 1) {
     axes()
     axesLines()
   }
-
   return { draw }
 }
