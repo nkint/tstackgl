@@ -28,16 +28,16 @@ interface Attributes {
   normal: Array<Vec3>
 }
 
-export interface Props {
+export interface PropsDebug {
   color: Vec3
   translate: Vec3
 }
 
-interface Uniforms extends Props {}
+interface Uniforms extends PropsDebug {}
 
 export function createDrawPointDebug(regl: createRegl.Regl, radius = 0.3) {
   const mesh = createSphere(radius, { subdivisions: 1 })
-  const draw = regl<Uniforms, Attributes, Props>({
+  const draw = regl<Uniforms, Attributes, PropsDebug>({
     frag,
     vert,
     attributes: {
@@ -45,8 +45,8 @@ export function createDrawPointDebug(regl: createRegl.Regl, radius = 0.3) {
       normal: () => mesh.normals,
     },
     uniforms: {
-      color: regl.prop<Props, 'color'>('color'),
-      translate: regl.prop<Props, 'translate'>('translate'),
+      color: regl.prop<PropsDebug, 'color'>('color'),
+      translate: regl.prop<PropsDebug, 'translate'>('translate'),
     },
     elements: () => mesh.cells,
   })
