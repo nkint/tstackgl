@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.15](https://github.com/nkint/tstackgl/compare/@tstackgl/examples-extrude@0.0.14...@tstackgl/examples-extrude@0.0.15) (2019-02-24)
+
+**Note:** Version bump only for package @tstackgl/examples-extrude
+
+
+
+
+
 ## [0.0.14](https://github.com/nkint/tstackgl/compare/@tstackgl/examples-extrude@0.0.13...@tstackgl/examples-extrude@0.0.14) (2019-02-23)
 
 **Note:** Version bump only for package @tstackgl/examples-extrude

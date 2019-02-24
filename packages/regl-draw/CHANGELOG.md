@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.12](https://github.com/nkint/tstackgl/compare/@tstackgl/regl-draw@1.0.11...@tstackgl/regl-draw@1.0.12) (2019-02-24)
+
+
+### Bug Fixes
+
+* **regl-draw:** fix import path ([552f28e](https://github.com/nkint/tstackgl/commit/552f28e))
+
+
+
+
+
 ## [1.0.11](https://github.com/nkint/tstackgl/compare/@tstackgl/regl-draw@1.0.10...@tstackgl/regl-draw@1.0.11) (2019-02-23)
 
 **Note:** Version bump only for package @tstackgl/regl-draw
