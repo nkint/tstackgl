@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/examples-splash-stackgl",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "stackgl splash screen",
   "author": "nkint <nootropic.kint@gmail.com>",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "@thi.ng/hdom-components": "latest",
     "@thi.ng/transducers": "latest",
     "@tstackgl/geometry": "^1.0.10",
-    "@tstackgl/regl-draw": "^1.0.14",
+    "@tstackgl/regl-draw": "^1.0.15",
     "@tstackgl/types": "^1.0.7",
     "@types/clone": "^0.1.30",
     "bunny": "^1.0.1",

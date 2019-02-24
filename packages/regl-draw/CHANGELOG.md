@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.15](https://github.com/nkint/tstackgl/compare/@tstackgl/regl-draw@1.0.14...@tstackgl/regl-draw@1.0.15) (2019-02-24)
+
+
+### Bug Fixes
+
+* **regl-draw:** glslify to compile shader when building regl-draw ([49f660a](https://github.com/nkint/tstackgl/commit/49f660a))
+
+
+
+
+
 ## [1.0.14](https://github.com/nkint/tstackgl/compare/@tstackgl/regl-draw@1.0.13...@tstackgl/regl-draw@1.0.14) (2019-02-24)
 
 **Note:** Version bump only for package @tstackgl/regl-draw
