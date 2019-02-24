@@ -6,7 +6,7 @@
   "typings": "./dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "copy-shaders": "rsync -rv --include=\"*/\" --include='*.'{vert,frag} --exclude=\"*\" ./src/* ./dist",
+    "copy-shaders": "./copy-shader.sh",
     "build": "yarn run clean && tsc --declaration && yarn run copy-shaders",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -26,5 +26,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "efa57cd32c0164e608d51197ec27d7d6abd4e3fb"
+  "gitHead": "efa57cd32c0164e608d51197ec27d7d6abd4e3fb",
+  "devDependencies": {
+    "glslify": "^7.0.0"
+  }
 }
