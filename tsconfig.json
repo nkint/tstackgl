@@ -5,7 +5,7 @@
     "moduleResolution": "node",
     "target": "es5",
     "lib": ["dom", "es6", "es2017"],
-    "sourceMap": true,
+    "sourceMap": false,
     "jsx": "react",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
