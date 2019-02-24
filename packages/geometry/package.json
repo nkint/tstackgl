@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/geometry",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "geometry utility",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@thi.ng/transducers": "^2.2.7",
-    "@tstackgl/stackgl-types": "^1.0.10",
-    "@tstackgl/types": "^1.0.7",
+    "@tstackgl/stackgl-types": "^1.0.11",
+    "@tstackgl/types": "^1.0.8",
     "angle-normals": "^1.0.0",
     "earcut": "^2.1.4",
     "gl-mat3": "^2.0.0",

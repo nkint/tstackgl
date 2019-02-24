@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/types",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "internal and external tstackgl types",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",

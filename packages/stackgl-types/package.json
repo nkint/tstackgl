@@ -1,6 +1,6 @@
 {
   "name": "@tstackgl/stackgl-types",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "stackgl ecosystem types",
   "main": "",
   "typings": "./dist/index.d.ts",
@@ -11,7 +11,7 @@
     "build": "yarn run clean && mkdir dist && cat ./src/*.d.ts >> ./dist/index.d.ts"
   },
   "dependencies": {
-    "@tstackgl/types": "^1.0.7"
+    "@tstackgl/types": "^1.0.8"
   },
   "devDependencies": {
     "typescript": "^3.2.2"
