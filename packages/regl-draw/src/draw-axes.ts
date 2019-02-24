@@ -1,9 +1,8 @@
 import { Mesh, Vec3 } from '@tstackgl/types'
-import { combine } from '@tstackgl/geometry/src/mesh-combine-normals'
 import createRegl from 'regl'
 import mat4 from 'gl-mat4'
 import vec3 from 'gl-vec3'
-import { createCylinder } from '@tstackgl/geometry'
+import { createCylinder, combine } from '@tstackgl/geometry'
 
 const vert = `
   precision mediump float;
