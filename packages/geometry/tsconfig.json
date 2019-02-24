@@ -3,6 +3,6 @@
   "compilerOptions": {
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.ts", "../stackgl-types/**/*.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.ts", "../stackgl-types/src/*.d.ts"],
   "exclude": ["dist"]
 }
